@@ -28,6 +28,7 @@ def initialize(server):
                 off_icon="mdi-rotate-3d",
                 true_value="edit_grid",
                 false_value="view_grid",
+                change=ctrl.reset_camera,
             )
 
         # Drawer
@@ -130,7 +131,9 @@ def initialize(server):
                                 "{{ grid_point_dimensions }}", classes="text-caption"
                             )
                             vuetify.VSpacer()
-                            with vuetify.VBtn(icon=True, small=True):
+                            with vuetify.VBtn(
+                                icon=True, small=True, click=ctrl.grid_clear_point_data
+                            ):
                                 vuetify.VIcon("mdi-autorenew")
                         vuetify.VDivider()
                         with vuetify.VCardText():
@@ -166,7 +169,9 @@ def initialize(server):
                                 "{{ grid_cell_dimensions }}", classes="text-caption"
                             )
                             vuetify.VSpacer()
-                            with vuetify.VBtn(icon=True, small=True):
+                            with vuetify.VBtn(
+                                icon=True, small=True, click=ctrl.grid_clear_cell_data
+                            ):
                                 vuetify.VIcon("mdi-autorenew")
                         vuetify.VDivider()
                         with vuetify.VCardText():

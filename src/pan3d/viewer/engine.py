@@ -89,6 +89,8 @@ class RectilinearBuilder:
         ctrl.grid_add_cell_data = self.add_cell_data
         ctrl.grid_remove_point_data = self.remove_point_data
         ctrl.grid_remove_cell_data = self.remove_cell_data
+        ctrl.grid_clear_point_data = self.clear_point_data
+        ctrl.grid_clear_cell_data = self.clear_cell_data
         ctrl.grid_reset = self.reset
 
     def reset(self):
@@ -136,6 +138,18 @@ class RectilinearBuilder:
         self._grid.GetPointData().AddArray(vtk_array)
         self._server.state.grid_point_data.append(array_path)
         self._server.state.dirty("grid_point_data")
+
+    def clear_point_data(self):
+        pd = self._grid.GetPointData()
+        while pd.GetNumberOfArrays():
+            pd.RemoveArray(0)
+        self._server.state.grid_point_data = []
+
+    def clear_cell_data(self):
+        cd = self._grid.GetCellData()
+        while cd.GetNumberOfArrays():
+            cd.RemoveArray(0)
+        self._server.state.grid_cell_data = []
 
     def remove_point_data(self, array_path):
         name = array_path.split("/")[-1]
