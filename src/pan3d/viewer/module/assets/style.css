@@ -1,0 +1,3 @@
+.v-treeview--dense .v-treeview-node__root {
+    min-height: 15px !important;
+}

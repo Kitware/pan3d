@@ -1,0 +1,25 @@
+===========
+Pan3D
+===========
+
+Pan3D aims to be an utility package for viewing and processing a wide varierty of datasets (zarr, hdf5, netcdf...)
+
+
+* Free software: Apache Software License
+
+
+Installing
+----------
+
+Install the application
+
+.. code-block:: console
+
+    pip install pan3d
+
+
+Run the application
+
+.. code-block:: console
+
+    pan3d-viewer
