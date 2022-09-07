@@ -22,4 +22,4 @@ Run the application
 
 .. code-block:: console
 
-    pan3d-viewer
+    pan3d-viewer --data /path/to/directory.zarr
