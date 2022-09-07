@@ -343,6 +343,12 @@ def initialize(server):
                                 ):
                                     with vuetify.VListItemContent():
                                         vuetify.VListItemTitle("{{ item }}")
+                                    with vuetify.VListItemIcon(
+                                        click=(ctrl.grid_remove_cell_data, "[item]")
+                                    ):
+                                        vuetify.VIcon(
+                                            "mdi-delete-forever-outline", small=True
+                                        )
                         with vuetify.VCardActions():
                             vuetify.VBtn(
                                 "Add {{ array_info?.name }}",
