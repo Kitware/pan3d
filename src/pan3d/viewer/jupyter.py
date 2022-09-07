@@ -1,6 +1,7 @@
 from trame.app import get_server, jupyter
 from pan3d.viewer import engine, ui
 from trame_vtk.modules import vtk
+from .. import logger, logging
 
 
 def show(server=None, zarr=None, **kwargs):
@@ -13,13 +14,12 @@ def show(server=None, zarr=None, **kwargs):
 
     if isinstance(server, str):
         server = get_server(server)
+
+        # Needed to support multi-instance in Jupyter
         server.enable_module(vtk)
 
     # Disable logging
-    import logging
-
-    engine_logger = logging.getLogger("pan3d.viewer.engine")
-    engine_logger.setLevel(logging.WARNING)
+    logger.setLevel(logging.WARNING)
 
     # Initialize app
     engine.initialize(server, zarr)

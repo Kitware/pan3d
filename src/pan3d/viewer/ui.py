@@ -13,12 +13,36 @@ def initialize(server):
         layout.title.set_text("Pan3D Viewer")
         with layout.toolbar:
             layout.toolbar.dense = True
+            layout.toolbar.align = "center"
             vuetify.VSpacer()
+            vuetify.VSelect(
+                v_show="view_mode === 'view_grid'",
+                v_model=("grid_active_array", "Solid Color"),
+                items=(
+                    "['Solid Color'].concat(grid_point_data, grid_cell_data).map((v) => v.split('/').pop())",
+                ),
+                dense=True,
+                hide_details=True,
+                classes="mx-2",
+                style="max-width: 200px",
+            )
 
             with vuetify.VBtn(
-                icon=True, click=ctrl.reset_camera, v_show="view_mode === 'view_grid'"
+                v_show="view_mode === 'view_grid'",
+                icon=True,
+                click=ctrl.reset_camera,
             ):
                 vuetify.VIcon("mdi-crop-free")
+
+            vuetify.VCheckbox(
+                v_show="view_mode === 'view_grid'",
+                v_model=("view_edge_visiblity", True),
+                dense=True,
+                hide_details=True,
+                on_icon="mdi-border-all",
+                off_icon="mdi-border-outside",
+                classes="ma-2",
+            )
 
             vuetify.VCheckbox(
                 v_model=("view_mode", "edit_grid"),
@@ -29,6 +53,7 @@ def initialize(server):
                 true_value="edit_grid",
                 false_value="view_grid",
                 change=ctrl.reset_camera,
+                classes="ma-2",
             )
 
         # Drawer
@@ -57,9 +82,12 @@ def initialize(server):
                     v_show="view_mode === 'view_grid'",
                     interactive_ratio=1,
                 ) as vtk_view:
+                    ctrl.view_update = vtk_view.update
                     ctrl.reset_camera = vtk_view.reset_camera
 
-                with vuetify.VCol(v_show="view_mode === 'edit_grid'"):
+                with vuetify.VCol(
+                    v_show="view_mode === 'edit_grid'", classes="fill-height"
+                ):
                     with vuetify.VCard():
                         with vuetify.VCardTitle("Grid", classes="py-1"):
                             vuetify.VSpacer()
@@ -69,21 +97,21 @@ def initialize(server):
                                     "grid_types",
                                     [
                                         {
-                                            "text": "Homogeneous grid",
+                                            "text": "Image data",
                                             "value": "vtkImageData",
                                         },
                                         {
                                             "text": "Rectilinear grid",
                                             "value": "vtkRectilinearGrid",
                                         },
-                                        {
-                                            "text": "Geometry surface mesh",
-                                            "value": "vtkPolyData",
-                                        },
-                                        {
-                                            "text": "Unstructured grid",
-                                            "value": "vtkUnstructuredGrid",
-                                        },
+                                        # {
+                                        #     "text": "Geometry surface mesh",
+                                        #     "value": "vtkPolyData",
+                                        # },
+                                        # {
+                                        #     "text": "Unstructured grid",
+                                        #     "value": "vtkUnstructuredGrid",
+                                        # },
                                     ],
                                 ),
                                 dense=True,
@@ -92,7 +120,107 @@ def initialize(server):
                             )
                         vuetify.VDivider()
                         with vuetify.VCardText():
-                            with vuetify.VCol():
+                            with vuetify.VCol(v_if="grid_type == 'vtkImageData'"):
+                                with vuetify.VRow():
+                                    html.Div(
+                                        "Dimensions",
+                                        classes="text-subtitle-1 pr-2 pt-1",
+                                        style="width: 100px;",
+                                    )
+                                    vuetify.VTextField(
+                                        label="X",
+                                        v_model="grid_dimensions[0]",
+                                        type="Number",
+                                        dense=True,
+                                        hide_details=True,
+                                        classes="mx-1 py-0",
+                                        change="flushState('grid_dimensions')",
+                                    )
+                                    vuetify.VTextField(
+                                        label="Y",
+                                        v_model="grid_dimensions[1]",
+                                        dense=True,
+                                        type="Number",
+                                        hide_details=True,
+                                        classes="mx-1 py-0",
+                                        change="flushState('grid_dimensions')",
+                                    )
+                                    vuetify.VTextField(
+                                        label="Z",
+                                        v_model="grid_dimensions[2]",
+                                        dense=True,
+                                        type="Number",
+                                        hide_details=True,
+                                        classes="mx-1 py-0",
+                                        change="flushState('grid_dimensions')",
+                                    )
+                                with vuetify.VRow(classes="py-6"):
+                                    html.Div(
+                                        "Spacing",
+                                        classes="text-subtitle-1 pr-2 pt-1",
+                                        style="width: 100px;",
+                                    )
+                                    vuetify.VTextField(
+                                        label="X",
+                                        v_model="grid_spacing[0]",
+                                        type="Number",
+                                        dense=True,
+                                        hide_details=True,
+                                        classes="mx-1 py-0",
+                                        change="flushState('grid_spacing')",
+                                    )
+                                    vuetify.VTextField(
+                                        label="Y",
+                                        v_model="grid_spacing[1]",
+                                        dense=True,
+                                        type="Number",
+                                        hide_details=True,
+                                        classes="mx-1 py-0",
+                                        change="flushState('grid_spacing')",
+                                    )
+                                    vuetify.VTextField(
+                                        label="Z",
+                                        v_model="grid_spacing[2]",
+                                        dense=True,
+                                        type="Number",
+                                        hide_details=True,
+                                        classes="mx-1 py-0",
+                                        change="flushState('grid_spacing')",
+                                    )
+                                with vuetify.VRow():
+                                    html.Div(
+                                        "Origin",
+                                        classes="text-subtitle-1 pr-2 pt-1",
+                                        style="width: 100px;",
+                                    )
+                                    vuetify.VTextField(
+                                        label="X",
+                                        v_model="grid_origin[0]",
+                                        type="Number",
+                                        dense=True,
+                                        hide_details=True,
+                                        classes="mx-1 py-0",
+                                        change="flushState('grid_origin')",
+                                    )
+                                    vuetify.VTextField(
+                                        label="Y",
+                                        v_model="grid_origin[1]",
+                                        dense=True,
+                                        type="Number",
+                                        hide_details=True,
+                                        classes="mx-1 py-0",
+                                        change="flushState('grid_origin')",
+                                    )
+                                    vuetify.VTextField(
+                                        label="Z",
+                                        v_model="grid_origin[2]",
+                                        dense=True,
+                                        type="Number",
+                                        hide_details=True,
+                                        classes="mx-1 py-0",
+                                        change="flushState('grid_origin')",
+                                    )
+                            with vuetify.VCol(v_if="grid_type == 'vtkRectilinearGrid'"):
                                 with vuetify.VRow():
                                     html.Div("X:", classes="text-subtitle-2 pr-2")
                                     html.Div("{{ grid_x_array || 'Undefined' }}")
@@ -101,7 +229,18 @@ def initialize(server):
                                         "Use {{ array_info?.name }}",
                                         v_if="array_info?.dimensions?.length === 1",
                                         x_small=True,
+                                        classes="mx-1",
                                         click=(ctrl.grid_bind_x, "[array_info?.name]"),
+                                    )
+                                    vuetify.VBtn(
+                                        "Use {{ array_info?.name }} (cell)",
+                                        v_if="array_info?.dimensions?.length === 1",
+                                        x_small=True,
+                                        classes="mx-1",
+                                        click=(
+                                            ctrl.grid_bind_x,
+                                            "[array_info?.name, true]",
+                                        ),
                                     )
                                 with vuetify.VRow():
                                     html.Div("Y:", classes="text-subtitle-2 pr-2")
@@ -111,7 +250,18 @@ def initialize(server):
                                         "Use {{ array_info?.name }}",
                                         v_if="array_info?.dimensions?.length === 1",
                                         x_small=True,
+                                        classes="mx-1",
                                         click=(ctrl.grid_bind_y, "[array_info?.name]"),
+                                    )
+                                    vuetify.VBtn(
+                                        "Use {{ array_info?.name }} (cell)",
+                                        v_if="array_info?.dimensions?.length === 1",
+                                        x_small=True,
+                                        classes="mx-1",
+                                        click=(
+                                            ctrl.grid_bind_y,
+                                            "[array_info?.name, true]",
+                                        ),
                                     )
                                 with vuetify.VRow():
                                     html.Div("Z:", classes="text-subtitle-2 pr-2")
@@ -121,7 +271,18 @@ def initialize(server):
                                         "Use {{ array_info?.name }}",
                                         v_if="array_info?.dimensions?.length === 1",
                                         x_small=True,
+                                        classes="mx-1",
                                         click=(ctrl.grid_bind_z, "[array_info?.name]"),
+                                    )
+                                    vuetify.VBtn(
+                                        "Use {{ array_info?.name }} (cell)",
+                                        v_if="array_info?.dimensions?.length === 1",
+                                        x_small=True,
+                                        classes="mx-1",
+                                        click=(
+                                            ctrl.grid_bind_z,
+                                            "[array_info?.name, true]",
+                                        ),
                                     )
 
                     with vuetify.VCard(classes="my-2"):
