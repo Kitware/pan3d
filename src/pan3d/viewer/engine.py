@@ -18,7 +18,6 @@ class MeshBuilder:
         # State variables
         self._state.array_active = None
         self._state.array_info = None
-        self._state.array_actions = []
 
         self._state.grid_dimensions = [1, 1, 1]
         self._state.grid_spacing = [1, 1, 1]
@@ -35,7 +34,6 @@ class MeshBuilder:
     def on_active_array(self, array_active, **kwargs):
         self._active_array = self._data_source.get(array_active)
         self._state.array_info = None
-        self._state.array_actions = []
         if self._active_array is not None:
             dims = list(self._active_array.shape)
             self._state.array_info = {
@@ -43,20 +41,6 @@ class MeshBuilder:
                 "type": f"{self._active_array.dtype}",
                 "name": self._active_array.name,
             }
-            if len(dims) == 4:
-                self._state.array_actions.append("field(time) add to points")
-                self._state.array_actions.append("field(time) add to cells")
-            if len(dims) == 3:
-                self._state.array_actions.append("field add to points")
-                self._state.array_actions.append("field add to cells")
-            if len(dims) == 1:
-                self._state.array_actions.append("Use for points along X")
-                self._state.array_actions.append("Use for cells size along X")
-                self._state.array_actions.append("Use for points along Y")
-                self._state.array_actions.append("Use for cells size along Y")
-                self._state.array_actions.append("Use for points along Z")
-                self._state.array_actions.append("Use for cells size along Z")
-                self._state.array_actions.append("Use for time")
 
 
 class MeshViewer:
