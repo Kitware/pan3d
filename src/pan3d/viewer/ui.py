@@ -84,9 +84,9 @@ def initialize(server):
                 ) as vtk_view:
                     ctrl.view_update = vtk_view.update
                     ctrl.reset_camera = vtk_view.reset_camera
-
                 with vuetify.VCol(
-                    v_show="view_mode === 'edit_grid'", classes="fill-height"
+                    v_show="view_mode === 'edit_grid'",
+                    classes="fill-height",
                 ):
                     with vuetify.VCard():
                         with vuetify.VCardTitle("Grid", classes="py-1"):
