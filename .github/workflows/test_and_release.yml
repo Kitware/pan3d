@@ -21,6 +21,7 @@ jobs:
           pip install pre-commit
           pre-commit install
           pre-commit run --all-files
+        working-directory: src/
 
   pytest:
     name: Pytest ${{ matrix.config.name }}
@@ -61,6 +62,7 @@ jobs:
         pip install .
         pip install -r tests/requirements.txt
         pytest -s ./tests
+      working-directory: src/
 
   release:
     needs: [
@@ -82,3 +84,4 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           repository_username: __token__
           repository_password: ${{ secrets.PYPI_API_TOKEN }}
+        working-directory: src/
