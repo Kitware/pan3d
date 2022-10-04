@@ -183,8 +183,3 @@ class RectilinearBuilder(AbstractGridBuilder):
         state.grid_point_dimensions = (x, y, z)
         state.grid_cell_dimensions = self.cell_dimensions
         self.grid.SetDimensions(x, y, z)
-
-
-MESH_TYPES = {
-    "vtkRectilinearGrid": RectilinearBuilder,
-}

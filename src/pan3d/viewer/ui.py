@@ -89,34 +89,9 @@ def initialize(server):
                     classes="fill-height",
                 ):
                     with vuetify.VCard():
-                        with vuetify.VCardTitle("Grid", classes="py-1"):
-                            vuetify.VSpacer()
-                            vuetify.VSelect(
-                                v_model=("grid_type", "vtkRectilinearGrid"),
-                                items=(
-                                    "grid_types",
-                                    [
-                                        {
-                                            "text": "Rectilinear grid",
-                                            "value": "vtkRectilinearGrid",
-                                        },
-                                        # {
-                                        #     "text": "Geometry surface mesh",
-                                        #     "value": "vtkPolyData",
-                                        # },
-                                        # {
-                                        #     "text": "Unstructured grid",
-                                        #     "value": "vtkUnstructuredGrid",
-                                        # },
-                                    ],
-                                ),
-                                dense=True,
-                                hide_details=True,
-                                style="max-width: 300px;",
-                            )
                         vuetify.VDivider()
                         with vuetify.VCardText():
-                            with vuetify.VCol(v_if="grid_type == 'vtkRectilinearGrid'"):
+                            with vuetify.VCol():
                                 with vuetify.VRow():
                                     html.Div("X:", classes="text-subtitle-2 pr-2")
                                     html.Div("{{ grid_x_array || 'Undefined' }}")

@@ -1,7 +1,7 @@
 import pyvista as pv
 
 from .core.data_sources import ZarrDataSource
-from .core.grids import MESH_TYPES
+from .core.grids import RectilinearBuilder
 from . import module
 
 
@@ -24,12 +24,10 @@ class MeshBuilder:
         self._state.grid_origin = [1, 1, 1]
 
         # Listen to changes
-        self._state.change("grid_type")(self.on_mesh_type)
         self._state.change("array_active")(self.on_active_array)
 
-    def on_mesh_type(self, grid_type, **kwargs):
-        self._grid_editor = MESH_TYPES[grid_type](self._server, self._data_source)
-        self._ctrl.grid_update(self._grid_editor.grid)
+        self._grid_editor = RectilinearBuilder(self._server, self._data_source)
+        # self._ctrl.grid_update(self._grid_editor.grid)
 
     def on_active_array(self, array_active, **kwargs):
         self._active_array = self._data_source.get(array_active)
@@ -44,7 +42,7 @@ class MeshBuilder:
 
 
 class MeshViewer:
-    def __init__(self, server):
+    def __init__(self, server, mesher):
         state, ctrl = server.state, server.controller
         self._ctrl = ctrl
 
@@ -57,7 +55,8 @@ class MeshViewer:
 
         # controller
         ctrl.get_render_window = self.get_render_window
-        ctrl.grid_update = self.on_grid_available
+
+        self.actor = self.plotter.add_mesh(mesher._grid_editor.grid, name='mesh')
 
         # Listen to changes
         state.change("grid_active_array")(self.on_color_by)
@@ -65,11 +64,6 @@ class MeshViewer:
 
     def get_render_window(self):
         return self.plotter.ren_win
-
-    def on_grid_available(self, input_mesh):
-        self.actor = self.plotter.add_mesh(input_mesh, name='mesh')
-        self.plotter.view_isometric()
-        self._ctrl.view_update()
 
     def on_edge_visiblity_change(self, view_edge_visiblity, **kwargs):
         if self.actor is None:
@@ -112,8 +106,8 @@ class MeshViewer:
 
 def initialize(server, source=None):
     data_source = ZarrDataSource(source)
-    _ = MeshBuilder(server, data_source)
-    viewer = MeshViewer(server)
+    mesher = MeshBuilder(server, data_source)
+    viewer = MeshViewer(server, mesher)
 
     # Initialize state for UI
     server.state.array_tree = data_source.tree
