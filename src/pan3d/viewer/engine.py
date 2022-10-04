@@ -1,4 +1,4 @@
-import vtk
+import pyvista as pv
 
 from .core.data_sources import ZarrDataSource
 from .core.grids import MESH_TYPES
@@ -44,33 +44,16 @@ class MeshBuilder:
 
 
 class MeshViewer:
-    def __init__(self, server, mesh):
+    def __init__(self, server):
         state, ctrl = server.state, server.controller
         self._ctrl = ctrl
 
         # Needed to override CSS
         server.enable_module(module)
 
-        # VTK
-        self._vtk_renderer = vtk.vtkRenderer()
-        self._vtk_renderer.SetBackground(0.8, 0.8, 0.8)
-        self._vtk_render_window = vtk.vtkRenderWindow()
-        self._vtk_render_window.AddRenderer(self._vtk_renderer)
-        self._vtk_render_window_interactor = vtk.vtkRenderWindowInteractor()
-        self._vtk_render_window_interactor.SetRenderWindow(self._vtk_render_window)
-        self._vtk_render_window_interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
-        self._vtk_mapper = vtk.vtkDataSetMapper()
-        self._vtk_actor = vtk.vtkActor()
-        self._vtk_actor.SetVisibility(0)
-        self._vtk_actor.SetMapper(self._vtk_mapper)
-        self._vtk_renderer.AddActor(self._vtk_actor)
-        self._vtk_renderer.ResetCamera()
-
-        self._vtk_lut = vtk.vtkLookupTable()
-        self._vtk_lut.SetHueRange(0.7, 0)
-        self._vtk_lut.SetSaturationRange(1.0, 0)
-        self._vtk_lut.SetValueRange(0.5, 1.0)
-        self._vtk_mapper.SetLookupTable(self._vtk_lut)
+        self.plotter = pv.Plotter(off_screen=True, notebook=False)
+        self.actor = None
+        self.plotter.set_background('blue')
 
         # controller
         ctrl.get_render_window = self.get_render_window
@@ -81,37 +64,43 @@ class MeshViewer:
         state.change("view_edge_visiblity")(self.on_edge_visiblity_change)
 
     def get_render_window(self):
-        return self._vtk_render_window
+        return self.plotter.ren_win
 
     def on_grid_available(self, input_mesh):
-        self._vtk_actor.SetVisibility(1)
-        self._vtk_mapper.SetInputData(input_mesh)
+        self.actor = self.plotter.add_mesh(input_mesh, name='mesh')
+        self.plotter.view_isometric()
         self._ctrl.view_update()
 
     def on_edge_visiblity_change(self, view_edge_visiblity, **kwargs):
-        self._vtk_actor.GetProperty().SetEdgeVisibility(1 if view_edge_visiblity else 0)
+        if self.actor is None:
+            return
+        self.actor.GetProperty().SetEdgeVisibility(1 if view_edge_visiblity else 0)
+        self.plotter.view_isometric()  # DEBUG
         self._ctrl.view_update()
 
     def on_color_by(self, grid_active_array, **kwargs):
+        if self.actor is None:
+            return
+        mapper = self.actor.mapper
         if grid_active_array == "Solid Color":
-            self._vtk_mapper.ScalarVisibilityOff()
+            mapper.color_mode = False
         else:
-            self._vtk_mapper.ScalarVisibilityOn()
-            self._vtk_mapper.SetScalarModeToUsePointFieldData()
-            self._vtk_mapper.SelectColorArray(grid_active_array)
+            mapper.color_mode = 'map'
+            mapper.SetScalarModeToUsePointFieldData()
+            mapper.SelectColorArray(grid_active_array)
 
-            input = self._vtk_mapper.GetInput()
+            input = mapper.GetInput()
             input_array = input.GetPointData().GetArray(grid_active_array)
 
             if input_array is None:
                 input_array = input.GetCellData().GetArray(grid_active_array)
-                self._vtk_mapper.SetScalarModeToUseCellFieldData()
+                mapper.SetScalarModeToUseCellFieldData()
 
             min_value, max_value = 0, 1
             if input_array:
                 min_value, max_value = input_array.GetRange(-1)
 
-            self._vtk_mapper.SetScalarRange(min_value, max_value)
+            mapper.SetScalarRange(min_value, max_value)
 
         self._ctrl.view_update()
 
@@ -123,8 +112,8 @@ class MeshViewer:
 
 def initialize(server, source=None):
     data_source = ZarrDataSource(source)
-    mesh = MeshBuilder(server, data_source)
-    viewer = MeshViewer(server, mesh)
+    _ = MeshBuilder(server, data_source)
+    viewer = MeshViewer(server)
 
     # Initialize state for UI
     server.state.array_tree = data_source.tree

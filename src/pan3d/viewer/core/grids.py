@@ -1,4 +1,5 @@
 import vtk
+import pyvista as pv
 import numpy as np
 from vtkmodules.numpy_interface.dataset_adapter import numpyTovtkDataArray as np2da
 
@@ -25,40 +26,34 @@ class AbstractGridBuilder:
     def add_point_data(self, array_path):
         array = self._data_source.get(array_path)
         name = array.name.split("/")[-1]
-        vtk_array = np2da(np.ravel(array), name=name)
-        self._grid.GetPointData().AddArray(vtk_array)
+        self._grid.point_data[name] = np.ravel(array)
         self._server.state.grid_point_data.append(array_path)
         self._server.state.dirty("grid_point_data")
 
     def clear_point_data(self):
-        pd = self._grid.GetPointData()
-        while pd.GetNumberOfArrays():
-            pd.RemoveArray(0)
+        self._grid.clear_point_data()
         self._server.state.grid_point_data = []
 
     def clear_cell_data(self):
-        cd = self._grid.GetCellData()
-        while cd.GetNumberOfArrays():
-            cd.RemoveArray(0)
+        self._grid.clear_point_data()
         self._server.state.grid_cell_data = []
 
     def remove_point_data(self, array_path):
         name = array_path.split("/")[-1]
-        self._grid.GetPointData().RemoveArray(name)
+        self._grid.point_data.remove(name)
         self._server.state.grid_point_data.remove(array_path)
         self._server.state.dirty("grid_point_data")
 
     def add_cell_data(self, array_path):
         array = self._data_source.get(array_path)
         name = array.name.split("/")[-1]
-        vtk_array = np2da(np.ravel(array), name=name)
-        self._grid.GetCellData().AddArray(vtk_array)
+        self._grid.cell_data[name] = np.ravel(array)
         self._server.state.grid_cell_data.append(array_path)
         self._server.state.dirty("grid_cell_data")
 
     def remove_cell_data(self, array_path):
         name = array_path.split("/")[-1]
-        self._grid.GetCellData().RemoveArray(name)
+        self._grid.cell_data.remove(name)
         self._server.state.grid_cell_data.remove(array_path)
         self._server.state.dirty("grid_cell_data")
 
@@ -67,15 +62,7 @@ class AbstractGridBuilder:
         return self._grid
 
     def reset(self):
-        fields = (
-            self._grid.GetPointData(),
-            self._grid.GetCellData(),
-            self._grid.GetFieldData(),
-        )
-        for field in fields:
-            while field.GetNumberOfArrays():
-                field.RemoveArray(0)
-
+        self._grid.clear_data()
         state = self._server.state
         state.grid_point_data = []
         state.grid_cell_data = []
@@ -83,7 +70,7 @@ class AbstractGridBuilder:
 
 class RectilinearBuilder(AbstractGridBuilder):
     def __init__(self, server, data_source):
-        super().__init__(server, data_source, vtk.vtkRectilinearGrid())
+        super().__init__(server, data_source, pv.RectilinearGrid())
 
         state = server.state
         state.grid_x_array = None
@@ -191,9 +178,9 @@ class RectilinearBuilder(AbstractGridBuilder):
 
     def _update_dims(self):
         state = self._server.state
-        z, y, x = self.point_dimensions
+        x, y, z = self.point_dimensions
         state.grid_dimensions = (x, y, z)
-        state.grid_point_dimensions = (z, y, x)
+        state.grid_point_dimensions = (x, y, z)
         state.grid_cell_dimensions = self.cell_dimensions
         self.grid.SetDimensions(x, y, z)
 
