@@ -97,10 +97,6 @@ def initialize(server):
                                     "grid_types",
                                     [
                                         {
-                                            "text": "Image data",
-                                            "value": "vtkImageData",
-                                        },
-                                        {
                                             "text": "Rectilinear grid",
                                             "value": "vtkRectilinearGrid",
                                         },
@@ -120,106 +116,6 @@ def initialize(server):
                             )
                         vuetify.VDivider()
                         with vuetify.VCardText():
-                            with vuetify.VCol(v_if="grid_type == 'vtkImageData'"):
-                                with vuetify.VRow():
-                                    html.Div(
-                                        "Dimensions",
-                                        classes="text-subtitle-1 pr-2 pt-1",
-                                        style="width: 100px;",
-                                    )
-                                    vuetify.VTextField(
-                                        label="X",
-                                        v_model="grid_dimensions[0]",
-                                        type="Number",
-                                        dense=True,
-                                        hide_details=True,
-                                        classes="mx-1 py-0",
-                                        change="flushState('grid_dimensions')",
-                                    )
-                                    vuetify.VTextField(
-                                        label="Y",
-                                        v_model="grid_dimensions[1]",
-                                        dense=True,
-                                        type="Number",
-                                        hide_details=True,
-                                        classes="mx-1 py-0",
-                                        change="flushState('grid_dimensions')",
-                                    )
-                                    vuetify.VTextField(
-                                        label="Z",
-                                        v_model="grid_dimensions[2]",
-                                        dense=True,
-                                        type="Number",
-                                        hide_details=True,
-                                        classes="mx-1 py-0",
-                                        change="flushState('grid_dimensions')",
-                                    )
-                                with vuetify.VRow(classes="py-6"):
-                                    html.Div(
-                                        "Spacing",
-                                        classes="text-subtitle-1 pr-2 pt-1",
-                                        style="width: 100px;",
-                                    )
-                                    vuetify.VTextField(
-                                        label="X",
-                                        v_model="grid_spacing[0]",
-                                        type="Number",
-                                        dense=True,
-                                        hide_details=True,
-                                        classes="mx-1 py-0",
-                                        change="flushState('grid_spacing')",
-                                    )
-                                    vuetify.VTextField(
-                                        label="Y",
-                                        v_model="grid_spacing[1]",
-                                        dense=True,
-                                        type="Number",
-                                        hide_details=True,
-                                        classes="mx-1 py-0",
-                                        change="flushState('grid_spacing')",
-                                    )
-                                    vuetify.VTextField(
-                                        label="Z",
-                                        v_model="grid_spacing[2]",
-                                        dense=True,
-                                        type="Number",
-                                        hide_details=True,
-                                        classes="mx-1 py-0",
-                                        change="flushState('grid_spacing')",
-                                    )
-                                with vuetify.VRow():
-                                    html.Div(
-                                        "Origin",
-                                        classes="text-subtitle-1 pr-2 pt-1",
-                                        style="width: 100px;",
-                                    )
-                                    vuetify.VTextField(
-                                        label="X",
-                                        v_model="grid_origin[0]",
-                                        type="Number",
-                                        dense=True,
-                                        hide_details=True,
-                                        classes="mx-1 py-0",
-                                        change="flushState('grid_origin')",
-                                    )
-                                    vuetify.VTextField(
-                                        label="Y",
-                                        v_model="grid_origin[1]",
-                                        dense=True,
-                                        type="Number",
-                                        hide_details=True,
-                                        classes="mx-1 py-0",
-                                        change="flushState('grid_origin')",
-                                    )
-                                    vuetify.VTextField(
-                                        label="Z",
-                                        v_model="grid_origin[2]",
-                                        dense=True,
-                                        type="Number",
-                                        hide_details=True,
-                                        classes="mx-1 py-0",
-                                        change="flushState('grid_origin')",
-                                    )
                             with vuetify.VCol(v_if="grid_type == 'vtkRectilinearGrid'"):
                                 with vuetify.VRow():
                                     html.Div("X:", classes="text-subtitle-2 pr-2")
