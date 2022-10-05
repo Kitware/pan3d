@@ -1,4 +1,6 @@
-from trame.app import get_server, dev
+import xarray as xr
+from trame.app import dev, get_server
+
 from . import engine, ui
 
 
@@ -27,7 +29,8 @@ def main(server=None, zarr=None, **kwargs):
     server.controller.on_server_reload.add(_reload)
 
     # Init application
-    engine.initialize(server, zarr)
+    dataset = xr.open_dataset(zarr, engine="zarr", consolidated=False)
+    engine.initialize(server, dataset)
     ui.initialize(server)
 
     # Start server

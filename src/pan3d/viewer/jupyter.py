@@ -1,10 +1,12 @@
 from trame.app import get_server, jupyter
-from pan3d.viewer import engine, ui
 from trame_vtk.modules import vtk
+
+from pan3d.viewer import engine, ui
+
 from .. import logger, logging
 
 
-def show(server=None, zarr=None, **kwargs):
+def show(dataset, server=None, **kwargs):
     """Run and display the trame application in jupyter's event loop
 
     The kwargs are forwarded to IPython.display.IFrame()
@@ -22,7 +24,7 @@ def show(server=None, zarr=None, **kwargs):
     logger.setLevel(logging.WARNING)
 
     # Initialize app
-    engine.initialize(server, zarr)
+    engine.initialize(server, dataset)
     ui.initialize(server)
 
     # Show as cell result

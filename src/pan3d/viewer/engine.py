@@ -1,66 +1,95 @@
 import pyvista as pv
+from pvxarray.vtk_source import PyVistaXarraySource
 
-from .core.data_sources import ZarrDataSource
-from .core.grids import RectilinearBuilder
 from . import module
 
 
 class MeshBuilder:
-    def __init__(self, server, data_source):
+    def __init__(self, server, dataset):
         self._server = server
         self._state = server.state
         self._ctrl = server.controller
 
-        self._data_source = data_source
-        self._mesh_type = "vtkRectilinearGrid"
+        self._dataset = dataset
         self._grid_editor = None
+
+        self._algorithm = PyVistaXarraySource(dataset, resolution=1.0)
 
         # State variables
         self._state.array_active = None
-        self._state.array_info = None
-
-        self._state.grid_dimensions = [1, 1, 1]
-        self._state.grid_spacing = [1, 1, 1]
-        self._state.grid_origin = [1, 1, 1]
+        self._state.grid_x_array = None
+        self._state.grid_y_array = None
+        self._state.grid_z_array = None
+        self._state.grid_t_array = None
 
         # Listen to changes
         self._state.change("array_active")(self.on_active_array)
+        self._state.change("grid_x_array")(self.bind_x)
+        self._state.change("grid_y_array")(self.bind_y)
+        self._state.change("grid_z_array")(self.bind_z)
+        self._state.change("grid_t_array")(self.bind_t)
 
-        self._grid_editor = RectilinearBuilder(self._server, self._data_source)
-        # self._ctrl.grid_update(self._grid_editor.grid)
+    @property
+    def algorithm(self):
+        return self._algorithm
+
+    @property
+    def data_array(self):
+        return self._algorithm.data_array
+
+    @data_array.setter
+    def data_array(self, data_array):
+        self._algorithm.data_array = data_array
+
+    def bind_x(self, grid_x_array, **kwargs):
+        self.algorithm.x = grid_x_array
+
+    def bind_y(self, grid_y_array, **kwargs):
+        self.algorithm.y = grid_y_array
+
+    def bind_z(self, grid_z_array, **kwargs):
+        self.algorithm.z = grid_z_array
+
+    def bind_t(self, grid_t_array, **kwargs):
+        self.algorithm.time = grid_t_array
 
     def on_active_array(self, array_active, **kwargs):
-        self._active_array = self._data_source.get(array_active)
-        self._state.array_info = None
-        if self._active_array is not None:
-            dims = list(self._active_array.shape)
-            self._state.array_info = {
-                "dimensions": dims,
-                "type": f"{self._active_array.dtype}",
-                "name": self._active_array.name,
-            }
+        if array_active is None:
+            return
+        self.data_array = self._dataset[array_active]
+        self._state.coordinates = list(self.data_array.coords.keys())
 
 
 class MeshViewer:
     def __init__(self, server, mesher):
         state, ctrl = server.state, server.controller
         self._ctrl = ctrl
+        self._state = state
+        self.mesher = mesher
 
         # Needed to override CSS
         server.enable_module(module)
 
         self.plotter = pv.Plotter(off_screen=True, notebook=False)
         self.actor = None
-        self.plotter.set_background('blue')
+        self.plotter.set_background("grey")
 
         # controller
         ctrl.get_render_window = self.get_render_window
-
-        self.actor = self.plotter.add_mesh(mesher._grid_editor.grid, name='mesh')
+        ctrl.build = self.build
 
         # Listen to changes
         state.change("grid_active_array")(self.on_color_by)
         state.change("view_edge_visiblity")(self.on_edge_visiblity_change)
+
+    def add_mesh(self, **kwargs):
+        self.mesher.algorithm.Modified()
+        self.plotter.clear()
+        self.actor = self.plotter.add_mesh(
+            self.mesher.algorithm, show_edges=self._state.view_edge_visiblity, **kwargs
+        )
+        self.plotter.view_isometric()
+        self._ctrl.view_update()
 
     def get_render_window(self):
         return self.plotter.ren_win
@@ -69,34 +98,19 @@ class MeshViewer:
         if self.actor is None:
             return
         self.actor.GetProperty().SetEdgeVisibility(1 if view_edge_visiblity else 0)
-        self.plotter.view_isometric()  # DEBUG
         self._ctrl.view_update()
 
     def on_color_by(self, grid_active_array, **kwargs):
         if self.actor is None:
             return
-        mapper = self.actor.mapper
         if grid_active_array == "Solid Color":
-            mapper.color_mode = False
+            self.add_mesh(color=True)
         else:
-            mapper.color_mode = 'map'
-            mapper.SetScalarModeToUsePointFieldData()
-            mapper.SelectColorArray(grid_active_array)
-
-            input = mapper.GetInput()
-            input_array = input.GetPointData().GetArray(grid_active_array)
-
-            if input_array is None:
-                input_array = input.GetCellData().GetArray(grid_active_array)
-                mapper.SetScalarModeToUseCellFieldData()
-
-            min_value, max_value = 0, 1
-            if input_array:
-                min_value, max_value = input_array.GetRange(-1)
-
-            mapper.SetScalarRange(min_value, max_value)
-
+            self.add_mesh()
         self._ctrl.view_update()
+
+    def build(self):
+        self.add_mesh()
 
 
 # ---------------------------------------------------------
@@ -104,12 +118,14 @@ class MeshViewer:
 # ---------------------------------------------------------
 
 
-def initialize(server, source=None):
-    data_source = ZarrDataSource(source)
-    mesher = MeshBuilder(server, data_source)
+def initialize(server, dataset):
+    mesher = MeshBuilder(server, dataset)
     viewer = MeshViewer(server, mesher)
 
     # Initialize state for UI
-    server.state.array_tree = data_source.tree
+    server.state.data_vars = [
+        {"name": k, "id": i} for i, k in enumerate(dataset.data_vars.keys())
+    ]
+    server.state.coordinates = []
 
     return viewer
