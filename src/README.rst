@@ -23,3 +23,10 @@ Run the application
 .. code-block:: console
 
     pan3d-viewer --data /path/to/directory.zarr
+
+
+Requires
+--------
+
+- https://github.com/pyvista/pyvista-xarray/pull/39
+- https://github.com/pyvista/pyvista/pull/3318
