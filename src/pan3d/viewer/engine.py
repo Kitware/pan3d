@@ -23,6 +23,7 @@ class MeshBuilder:
         self._state.grid_z_array = None
         self._state.grid_t_array = None
         self._state.time_max = 0
+        self._state.resolution = 1.0
 
         # Listen to changes
         self._state.change("array_active")(self.on_active_array)
@@ -31,6 +32,7 @@ class MeshBuilder:
         self._state.change("grid_z_array")(self.bind_z)
         self._state.change("grid_t_array")(self.bind_t)
         self._state.change("time_index")(self.set_time_index)
+        self._state.change("resolution")(self.set_resolution)
 
         # Set first array as active
         # TODO self._state.array_active = list(dataset.data_vars.keys())[0]
@@ -55,6 +57,7 @@ class MeshBuilder:
 
     @property
     def array_ready(self):
+        # TODO: check if ready
         return True
 
     def bind_x(self, grid_x_array, **kwargs):
@@ -74,6 +77,12 @@ class MeshBuilder:
 
     def set_time_index(self, time_index, **kwargs):
         self.algorithm.time_index = time_index
+        if self.array_ready:
+            self._ctrl.view_update()
+
+    def set_resolution(self, resolution, **kwargs):
+        if resolution:
+            self.algorithm.resolution = resolution
         if self.array_ready:
             self._ctrl.view_update()
 

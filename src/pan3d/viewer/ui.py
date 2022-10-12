@@ -16,6 +16,17 @@ def initialize(server):
             layout.toolbar.align = "center"
             vuetify.VSpacer()
 
+            vuetify.VSelect(
+                label="Resolution",
+                v_model=("resolution", 1.0),
+                items=("array_list", [0.05, 0.25, 0.5, 1.0]),
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1 ml-2",
+                style="max-width: 150px",
+            )
+
             vuetify.VCheckbox(
                 v_model=("view_edge_visiblity", True),
                 dense=True,
