@@ -1,3 +1,4 @@
+import numpy as np
 import pyvista as pv
 from pvxarray.vtk_source import PyVistaXarraySource
 
@@ -21,6 +22,7 @@ class MeshBuilder:
         self._state.grid_y_array = None
         self._state.grid_z_array = None
         self._state.grid_t_array = None
+        self._state.time_max = 0
 
         # Listen to changes
         self._state.change("array_active")(self.on_active_array)
@@ -28,6 +30,10 @@ class MeshBuilder:
         self._state.change("grid_y_array")(self.bind_y)
         self._state.change("grid_z_array")(self.bind_z)
         self._state.change("grid_t_array")(self.bind_t)
+        self._state.change("time_index")(self.set_time_index)
+
+        # Set first array as active
+        # TODO self._state.array_active = list(dataset.data_vars.keys())[0]
 
     @property
     def algorithm(self):
@@ -41,6 +47,16 @@ class MeshBuilder:
     def data_array(self, data_array):
         self._algorithm.data_array = data_array
 
+    def on_active_array(self, array_active, **kwargs):
+        if array_active is None:
+            return
+        self.data_array = self._dataset[array_active]
+        self._state.coordinates = list(self.data_array.coords.keys())
+
+    @property
+    def array_ready(self):
+        return True
+
     def bind_x(self, grid_x_array, **kwargs):
         self.algorithm.x = grid_x_array
 
@@ -52,12 +68,17 @@ class MeshBuilder:
 
     def bind_t(self, grid_t_array, **kwargs):
         self.algorithm.time = grid_t_array
+        if grid_t_array:
+            # Set the time_max in the state
+            self._state.time_max = len(self.data_array[grid_t_array]) - 1
 
-    def on_active_array(self, array_active, **kwargs):
-        if array_active is None:
-            return
-        self.data_array = self._dataset[array_active]
-        self._state.coordinates = list(self.data_array.coords.keys())
+    def set_time_index(self, time_index, **kwargs):
+        self.algorithm.time_index = time_index
+        if self.array_ready:
+            self._ctrl.view_update()
+
+    def get_clim(self):
+        return self.data_array.min(), self.data_array.max()
 
 
 class MeshViewer:
@@ -72,21 +93,29 @@ class MeshViewer:
 
         self.plotter = pv.Plotter(off_screen=True, notebook=False)
         self.actor = None
-        self.plotter.set_background("grey")
+        self.plotter.set_background("lightgrey")
 
         # controller
         ctrl.get_render_window = self.get_render_window
         ctrl.build = self.build
 
+        self._state.x_scale = 1
+        self._state.y_scale = 1
+        self._state.z_scale = 1
         # Listen to changes
-        state.change("grid_active_array")(self.on_color_by)
-        state.change("view_edge_visiblity")(self.on_edge_visiblity_change)
+        self._state.change("view_edge_visiblity")(self.on_edge_visiblity_change)
+        self._state.change("x_scale")(self.set_scale)
+        self._state.change("y_scale")(self.set_scale)
+        self._state.change("z_scale")(self.set_scale)
 
     def add_mesh(self, **kwargs):
         self.mesher.algorithm.Modified()
         self.plotter.clear()
         self.actor = self.plotter.add_mesh(
-            self.mesher.algorithm, show_edges=self._state.view_edge_visiblity, **kwargs
+            self.mesher.algorithm,
+            show_edges=self._state.view_edge_visiblity,
+            clim=self.mesher.get_clim(),
+            **kwargs
         )
         self.plotter.view_isometric()
         self._ctrl.view_update()
@@ -100,13 +129,11 @@ class MeshViewer:
         self.actor.GetProperty().SetEdgeVisibility(1 if view_edge_visiblity else 0)
         self._ctrl.view_update()
 
-    def on_color_by(self, grid_active_array, **kwargs):
-        if self.actor is None:
-            return
-        if grid_active_array == "Solid Color":
-            self.add_mesh(color=True)
-        else:
-            self.add_mesh()
+    def set_scale(self, x_scale=None, y_scale=None, z_scale=None, **kwargs):
+        x_scale = x_scale or self._state.x_scale
+        y_scale = y_scale or self._state.y_scale
+        z_scale = z_scale or self._state.z_scale
+        self.plotter.set_scale(xscale=x_scale, yscale=y_scale, zscale=z_scale)
         self._ctrl.view_update()
 
     def build(self):

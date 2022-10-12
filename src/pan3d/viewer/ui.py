@@ -38,6 +38,7 @@ def initialize(server):
                 activatable=True,
                 items=("data_vars",),
                 update_active="array_active = data_vars[$event[0] || 0]?.name",
+                # TODO: set active/selected on startup
                 multiple_active=False,
             ):
                 with vuetify.Template(v_slot_label="{ item }"):
@@ -47,7 +48,7 @@ def initialize(server):
         with layout.content:
             with vuetify.VContainer(fluid=True, classes="pa-0 fill-height"):
                 with vuetify.VCol(
-                    # v_show="view_mode === 'edit_grid'",
+                    v_show="array_active",
                     classes="fill-height",
                 ):
                     with vuetify.VCard(style="flex: none;"):
@@ -58,6 +59,17 @@ def initialize(server):
                                     html.Div("X:", classes="text-subtitle-2 pr-2")
                                     html.Div("{{ grid_x_array || 'Undefined' }}")
                                     vuetify.VSpacer()
+                                    vuetify.VSlider(
+                                        label="X Scale",
+                                        v_show="grid_x_array",
+                                        v_model=("x_scale", 0),
+                                        min=1,
+                                        max=1000,
+                                        step=10,
+                                        dense=True,
+                                        hide_details=True,
+                                        style="max-width: 250px;",
+                                    )
                                     vuetify.VSelect(
                                         v_model=("grid_x_array", None),
                                         items=("coordinates",),
@@ -69,6 +81,17 @@ def initialize(server):
                                     html.Div("Y:", classes="text-subtitle-2 pr-2")
                                     html.Div("{{ grid_y_array || 'Undefined' }}")
                                     vuetify.VSpacer()
+                                    vuetify.VSlider(
+                                        label="Y Scale",
+                                        v_show="grid_y_array",
+                                        v_model=("y_scale", 0),
+                                        min=1,
+                                        max=1000,
+                                        step=10,
+                                        dense=True,
+                                        hide_details=True,
+                                        style="max-width: 250px;",
+                                    )
                                     vuetify.VSelect(
                                         v_model=("grid_y_array", None),
                                         items=("coordinates",),
@@ -80,6 +103,17 @@ def initialize(server):
                                     html.Div("Z:", classes="text-subtitle-2 pr-2")
                                     html.Div("{{ grid_z_array || 'Undefined' }}")
                                     vuetify.VSpacer()
+                                    vuetify.VSlider(
+                                        label="Z Scale",
+                                        v_show="grid_z_array",
+                                        v_model=("z_scale", 0),
+                                        min=1,
+                                        max=1000,
+                                        step=10,
+                                        dense=True,
+                                        hide_details=True,
+                                        style="max-width: 250px;",
+                                    )
                                     vuetify.VSelect(
                                         v_model=("grid_z_array", None),
                                         items=("coordinates",),
@@ -91,6 +125,17 @@ def initialize(server):
                                     html.Div("T:", classes="text-subtitle-2 pr-2")
                                     html.Div("{{ grid_t_array || 'Undefined' }}")
                                     vuetify.VSpacer()
+                                    vuetify.VSlider(
+                                        label="Time",
+                                        v_show="grid_t_array && time_max > 0",
+                                        v_model=("time_index", 0),
+                                        min=0,
+                                        max=("time_max", 0),
+                                        step=1,
+                                        dense=True,
+                                        hide_details=True,
+                                        style="max-width: 250px;",
+                                    )
                                     vuetify.VSelect(
                                         v_model=("grid_t_array", None),
                                         items=("coordinates",),
