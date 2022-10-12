@@ -18,6 +18,7 @@ def initialize(server):
 
             vuetify.VSelect(
                 label="Resolution",
+                v_show="array_active",
                 v_model=("resolution", 1.0),
                 items=("array_list", [0.05, 0.25, 0.5, 1.0]),
                 hide_details=True,
@@ -28,6 +29,7 @@ def initialize(server):
             )
 
             vuetify.VCheckbox(
+                v_show="array_active",
                 v_model=("view_edge_visiblity", True),
                 dense=True,
                 hide_details=True,
@@ -37,6 +39,7 @@ def initialize(server):
             )
 
             with vuetify.VBtn(
+                v_show="array_active",
                 icon=True,
                 click=ctrl.build,
             ):
@@ -45,6 +48,7 @@ def initialize(server):
         # Drawer
         with layout.drawer:
             with vuetify.VTreeview(
+                v_show="dataset_ready",
                 dense=True,
                 activatable=True,
                 items=("data_vars",),
@@ -58,6 +62,21 @@ def initialize(server):
         # Content
         with layout.content:
             with vuetify.VContainer(fluid=True, classes="pa-0 fill-height"):
+                with vuetify.VCol(
+                    v_show="!dataset_ready",
+                    classes="fill-height",
+                ):
+                    with vuetify.VForm():
+                        vuetify.VTextField(
+                            v_model="dataset_path",
+                            placeholder="Path or URL",
+                            label="Dataset path",
+                            outlined=True,
+                            clearable=True,
+                            required=True,
+                            append_outer_icon="mdi-send",
+                            click_append_outer=ctrl.set_dataset_path,
+                        )
                 with vuetify.VCol(
                     v_show="array_active",
                     classes="fill-height",

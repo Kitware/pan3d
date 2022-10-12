@@ -1,22 +1,27 @@
-import numpy as np
 import pyvista as pv
+import xarray as xr
 from pvxarray.vtk_source import PyVistaXarraySource
 
 from . import module
 
 
 class MeshBuilder:
-    def __init__(self, server, dataset):
+    def __init__(self, server):
         self._server = server
         self._state = server.state
         self._ctrl = server.controller
 
-        self._dataset = dataset
+        self._dataset = None
         self._grid_editor = None
+        self._algorithm = None
 
-        self._algorithm = PyVistaXarraySource(dataset, resolution=1.0)
+        self._ctrl.set_dataset_path = self.set_dataset_path
 
         # State variables
+        self._state.dataset_path = None
+        self._state.data_vars = []
+        self._state.coordinates = []
+        self._state.dataset_ready = False
         self._state.array_active = None
         self._state.grid_x_array = None
         self._state.grid_y_array = None
@@ -26,6 +31,7 @@ class MeshBuilder:
         self._state.resolution = 1.0
 
         # Listen to changes
+        # self._state.change("dataset_path")(self.set_dataset_path)
         self._state.change("array_active")(self.on_active_array)
         self._state.change("grid_x_array")(self.bind_x)
         self._state.change("grid_y_array")(self.bind_y)
@@ -36,6 +42,18 @@ class MeshBuilder:
 
         # Set first array as active
         # TODO self._state.array_active = list(dataset.data_vars.keys())[0]
+
+    def set_dataset_path(self, **kwargs):
+        dataset_path = self._state.dataset_path
+        if not dataset_path:
+            return
+        self._dataset = xr.open_dataset(dataset_path, engine="zarr", consolidated=False)
+        self._state.data_vars = [
+            {"name": k, "id": i} for i, k in enumerate(self._dataset.data_vars.keys())
+        ]
+        self._state.coordinates = []
+        self._algorithm = PyVistaXarraySource(self._dataset, resolution=1.0)
+        self._state.dataset_ready = True
 
     @property
     def algorithm(self):
@@ -61,26 +79,38 @@ class MeshBuilder:
         return True
 
     def bind_x(self, grid_x_array, **kwargs):
+        if self.algorithm is None:
+            return
         self.algorithm.x = grid_x_array
 
     def bind_y(self, grid_y_array, **kwargs):
+        if self.algorithm is None:
+            return
         self.algorithm.y = grid_y_array
 
     def bind_z(self, grid_z_array, **kwargs):
+        if self.algorithm is None:
+            return
         self.algorithm.z = grid_z_array
 
     def bind_t(self, grid_t_array, **kwargs):
+        if self.algorithm is None:
+            return
         self.algorithm.time = grid_t_array
         if grid_t_array:
             # Set the time_max in the state
             self._state.time_max = len(self.data_array[grid_t_array]) - 1
 
     def set_time_index(self, time_index, **kwargs):
+        if self.algorithm is None:
+            return
         self.algorithm.time_index = time_index
         if self.array_ready:
             self._ctrl.view_update()
 
     def set_resolution(self, resolution, **kwargs):
+        if self.algorithm is None:
+            return
         if resolution:
             self.algorithm.resolution = resolution
         if self.array_ready:
@@ -154,14 +184,8 @@ class MeshViewer:
 # ---------------------------------------------------------
 
 
-def initialize(server, dataset):
-    mesher = MeshBuilder(server, dataset)
+def initialize(server):
+    mesher = MeshBuilder(server)
     viewer = MeshViewer(server, mesher)
-
-    # Initialize state for UI
-    server.state.data_vars = [
-        {"name": k, "id": i} for i, k in enumerate(dataset.data_vars.keys())
-    ]
-    server.state.coordinates = []
 
     return viewer
