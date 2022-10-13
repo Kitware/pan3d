@@ -131,7 +131,7 @@ class MeshViewer:
         self._state.change("z_scale")(self.set_scale)
 
     @vuwrap
-    def add_mesh(self, **kwargs):
+    def reset(self, **kwargs):
         self.mesher.algorithm.Modified()
         self.plotter.clear()
         self.actor = self.plotter.add_mesh(
@@ -154,9 +154,6 @@ class MeshViewer:
         y_scale = y_scale or self._state.y_scale
         z_scale = z_scale or self._state.z_scale
         self.plotter.set_scale(xscale=x_scale, yscale=y_scale, zscale=z_scale)
-
-    def reset(self):
-        self.add_mesh()
 
 
 # ---------------------------------------------------------
