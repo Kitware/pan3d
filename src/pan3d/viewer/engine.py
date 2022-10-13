@@ -99,8 +99,7 @@ class MeshBuilder:
 
     @property
     def data_range(self):
-        if self.data_array:
-            return self.data_array.min(), self.data_array.max()
+        return self.data_array.min(), self.data_array.max()
 
 
 class MeshViewer:
