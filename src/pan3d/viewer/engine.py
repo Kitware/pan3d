@@ -42,7 +42,6 @@ class MeshBuilder:
         self._state.resolution = 1.0
 
         # Listen to changes
-        # self._state.change("dataset_path")(self.set_dataset_path)
         self._state.change("array_active")(self.on_active_array)
         self._state.change("grid_x_array")(self.bind_x)
         self._state.change("grid_y_array")(self.bind_y)
@@ -72,20 +71,11 @@ class MeshBuilder:
     def data_array(self):
         return self._algorithm.data_array
 
-    @data_array.setter
-    def data_array(self, data_array):
-        self._algorithm.data_array = data_array
-
     def on_active_array(self, array_active, **kwargs):
-        if array_active is None:
+        if array_active is None or not self._state.dataset_ready:
             return
-        self.data_array = self._dataset[array_active]
+        self._algorithm.data_array = self._dataset[array_active]
         self._state.coordinates = list(self.data_array.coords.keys())
-
-    @property
-    def array_ready(self):
-        # TODO: check if ready
-        return True
 
     def bind_x(self, grid_x_array, **kwargs):
         self.algorithm.x = grid_x_array
@@ -111,7 +101,8 @@ class MeshBuilder:
         if resolution:
             self.algorithm.resolution = resolution
 
-    def get_clim(self):
+    @property
+    def data_range(self):
         return self.data_array.min(), self.data_array.max()
 
 
@@ -127,8 +118,8 @@ class MeshViewer:
         self.plotter.set_background("lightgrey")
 
         # controller
-        ctrl.get_render_window = self.get_render_window
-        ctrl.build = self.build
+        ctrl.get_render_window = lambda: self.plotter.ren_win
+        ctrl.reset = self.reset
 
         self._state.x_scale = 1
         self._state.y_scale = 1
@@ -146,13 +137,10 @@ class MeshViewer:
         self.actor = self.plotter.add_mesh(
             self.mesher.algorithm,
             show_edges=self._state.view_edge_visiblity,
-            clim=self.mesher.get_clim(),
+            clim=self.mesher.data_range,
             **kwargs
         )
         self.plotter.view_isometric()
-
-    def get_render_window(self):
-        return self.plotter.ren_win
 
     @vuwrap
     def on_edge_visiblity_change(self, view_edge_visiblity, **kwargs):
@@ -167,7 +155,7 @@ class MeshViewer:
         z_scale = z_scale or self._state.z_scale
         self.plotter.set_scale(xscale=x_scale, yscale=y_scale, zscale=z_scale)
 
-    def build(self):
+    def reset(self):
         self.add_mesh()
 
 

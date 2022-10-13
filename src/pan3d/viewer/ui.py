@@ -41,7 +41,7 @@ def initialize(server):
             with vuetify.VBtn(
                 v_show="array_active",
                 icon=True,
-                click=ctrl.build,
+                click=ctrl.reset,
             ):
                 vuetify.VIcon("mdi-crop-free")
 
