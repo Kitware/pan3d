@@ -21,9 +21,6 @@ class MeshBuilder:
         self._ctrl = server.controller
 
         self._dataset = None
-        self._grid_editor = None
-        self._algorithm = None
-
         self._algorithm = PyVistaXarraySource()
 
         self._ctrl.set_dataset_path = self.set_dataset_path
@@ -89,7 +86,7 @@ class MeshBuilder:
     def bind_t(self, grid_t_array, **kwargs):
         self.algorithm.time = grid_t_array
         if grid_t_array:
-            # Set the time_max in the state
+            # Set the time_max in the state for the slider
             self._state.time_max = len(self.data_array[grid_t_array]) - 1
 
     @vuwrap
@@ -98,12 +95,12 @@ class MeshBuilder:
 
     @vuwrap
     def set_resolution(self, resolution, **kwargs):
-        if resolution:
-            self.algorithm.resolution = resolution
+        self.algorithm.resolution = resolution
 
     @property
     def data_range(self):
-        return self.data_array.min(), self.data_array.max()
+        if self.data_array:
+            return self.data_array.min(), self.data_array.max()
 
 
 class MeshViewer:
@@ -114,8 +111,8 @@ class MeshViewer:
         self.mesher = mesher
 
         self.plotter = pv.Plotter(off_screen=True, notebook=False)
-        self.actor = None
         self.plotter.set_background("lightgrey")
+        self.actor = None
 
         # controller
         ctrl.get_render_window = lambda: self.plotter.ren_win
