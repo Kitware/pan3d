@@ -16,18 +16,6 @@ def initialize(server):
             layout.toolbar.align = "center"
             vuetify.VSpacer()
 
-            vuetify.VSelect(
-                label="Resolution",
-                v_show="array_active",
-                v_model=("resolution", 1.0),
-                items=("array_list", [0.05, 0.25, 0.5, 1.0]),
-                hide_details=True,
-                dense=True,
-                outlined=True,
-                classes="pt-1 ml-2",
-                style="max-width: 150px",
-            )
-
             vuetify.VCheckbox(
                 v_show="array_active",
                 v_model=("view_edge_visiblity", True),
@@ -44,6 +32,25 @@ def initialize(server):
                 click=ctrl.reset,
             ):
                 vuetify.VIcon("mdi-crop-free")
+
+            vuetify.VSelect(
+                label="Resolution",
+                v_show="array_active",
+                v_model=("resolution", 1.0),
+                items=("resolutions", [0.05, 0.25, 0.5, 1.0]),
+                hide_details=True,
+                dense=True,
+                outlined=True,
+                classes="pt-1 ml-2",
+                style="max-width: 150px",
+            )
+
+            with vuetify.VBtn(
+                v_show="dataset_ready",
+                icon=True,
+                click=ctrl.clear_dataset,
+            ):
+                vuetify.VIcon("mdi-delete")
 
         # Drawer
         with layout.drawer:
@@ -67,15 +74,19 @@ def initialize(server):
                     classes="fill-height",
                 ):
                     with vuetify.VForm():
-                        vuetify.VTextField(
+                        datasets = [
+                            "air_temperature",
+                            "basin_mask",
+                            "eraint_uvz",
+                        ]
+                        vuetify.VSelect(
+                            label="Choose a dataset",
                             v_model="dataset_path",
-                            placeholder="Path or URL",
-                            label="Dataset path",
+                            items=("datasets", datasets),
+                            hide_details=True,
+                            dense=True,
                             outlined=True,
-                            clearable=True,
-                            required=True,
-                            append_outer_icon="mdi-send",
-                            click_append_outer=ctrl.set_dataset_path,
+                            classes="pt-1",
                         )
                 with vuetify.VCol(
                     v_show="array_active",
@@ -107,6 +118,11 @@ def initialize(server):
                                         dense=True,
                                         style="max-width: 250px;",
                                     )
+                                    with vuetify.VBtn(
+                                        icon=True,
+                                        click="grid_x_array = undefined",
+                                    ):
+                                        vuetify.VIcon("mdi-delete")
                                 with vuetify.VRow():
                                     html.Div("Y:", classes="text-subtitle-2 pr-2")
                                     html.Div("{{ grid_y_array || 'Undefined' }}")
@@ -129,6 +145,11 @@ def initialize(server):
                                         dense=True,
                                         style="max-width: 250px;",
                                     )
+                                    with vuetify.VBtn(
+                                        icon=True,
+                                        click="grid_y_array = undefined",
+                                    ):
+                                        vuetify.VIcon("mdi-delete")
                                 with vuetify.VRow():
                                     html.Div("Z:", classes="text-subtitle-2 pr-2")
                                     html.Div("{{ grid_z_array || 'Undefined' }}")
@@ -151,6 +172,11 @@ def initialize(server):
                                         dense=True,
                                         style="max-width: 250px;",
                                     )
+                                    with vuetify.VBtn(
+                                        icon=True,
+                                        click="grid_z_array = undefined",
+                                    ):
+                                        vuetify.VIcon("mdi-delete")
                                 with vuetify.VRow():
                                     html.Div("T:", classes="text-subtitle-2 pr-2")
                                     html.Div("{{ grid_t_array || 'Undefined' }}")
@@ -173,6 +199,11 @@ def initialize(server):
                                         dense=True,
                                         style="max-width: 250px;",
                                     )
+                                    with vuetify.VBtn(
+                                        icon=True,
+                                        click="grid_t_array = undefined",
+                                    ):
+                                        vuetify.VIcon("mdi-delete")
                     with html.Div(
                         style="display: flex; flex: 1; height: calc(100vh - 300px);"
                     ):

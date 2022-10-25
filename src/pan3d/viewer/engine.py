@@ -1,3 +1,5 @@
+import os
+
 import pyvista as pv
 import xarray as xr
 from pvxarray.vtk_source import PyVistaXarraySource
@@ -23,19 +25,8 @@ class MeshBuilder:
         self._dataset = None
         self._algorithm = PyVistaXarraySource()
 
-        self._ctrl.set_dataset_path = self.set_dataset_path
-
         # State variables
-        self._state.dataset_path = None
-        self._state.data_vars = []
-        self._state.coordinates = []
-        self._state.dataset_ready = False
-        self._state.array_active = None
-        self._state.grid_x_array = None
-        self._state.grid_y_array = None
-        self._state.grid_z_array = None
-        self._state.grid_t_array = None
-        self._state.time_max = 0
+        self.clear_dataset()
         self._state.resolution = 1.0
 
         # Listen to changes
@@ -46,12 +37,22 @@ class MeshBuilder:
         self._state.change("grid_t_array")(self.bind_t)
         self._state.change("time_index")(self.set_time_index)
         self._state.change("resolution")(self.set_resolution)
+        self._state.change("dataset_path")(self.set_dataset_path)
+
+        self._ctrl.clear_dataset = self.clear_dataset
 
     def set_dataset_path(self, **kwargs):
         dataset_path = self._state.dataset_path
         if not dataset_path:
             return
-        self._dataset = xr.open_dataset(dataset_path, engine="zarr", consolidated=False)
+        if os.path.exists(dataset_path):
+            # Assumes zarr store
+            self._dataset = xr.open_dataset(
+                dataset_path, engine="zarr", consolidated=False
+            )
+        else:
+            # Assume it is a named tutorial dataset
+            self._dataset = xr.tutorial.load_dataset(dataset_path)
         self._state.data_vars = [
             {"name": k, "id": i} for i, k in enumerate(self._dataset.data_vars.keys())
         ]
@@ -59,6 +60,18 @@ class MeshBuilder:
         self._state.dataset_ready = True
         # Set first array as active
         # TODO self._state.array_active = list(dataset.data_vars.keys())[0]
+
+    def clear_dataset(self, **kwargs):
+        self._state.dataset_path = None
+        self._state.data_vars = []
+        self._state.coordinates = []
+        self._state.dataset_ready = False
+        self._state.array_active = None
+        self._state.grid_x_array = None
+        self._state.grid_y_array = None
+        self._state.grid_z_array = None
+        self._state.grid_t_array = None
+        self._state.time_max = 0
 
     @property
     def algorithm(self):
