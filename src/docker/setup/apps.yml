@@ -1,4 +1,4 @@
 trame: # Default app under /index.html
-  app: cone
+  app: pan3d-viewer
 cone: # /cone.html
-  app: cone
+  app: pan3d-viewer
