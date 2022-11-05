@@ -8,3 +8,5 @@ __pycache__
 .pytest_cache
 **/coverage.xml
 .vscode
+*.tar.gz
+*.tar
