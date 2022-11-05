@@ -4,8 +4,6 @@ import pyvista as pv
 import xarray as xr
 from pvxarray.vtk_source import PyVistaXarraySource
 
-from . import module
-
 
 def vuwrap(func):
     def wrapper(self, *args, **kwargs):
@@ -171,10 +169,6 @@ class MeshViewer:
 
 
 def initialize(server):
-    # Needed to override CSS
-    server.enable_module(module)
-
     mesher = MeshBuilder(server)
     viewer = MeshViewer(server, mesher)
-
     return viewer
