@@ -6,7 +6,7 @@ CURRENT_DIR=`dirname "$0"`
 pushd .
 cd $CURRENT_DIR/..
 DEPLOY_DIR=$PWD
-cd $CURRENT_DIR/../../..
+cd $CURRENT_DIR/../../
 ROOT_DIR=$PWD
 popd
 
@@ -14,4 +14,5 @@ docker run --rm          \
     -e TRAME_BUILD_ONLY=1 \
     -v "$DEPLOY_DIR:/deploy" \
     -v "$ROOT_DIR:/local-app"  \
-    kitware/trame
+    -v "$ROOT_DIR/../wheels:/opt/wheels/" \
+    trame-build
