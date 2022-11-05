@@ -26,6 +26,16 @@ def initialize(server):
                 classes="ma-2",
             )
 
+            vuetify.VCheckbox(
+                v_show="array_active",
+                v_model=("view_basemap", True),
+                dense=True,
+                hide_details=True,
+                on_icon="mdi-earth",
+                off_icon="mdi-earth-off",
+                classes="ma-2",
+            )
+
             with vuetify.VBtn(
                 v_show="array_active",
                 icon=True,
@@ -100,17 +110,6 @@ def initialize(server):
                                     html.Div("X:", classes="text-subtitle-2 pr-2")
                                     html.Div("{{ grid_x_array || 'Undefined' }}")
                                     vuetify.VSpacer()
-                                    vuetify.VSlider(
-                                        label="X Scale",
-                                        v_show="grid_x_array",
-                                        v_model=("x_scale", 0),
-                                        min=1,
-                                        max=1000,
-                                        step=10,
-                                        dense=True,
-                                        hide_details=True,
-                                        style="max-width: 250px;",
-                                    )
                                     vuetify.VSelect(
                                         v_model=("grid_x_array", None),
                                         items=("coordinates",),
@@ -127,17 +126,6 @@ def initialize(server):
                                     html.Div("Y:", classes="text-subtitle-2 pr-2")
                                     html.Div("{{ grid_y_array || 'Undefined' }}")
                                     vuetify.VSpacer()
-                                    vuetify.VSlider(
-                                        label="Y Scale",
-                                        v_show="grid_y_array",
-                                        v_model=("y_scale", 0),
-                                        min=1,
-                                        max=1000,
-                                        step=10,
-                                        dense=True,
-                                        hide_details=True,
-                                        style="max-width: 250px;",
-                                    )
                                     vuetify.VSelect(
                                         v_model=("grid_y_array", None),
                                         items=("coordinates",),
@@ -155,12 +143,12 @@ def initialize(server):
                                     html.Div("{{ grid_z_array || 'Undefined' }}")
                                     vuetify.VSpacer()
                                     vuetify.VSlider(
-                                        label="Z Scale",
-                                        v_show="grid_z_array",
-                                        v_model=("z_scale", 0),
-                                        min=1,
-                                        max=1000,
-                                        step=10,
+                                        label="Z Index",
+                                        v_show="grid_z_array && z_max > 0",
+                                        v_model=("z_index", 0),
+                                        min=0,
+                                        max=("z_max", 0),
+                                        step=1,
                                         dense=True,
                                         hide_details=True,
                                         style="max-width: 250px;",
@@ -207,7 +195,7 @@ def initialize(server):
                     with html.Div(
                         style="display: flex; flex: 1; height: calc(100vh - 300px);"
                     ):
-                        with vtk.VtkRemoteView(
+                        with vtk.VtkLocalView(
                             ctrl.get_render_window(),
                             # v_show="view_mode === 'view_grid'",
                             interactive_ratio=1,

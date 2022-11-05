@@ -11,4 +11,4 @@ popd
 docker run -it --rm \
     -p 8080:80 \
     -v "$DEPLOY_DIR:/deploy" \
-    kitware/trame
+    trame-build

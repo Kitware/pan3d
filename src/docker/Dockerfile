@@ -1,10 +1,4 @@
-FROM kitware/trame
-
-RUN apt-get update && \
-    apt-get install --no-install-recommends --yes \
-        libosmesa6-dev \
-    && \
-    rm -rf /var/lib/apt/lists/*
+FROM trame-build
 
 # Copy the server directory
 COPY --chown=trame-user:trame-user ./server /deploy/server
