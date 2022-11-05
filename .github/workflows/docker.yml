@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: pan3d-viewer # ${{ github.repository }}
+  IMAGE_NAME: Kitware/pan3d-viewer # ${{ github.repository }}
 
 jobs:
   build-and-publish:
