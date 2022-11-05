@@ -1,5 +1,6 @@
 import os
 
+import geovista as gv
 import pyvista as pv
 import xarray as xr
 from pvxarray.vtk_source import PyVistaXarraySource
@@ -22,6 +23,7 @@ class MeshBuilder:
 
         self._dataset = None
         self._algorithm = PyVistaXarraySource()
+        self._algorithm.time_index = 0
 
         # State variables
         self.clear_dataset()
@@ -34,6 +36,7 @@ class MeshBuilder:
         self._state.change("grid_z_array")(self.bind_z)
         self._state.change("grid_t_array")(self.bind_t)
         self._state.change("time_index")(self.set_time_index)
+        self._state.change("z_index")(self.set_z_index)
         self._state.change("resolution")(self.set_resolution)
         self._state.change("dataset_path")(self.set_dataset_path)
 
@@ -70,6 +73,7 @@ class MeshBuilder:
         self._state.grid_z_array = None
         self._state.grid_t_array = None
         self._state.time_max = 0
+        self._state.z_max = 0
 
     @property
     def algorithm(self):
@@ -93,6 +97,9 @@ class MeshBuilder:
 
     def bind_z(self, grid_z_array, **kwargs):
         self.algorithm.z = grid_z_array
+        if grid_z_array:
+            # Set the z_max in the state for the slider
+            self._state.z_max = len(self.data_array[grid_z_array]) - 1
 
     def bind_t(self, grid_t_array, **kwargs):
         self.algorithm.time = grid_t_array
@@ -103,6 +110,10 @@ class MeshBuilder:
     @vuwrap
     def set_time_index(self, time_index, **kwargs):
         self.algorithm.time_index = time_index
+
+    @vuwrap
+    def set_z_index(self, z_index, **kwargs):
+        self.algorithm.z_index = z_index
 
     @vuwrap
     def set_resolution(self, resolution, **kwargs):
@@ -120,34 +131,48 @@ class MeshViewer:
         self._state = state
         self.mesher = mesher
 
-        self.plotter = pv.Plotter(off_screen=True, notebook=False)
+        self.plotter = gv.GeoPlotter(off_screen=True, notebook=False)
         self.plotter.set_background("lightgrey")
+        self.plotter.enable_depth_peeling()
         self.actor = None
+        self.basemap_actor = None
+        self.setup_geovista()
 
         # controller
         ctrl.get_render_window = lambda: self.plotter.ren_win
         ctrl.reset = self.reset
 
-        self._state.x_scale = 1
-        self._state.y_scale = 1
-        self._state.z_scale = 1
         # Listen to changes
         self._state.change("view_edge_visiblity")(self.on_edge_visiblity_change)
-        self._state.change("x_scale")(self.set_scale)
-        self._state.change("y_scale")(self.set_scale)
-        self._state.change("z_scale")(self.set_scale)
+        self._state.change("view_basemap")(self.on_view_basemap_change)
+
+    def setup_geovista(self):
+        self.basemap_actor = self.plotter.add_base_layer(texture=gv.blue_marble())
+        resolution = "10m"
+        self.plotter.add_coastlines(resolution=resolution, color="white")
+        # self.plotter.add_axes()
+        # self.plotter.add_text(
+        #     f"NOAA/NCEI OISST AVHRR ({resolution} Coastlines)",
+        #     position="upper_left",
+        #     font_size=10,
+        #     shadow=True,
+        # )
+        self.plotter.view_isometric()
 
     @vuwrap
     def reset(self, **kwargs):
-        self.mesher.algorithm.Modified()
         self.plotter.clear()
+        self.mesher.algorithm.Modified()
+        self.setup_geovista()
         self.actor = self.plotter.add_mesh(
             self.mesher.algorithm,
             show_edges=self._state.view_edge_visiblity,
             clim=self.mesher.data_range,
-            **kwargs
+            cmap="coolwarm",
+            # Requires https://github.com/pyvista/pyvista/pull/3556
+            nan_opacity=0,
+            **kwargs,
         )
-        self.plotter.view_isometric()
 
     @vuwrap
     def on_edge_visiblity_change(self, view_edge_visiblity, **kwargs):
@@ -156,11 +181,10 @@ class MeshViewer:
         self.actor.GetProperty().SetEdgeVisibility(1 if view_edge_visiblity else 0)
 
     @vuwrap
-    def set_scale(self, x_scale=None, y_scale=None, z_scale=None, **kwargs):
-        x_scale = x_scale or self._state.x_scale
-        y_scale = y_scale or self._state.y_scale
-        z_scale = z_scale or self._state.z_scale
-        self.plotter.set_scale(xscale=x_scale, yscale=y_scale, zscale=z_scale)
+    def on_view_basemap_change(self, view_basemap, **kwargs):
+        if self.basemap_actor is None:
+            return
+        self.basemap_actor.SetVisibility(1 if view_basemap else 0)
 
 
 # ---------------------------------------------------------
