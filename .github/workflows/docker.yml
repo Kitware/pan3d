@@ -30,7 +30,9 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
       - name: Prepare Build
         working-directory: src/docker
-        run: ./scripts/build_server.sh
+        run: |
+          docker build -t trame-build -f build.Dockerfile .
+          ./scripts/build_server.sh
       - name: Build and push the Docker image
         uses: docker/build-push-action@v3
         with:
