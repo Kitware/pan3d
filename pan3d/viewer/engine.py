@@ -56,8 +56,8 @@ class MeshBuilder:
         ]
         self._state.coordinates = []
         self._state.dataset_ready = True
-        # Set first array as active
-        # TODO self._state.array_active = list(dataset.data_vars.keys())[0]
+        if len(self._state.data_vars) > 0:
+            self._state.array_active = self._state.data_vars[0]["name"]
 
     def clear_dataset(self, **kwargs):
         self._state.dataset_path = None
@@ -65,6 +65,7 @@ class MeshBuilder:
         self._state.coordinates = []
         self._state.dataset_ready = False
         self._state.array_active = None
+        self._state.active_tree_nodes = []
         self._state.grid_x_array = None
         self._state.grid_y_array = None
         self._state.grid_z_array = None
@@ -81,9 +82,11 @@ class MeshBuilder:
 
     def on_active_array(self, array_active, **kwargs):
         if array_active is None or not self._state.dataset_ready:
+            self._state.active_tree_nodes = []
             return
         self._algorithm.data_array = self._dataset[array_active]
         self._state.coordinates = list(self.data_array.coords.keys())
+        self._state.active_tree_nodes = [array_active]
 
     def bind_x(self, grid_x_array, **kwargs):
         self.algorithm.x = grid_x_array
