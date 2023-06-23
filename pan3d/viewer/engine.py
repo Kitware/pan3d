@@ -71,6 +71,7 @@ class MeshBuilder:
         self._state.grid_z_array = None
         self._state.grid_t_array = None
         self._state.time_max = 0
+        self._state.error_message = None
 
     @property
     def algorithm(self):
@@ -87,21 +88,26 @@ class MeshBuilder:
         self._algorithm.data_array = self._dataset[array_active]
         self._state.coordinates = list(self.data_array.coords.keys())
         self._state.active_tree_nodes = [array_active]
+        self._ctrl.reset()
 
     def bind_x(self, grid_x_array, **kwargs):
         self.algorithm.x = grid_x_array
+        self._ctrl.reset()
 
     def bind_y(self, grid_y_array, **kwargs):
         self.algorithm.y = grid_y_array
+        self._ctrl.reset()
 
     def bind_z(self, grid_z_array, **kwargs):
         self.algorithm.z = grid_z_array
+        self._ctrl.reset()
 
     def bind_t(self, grid_t_array, **kwargs):
         self.algorithm.time = grid_t_array
         if grid_t_array:
             # Set the time_max in the state for the slider
             self._state.time_max = len(self.data_array[grid_t_array]) - 1
+        self._ctrl.reset()
 
     @vuwrap
     def set_time_index(self, time_index, **kwargs):
@@ -113,6 +119,8 @@ class MeshBuilder:
 
     @property
     def data_range(self):
+        if self.data_array is None:
+            return 0, 0
         return self.data_array.min(), self.data_array.max()
 
 
@@ -142,15 +150,30 @@ class MeshViewer:
 
     @vuwrap
     def reset(self, **kwargs):
-        self.mesher.algorithm.Modified()
-        self.plotter.clear()
-        self.actor = self.plotter.add_mesh(
-            self.mesher.algorithm,
-            show_edges=self._state.view_edge_visiblity,
-            clim=self.mesher.data_range,
-            **kwargs
-        )
-        self.plotter.view_isometric()
+        if not self._state.array_active:
+            return
+        try:
+            try:
+                # check for valid data
+                self.mesher.algorithm.RequestData(None, None, None)
+            except AttributeError:
+                # TODO: AttributeError will be raised when RequestData
+                # is otherwise successful because we pass None to outputData
+                # We can ignore this and continue, but it would be better to pass
+                # the proper type to outputData
+                pass
+            self.mesher.algorithm.Modified()
+            self.plotter.clear()
+            self.actor = self.plotter.add_mesh(
+                self.mesher.algorithm,
+                show_edges=self._state.view_edge_visiblity,
+                clim=self.mesher.data_range,
+                **kwargs
+            )
+            self.plotter.view_isometric()
+            self._state.error_message = None
+        except Exception as e:
+            self._state.error_message = str(e)
 
     @vuwrap
     def on_edge_visiblity_change(self, view_edge_visiblity, **kwargs):

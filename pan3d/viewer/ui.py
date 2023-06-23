@@ -16,29 +16,25 @@ def initialize(server):
             layout.toolbar.align = "center"
             vuetify.VSpacer()
 
-            vuetify.VCheckbox(
-                v_model=("view_edge_visiblity", True),
-                dense=True,
-                hide_details=True,
-                on_icon="mdi-border-all",
-                off_icon="mdi-border-outside",
-            )
-
-            with vuetify.VBtn(
-                icon=True,
-                click=ctrl.reset,
-            ):
-                vuetify.VIcon("mdi-crop-free")
-
             vuetify.VSlider(
                 label="Resolution",
                 v_model=("resolution", 1.0),
+                v_show="array_active",
                 min=0.5,
                 max=1,
                 step=0.25,
                 hide_details=True,
                 dense=True,
                 style="max-width: 300px",
+            )
+
+            vuetify.VCheckbox(
+                v_model=("view_edge_visiblity", True),
+                v_show="array_active",
+                dense=True,
+                hide_details=True,
+                on_icon="mdi-border-all",
+                off_icon="mdi-border-outside",
             )
 
         # Drawer
@@ -81,6 +77,10 @@ def initialize(server):
 
         # Content
         with layout.content:
+            vuetify.VBanner(
+                "{{ error_message }}",
+                v_show=("error_message",),
+            )
             with html.Div(
                 classes="d-flex",
                 style="flex-direction: column; height: 100%",
