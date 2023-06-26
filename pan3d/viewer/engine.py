@@ -4,6 +4,8 @@ import pyvista as pv
 import xarray as xr
 from pvxarray.vtk_source import PyVistaXarraySource
 
+from pan3d.pangeo_forge import get_catalog
+
 
 def vuwrap(func):
     def wrapper(self, *args, **kwargs):
@@ -26,6 +28,12 @@ class MeshBuilder:
         # State variables
         self.clear_dataset()
         self._state.resolution = 1.0
+        self._state.available_datasets = [
+            {"name": "Pyvista Examples - air temperature", "url": "air_temperature"},
+            {"name": "Pyvista Examples - basin mask", "url": "basin_mask"},
+            {"name": "Pyvista Examples - eraint uvz", "url": "eraint_uvz"},
+        ]
+        self._state.available_datasets += get_catalog()
 
         # Listen to changes
         self._state.change("array_active")(self.on_active_array)
@@ -43,27 +51,46 @@ class MeshBuilder:
         dataset_path = self._state.dataset_path
         if not dataset_path:
             return
-        if os.path.exists(dataset_path):
+        for available_dataset in self._state.available_datasets:
+            if (
+                available_dataset["url"] == dataset_path
+                and "more_info" in available_dataset
+            ):
+                self._state.more_info_link = available_dataset["more_info"]
+        if "https://" in dataset_path or os.path.exists(dataset_path):
             # Assumes zarr store
-            self._dataset = xr.open_dataset(
-                dataset_path, engine="zarr", consolidated=False
-            )
+            try:
+                self._dataset = xr.open_dataset(dataset_path, engine="zarr", chunks={})
+            except Exception as e:
+                self._state.error_message = str(e)
+                return
         else:
             # Assume it is a named tutorial dataset
             self._dataset = xr.tutorial.load_dataset(dataset_path)
         self._state.data_vars = [
             {"name": k, "id": i} for i, k in enumerate(self._dataset.data_vars.keys())
         ]
+        self._state.data_attrs = [
+            {"key": k, "value": v} for k, v in self._dataset.attrs.items()
+        ]
+        if len(self._state.data_attrs) > 0:
+            self._state.show_data_attrs = True
         self._state.coordinates = []
         self._state.dataset_ready = True
         if len(self._state.data_vars) > 0:
             self._state.array_active = self._state.data_vars[0]["name"]
+        else:
+            self._state.no_data_vars = True
 
     def clear_dataset(self, **kwargs):
         self._state.dataset_path = None
+        self._state.more_info_link = None
         self._state.data_vars = []
+        self._state.data_attrs = []
+        self._state.show_data_attrs = False
         self._state.coordinates = []
         self._state.dataset_ready = False
+        self._state.no_data_vars = False
         self._state.array_active = None
         self._state.active_tree_nodes = []
         self._state.grid_x_array = None
@@ -178,7 +205,12 @@ class MeshViewer:
                 **kwargs
             )
             self.plotter.view_isometric()
-            self._state.error_message = None
+        except AttributeError:
+            # TODO: AttributeError will be raised when RequestData
+            # is otherwise successful because we pass None to outputData
+            # We can ignore this and continue, but it would be better to pass
+            # the proper type to outputData
+            pass
         except Exception as e:
             self._state.error_message = str(e)
 
