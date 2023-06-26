@@ -40,16 +40,13 @@ def initialize(server):
 
         # Drawer
         with layout.drawer:
-            with vuetify.VForm(classes="pa-1"):
-                datasets = [
-                    "air_temperature",
-                    "basin_mask",
-                    "eraint_uvz",
-                ]
+            with html.Div(classes="pa-2"):
                 vuetify.VSelect(
                     label="Choose a dataset",
                     v_model="dataset_path",
-                    items=("datasets", datasets),
+                    items=("available_datasets",),
+                    item_text="name",
+                    item_value="url",
                     hide_details=True,
                     dense=True,
                     clearable=True,
@@ -58,23 +55,52 @@ def initialize(server):
                     click_clear=ctrl.clear_dataset,
                 )
 
-            vuetify.VCardText(
-                "Available Arrays",
-                v_show="dataset_ready",
-            )
+                html.A(
+                    "More information about this dataset",
+                    href=("more_info_link",),
+                    v_show=("more_info_link",),
+                    target="_blank",
+                )
 
-            with vuetify.VTreeview(
-                v_show="dataset_ready",
-                dense=True,
-                activatable=True,
-                active=("active_tree_nodes",),
-                items=("data_vars",),
-                item_key="name",
-                update_active="array_active = $event[0]",
-                multiple_active=False,
-            ):
-                with vuetify.Template(v_slot_label="{ item }"):
-                    html.Span("{{ item?.name }}", classes="text-subtitle-2")
+                vuetify.VCardText(
+                    "Available Arrays",
+                    v_show="dataset_ready",
+                    classes="font-weight-bold",
+                )
+                vuetify.VCardText(
+                    "No data variables found.",
+                    v_show=("no_data_vars",),
+                )
+                with vuetify.VTreeview(
+                    v_show="dataset_ready",
+                    dense=True,
+                    activatable=True,
+                    active=("active_tree_nodes",),
+                    items=("data_vars",),
+                    item_key="name",
+                    update_active="array_active = $event[0]",
+                    multiple_active=False,
+                ):
+                    with vuetify.Template(v_slot_label="{ item }"):
+                        html.Span("{{ item?.name }}", classes="text-subtitle-2")
+
+                attrs_headers = [
+                    {"text": "key", "value": "key"},
+                    {"text": "value", "value": "value"},
+                ]
+                vuetify.VCardText(
+                    "Data Attributes",
+                    v_show="show_data_attrs",
+                    classes="font-weight-bold",
+                )
+                vuetify.VDataTable(
+                    v_show="show_data_attrs",
+                    dense=True,
+                    items=("data_attrs",),
+                    headers=("headers", attrs_headers),
+                    hide_default_header=True,
+                    hide_default_footer=True,
+                )
 
         # Content
         with layout.content:
