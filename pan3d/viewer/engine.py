@@ -29,9 +29,9 @@ class MeshBuilder:
         self.clear_dataset()
         self._state.resolution = 1.0
         self._state.available_datasets = [
-            {"name": "Pyvista Examples - air temperature", "url": "air_temperature"},
-            {"name": "Pyvista Examples - basin mask", "url": "basin_mask"},
-            {"name": "Pyvista Examples - eraint uvz", "url": "eraint_uvz"},
+            {"name": "XArray Examples - air temperature", "url": "air_temperature"},
+            {"name": "XArray Examples - basin mask", "url": "basin_mask"},
+            {"name": "XArray Examples - eraint uvz", "url": "eraint_uvz"},
         ]
         self._state.available_datasets += get_catalog()
 
