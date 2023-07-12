@@ -99,7 +99,6 @@ def initialize(server):
                     items=("data_attrs",),
                     headers=("headers", attrs_headers),
                     hide_default_header=True,
-                    hide_default_footer=True,
                 )
 
         # Content

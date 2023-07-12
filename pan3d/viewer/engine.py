@@ -73,6 +73,14 @@ class MeshBuilder:
         self._state.data_attrs = [
             {"key": k, "value": v} for k, v in self._dataset.attrs.items()
         ]
+        self._state.data_attrs.insert(
+            0,
+            {
+                "key": "dimensions",
+                "value": str(dict(self._dataset.dims)),
+            },
+        )
+        print(self._state.data_attrs)
         if len(self._state.data_attrs) > 0:
             self._state.show_data_attrs = True
         self._state.coordinates = []
