@@ -26,6 +26,7 @@ DAYS = None
 # Callbacks
 # -----------------------------------------------------------------------------
 
+
 @state.change("time")
 def update_time(time, **kwargs):
     ctrl.time_update(time)
@@ -33,13 +34,15 @@ def update_time(time, **kwargs):
 
     state.time_label = "Day: {:d}".format(DAYS[time] - DAYS[0])
 
+
 # -----------------------------------------------------------------------------
 # API
 # -----------------------------------------------------------------------------
 
+
 def register_dataset(ds, remote_rendering=True):
     global DAYS
-    DAYS = ds.time.values.astype('timedelta64[D]').astype('int')
+    DAYS = ds.time.values.astype("timedelta64[D]").astype("int")
     state.time_max = len(ds.time) - 1
 
     xg = ds.XG_agg.values
@@ -61,14 +64,15 @@ def register_dataset(ds, remote_rendering=True):
 
     T_sargs = dict(height=0.25, vertical=True, position_x=0.05, position_y=0.05)
     eddy_sargs = dict(height=0.25, vertical=True, position_x=0.9, position_y=0.05)
-    cpos = [(-7660.16298698021, -12605.978568447243, 12085.265135261985),
-             (5610.073566725802, 1485.4731686040536, -552.5943624341437),
-             (0.38039384351927424, 0.39270852688016344, 0.8373055217351943)]
+    cpos = [
+        (-7660.16298698021, -12605.978568447243, 12085.265135261985),
+        (5610.073566725802, 1485.4731686040536, -552.5943624341437),
+        (0.38039384351927424, 0.39270852688016344, 0.8373055217351943),
+    ]
     PLOTTER.camera_position = cpos
 
-
-    grid_l = pv.RectilinearGrid(xg/aspect, yg/aspect + offset, zg)
-    grid_r = pv.RectilinearGrid(xg/aspect + 2*offset, yg/aspect - offset, zg)
+    grid_l = pv.RectilinearGrid(xg / aspect, yg / aspect + offset, zg)
+    grid_r = pv.RectilinearGrid(xg / aspect + 2 * offset, yg / aspect - offset, zg)
 
     def load_fields(time):
         grid_l.cell_data["T"] = ds["T"][time].values.flatten()
@@ -79,12 +83,24 @@ def register_dataset(ds, remote_rendering=True):
 
     if remote_rendering:
         PLOTTER.clear()
-        PLOTTER.add_mesh(grid_l, show_edges=True, scalars='T',
-                 clim=[0, 8], cmap='magma',
-                 scalar_bar_args=T_sargs, show_scalar_bar=True)
-        PLOTTER.add_mesh(grid_r, show_edges=True, scalars='eddy_forc',
-                 clim=[-2e5, 2e5], cmap='RdBu_r',
-                 scalar_bar_args=eddy_sargs, show_scalar_bar=True)
+        PLOTTER.add_mesh(
+            grid_l,
+            show_edges=True,
+            scalars="T",
+            clim=[0, 8],
+            cmap="magma",
+            scalar_bar_args=T_sargs,
+            show_scalar_bar=True,
+        )
+        PLOTTER.add_mesh(
+            grid_r,
+            show_edges=True,
+            scalars="eddy_forc",
+            clim=[-2e5, 2e5],
+            cmap="RdBu_r",
+            scalar_bar_args=eddy_sargs,
+            show_scalar_bar=True,
+        )
         ctrl.time_update = load_fields
     else:
         geo_filter = vtkDataSetSurfaceFilter()
@@ -103,21 +119,35 @@ def register_dataset(ds, remote_rendering=True):
             poly_r.ShallowCopy(geo_filter.GetOutput())
 
             PLOTTER.clear()
-            PLOTTER.add_mesh(poly_l, show_edges=True, scalars='T',
-                 clim=[0, 8], cmap='magma',
-                 scalar_bar_args=T_sargs, show_scalar_bar=True)
-            PLOTTER.add_mesh(poly_r, show_edges=True, scalars='eddy_forc',
-                 clim=[-2e5, 2e5], cmap='RdBu_r',
-                 scalar_bar_args=eddy_sargs, show_scalar_bar=True)
+            PLOTTER.add_mesh(
+                poly_l,
+                show_edges=True,
+                scalars="T",
+                clim=[0, 8],
+                cmap="magma",
+                scalar_bar_args=T_sargs,
+                show_scalar_bar=True,
+            )
+            PLOTTER.add_mesh(
+                poly_r,
+                show_edges=True,
+                scalars="eddy_forc",
+                clim=[-2e5, 2e5],
+                cmap="RdBu_r",
+                scalar_bar_args=eddy_sargs,
+                show_scalar_bar=True,
+            )
 
         ctrl.time_update = load_fields_for_local
 
     # Make sure regardless of rendering we have the first ts
     ctrl.time_update(0)
 
+
 # -----------------------------------------------------------------------------
 # UI
 # -----------------------------------------------------------------------------
+
 
 def register_ui(server, remote_rendering=True, name="main"):
     with SinglePageLayout(server, name) as layout:
@@ -128,13 +158,16 @@ def register_ui(server, remote_rendering=True, name="main"):
             vuetify.VSlider(
                 label="Time",
                 v_model=("time", 0),
-                min=0, max=("time_max", 0), step=1,
-                dense=True, hide_details=True, style="max-width: 300px;",
+                min=0,
+                max=("time_max", 0),
+                step=1,
+                dense=True,
+                hide_details=True,
+                style="max-width: 300px;",
             )
             tb.add_child("{{ time }}")
             vuetify.VSpacer()
             tb.add_child("{{ time_label }}")
-
 
         with layout.content:
             with vuetify.VContainer(fluid=True, classes="fill-height pa-0 ma-0"):
@@ -145,6 +178,7 @@ def register_ui(server, remote_rendering=True, name="main"):
                     view = vtk.VtkLocalView(PLOTTER.ren_win)
                 ctrl.view_update = view.update
                 ctrl.view_reset_camera = view.reset_camera
+
 
 # -----------------------------------------------------------------------------
 # Jupyter helper
