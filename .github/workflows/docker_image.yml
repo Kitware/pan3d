@@ -3,9 +3,6 @@ on:
   workflow_dispatch:
   push:
     tags: "*"
-    branches:
-      - main
-  pull_request:
 
 env:
   REGISTRY: ghcr.io
@@ -31,7 +28,7 @@ jobs:
       - name: Prepare Build
         working-directory: src/docker
         run: |
-          docker build -t trame-build -f build.Dockerfile .
+          docker build -t trame-build -f Dockerfile .
           ./scripts/build_server.sh
       - name: Build and push the Docker image
         uses: docker/build-push-action@v3
