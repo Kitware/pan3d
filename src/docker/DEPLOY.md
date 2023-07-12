@@ -2,7 +2,7 @@
 
 Trame applications can be deployed following different patterns.
 The one describe below is the simplest one and will only scale up to what the hardware is capable of handling.
-For infinit scaling feel free to consult [Kitware](https://www.kitware.com/contact/) for more guidance.
+For infinite scaling feel free to consult [Kitware](https://www.kitware.com/contact/) for more guidance.
 
 ## Docker
 
