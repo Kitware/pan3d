@@ -1,9 +1,8 @@
-name: Test and Release
+name: Test
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ main ]
+  pull_request:
 
 jobs:
   pre-commit:
@@ -62,25 +61,3 @@ jobs:
         pip install -r tests/requirements.txt
         pytest -s ./tests
       working-directory: src/
-
-  release:
-    needs: [
-      pre-commit,
-      pytest,
-    ]
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: Python Semantic Release
-        uses: relekang/python-semantic-release@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          repository_username: __token__
-          repository_password: ${{ secrets.PYPI_API_TOKEN }}
-        working-directory: src/

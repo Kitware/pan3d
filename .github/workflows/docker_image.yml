@@ -28,15 +28,10 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-      - name: Prepare Build
-        working-directory: src/docker
-        run: |
-          docker build -t trame-build -f build.Dockerfile .
-          ./scripts/build_server.sh
       - name: Build and push the Docker image
         uses: docker/build-push-action@v3
         with:
-          context: src/docker
+          context: src
           file: src/docker/Dockerfile
           push: ${{ github.actor != 'dependabot[bot]' }}
           tags: ${{ steps.meta.outputs.tags }}

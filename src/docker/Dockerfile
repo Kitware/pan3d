@@ -2,9 +2,10 @@ FROM kitware/trame
 
 RUN apt-get update && \
     apt-get install --no-install-recommends --yes \
-        libosmesa6-dev \
-    && \
-    rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy the server directory
-COPY --chown=trame-user:trame-user ./server /deploy/server
+COPY --chown=trame-user:trame-user . /local-app
+
+COPY --chown=trame-user:trame-user ./docker /deploy
+
+RUN /opt/trame/entrypoint.sh build

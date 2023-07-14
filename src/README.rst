@@ -2,7 +2,7 @@
 Pan3D
 ===========
 
-Pan3D aims to be an utility package for viewing and processing a wide varierty of datasets (zarr, hdf5, netcdf...)
+Pan3D aims to be an utility package for viewing and processing a wide variety of datasets (zarr, hdf5, netcdf...)
 
 
 * Free software: Apache Software License
