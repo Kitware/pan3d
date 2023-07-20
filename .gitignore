@@ -1,12 +1,32 @@
-.ipynb_checkpoints
-__pycache__
-*.pyc
-*.egg-info
-**/.DS_Store
-.coverage
-.coverage*
-.pytest_cache
-**/coverage.xml
+.DS_Store
+node_modules
+.venv
+
+# local env files
+.env.local
+.env.*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor directories and files
+.idea
 .vscode
-*.tar.gz
-*.tar
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+__pycache__
+*egg-info
+*pyc
+
+dist/
+build/
+bin/
+htmlcov/
+cache/
