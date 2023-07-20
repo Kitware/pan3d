@@ -19,7 +19,7 @@ jobs:
           pip install pre-commit
           pre-commit install
           pre-commit run --all-files
-        working-directory: src/
+        working-directory: .
 
   pytest:
     name: Pytest ${{ matrix.config.name }}
@@ -60,4 +60,4 @@ jobs:
         pip install .
         pip install -r tests/requirements.txt
         pytest -s ./tests
-      working-directory: src/
+      working-directory: .

@@ -31,8 +31,8 @@ jobs:
       - name: Build and push the Docker image
         uses: docker/build-push-action@v3
         with:
-          context: src
-          file: src/docker/Dockerfile
+          context: .
+          file: docker/Dockerfile
           push: ${{ github.actor != 'dependabot[bot]' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

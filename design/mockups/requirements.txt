@@ -1,6 +1,0 @@
-ipvtklink
-numpy
-pyvista
-vtk
-xarray
-zarr
