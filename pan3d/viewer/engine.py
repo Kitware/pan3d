@@ -136,7 +136,7 @@ class MeshViewer:
         self.actor = None
 
         # controller
-        ctrl.get_render_window = lambda: self.plotter.ren_win
+        ctrl.get_plotter = lambda: self.plotter
         ctrl.reset = self.reset
 
         self._state.x_scale = 1

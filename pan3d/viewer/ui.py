@@ -1,5 +1,6 @@
 from trame.ui.vuetify import SinglePageWithDrawerLayout
-from trame.widgets import html, vtk, vuetify
+from trame.widgets import html, vuetify
+from pyvista.trame.ui import plotter_ui
 
 
 # Create single page layout type
@@ -189,14 +190,14 @@ def initialize(server):
 
                 with html.Div(
                     v_show="array_active",
-                    style="height: 100%",
+                    style="height: 100%; position: relative;",
                 ):
-                    with vtk.VtkRemoteView(
-                        ctrl.get_render_window(),
+                    with plotter_ui(
+                        ctrl.get_plotter(),
                         interactive_ratio=1,
-                    ) as vtk_view:
-                        ctrl.view_update = vtk_view.update
-                        ctrl.reset_camera = vtk_view.reset_camera
+                    ) as plot_view:
+                        ctrl.view_update = plot_view.update
+                        ctrl.reset_camera = plot_view.reset_camera
 
         # Footer
         # layout.footer.hide()
