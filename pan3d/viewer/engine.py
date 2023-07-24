@@ -169,8 +169,8 @@ class MeshViewer:
         if not self._state.array_active:
             return
         try:
-            self.mesher.algorithm.Update()
             self.mesher.validate_mesh()
+            self.mesher.algorithm.Update()
             self.actor = self.plotter.add_mesh(
                 self.mesher.algorithm,
                 show_edges=self._state.view_edge_visiblity,
