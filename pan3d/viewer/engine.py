@@ -73,6 +73,15 @@ class MeshBuilder:
         self._state.time_max = 0
         self._state.error_message = None
 
+    def validate_mesh(self):
+        self._algorithm.data_array.pyvista.mesh(
+            self._algorithm.x,
+            self._algorithm.y,
+            self._algorithm.z,
+            self._algorithm.order,
+            self._algorithm.component,
+        )
+
     @property
     def algorithm(self):
         return self._algorithm
@@ -88,6 +97,10 @@ class MeshBuilder:
         self._algorithm.data_array = self._dataset[array_active]
         self._state.coordinates = list(self.data_array.coords.keys())
         self._state.active_tree_nodes = [array_active]
+        self._state.grid_x_array = None
+        self._state.grid_y_array = None
+        self._state.grid_z_array = None
+        self._state.grid_t_array = None
         self._ctrl.reset()
 
     def bind_x(self, grid_x_array, **kwargs):
@@ -153,17 +166,8 @@ class MeshViewer:
         if not self._state.array_active:
             return
         try:
-            try:
-                # check for valid data
-                self.mesher.algorithm.RequestData(None, None, None)
-            except AttributeError:
-                # TODO: AttributeError will be raised when RequestData
-                # is otherwise successful because we pass None to outputData
-                # We can ignore this and continue, but it would be better to pass
-                # the proper type to outputData
-                pass
-            self.mesher.algorithm.Modified()
-            self.plotter.clear()
+            self.mesher.validate_mesh()
+            self.mesher.algorithm.Update()
             self.actor = self.plotter.add_mesh(
                 self.mesher.algorithm,
                 show_edges=self._state.view_edge_visiblity,
