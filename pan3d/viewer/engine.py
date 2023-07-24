@@ -74,7 +74,10 @@ class MeshBuilder:
         self._state.error_message = None
 
     def validate_mesh(self):
-        self._algorithm.data_array.pyvista.mesh(
+        data_array = self._algorithm.data_array
+        if self._algorithm.time:
+            data_array = data_array[{self._algorithm.time: self._state.time_max}]
+        data_array.pyvista.mesh(
             self._algorithm.x,
             self._algorithm.y,
             self._algorithm.z,
@@ -166,8 +169,8 @@ class MeshViewer:
         if not self._state.array_active:
             return
         try:
-            self.mesher.validate_mesh()
             self.mesher.algorithm.Update()
+            self.mesher.validate_mesh()
             self.actor = self.plotter.add_mesh(
                 self.mesher.algorithm,
                 show_edges=self._state.view_edge_visiblity,
