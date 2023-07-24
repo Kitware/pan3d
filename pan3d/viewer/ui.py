@@ -179,7 +179,7 @@ def initialize(server):
                                 v_show="grid_t_array && time_max > 0",
                                 v_model=("time_index", 0),
                                 classes="ml-2",
-                                label="Scale",
+                                label="Index",
                                 min=0,
                                 max=("time_max", 0),
                                 step=1,
