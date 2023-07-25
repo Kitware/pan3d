@@ -1,5 +1,6 @@
 from trame.ui.vuetify import SinglePageWithDrawerLayout
-from trame.widgets import html, vtk, vuetify
+from trame.widgets import html, vuetify
+from pyvista.trame.ui import plotter_ui
 
 
 # Create single page layout type
@@ -16,51 +17,60 @@ def initialize(server):
             layout.toolbar.align = "center"
             vuetify.VSpacer()
 
-            vuetify.VCheckbox(
+            vuetify.VSlider(
+                label="Resolution",
+                v_model=("resolution", 1.0),
                 v_show="array_active",
+                min=0.5,
+                max=1,
+                step=0.25,
+                hide_details=True,
+                dense=True,
+                style="max-width: 300px",
+            )
+
+            vuetify.VCheckbox(
                 v_model=("view_edge_visiblity", True),
+                v_show="array_active",
                 dense=True,
                 hide_details=True,
                 on_icon="mdi-border-all",
                 off_icon="mdi-border-outside",
-                classes="ma-2",
             )
-
-            with vuetify.VBtn(
-                v_show="array_active",
-                icon=True,
-                click=ctrl.reset,
-            ):
-                vuetify.VIcon("mdi-crop-free")
-
-            vuetify.VSelect(
-                label="Resolution",
-                v_show="array_active",
-                v_model=("resolution", 1.0),
-                items=("resolutions", [0.05, 0.25, 0.5, 1.0]),
-                hide_details=True,
-                dense=True,
-                outlined=True,
-                classes="pt-1 ml-2",
-                style="max-width: 150px",
-            )
-
-            with vuetify.VBtn(
-                v_show="dataset_ready",
-                icon=True,
-                click=ctrl.clear_dataset,
-            ):
-                vuetify.VIcon("mdi-delete")
 
         # Drawer
         with layout.drawer:
+            with vuetify.VForm(classes="pa-1"):
+                datasets = [
+                    "air_temperature",
+                    "basin_mask",
+                    "eraint_uvz",
+                ]
+                vuetify.VSelect(
+                    label="Choose a dataset",
+                    v_model="dataset_path",
+                    items=("datasets", datasets),
+                    hide_details=True,
+                    dense=True,
+                    clearable=True,
+                    outlined=True,
+                    classes="pt-1",
+                    click_clear=ctrl.clear_dataset,
+                )
+
+            vuetify.VCardText(
+                "Available Arrays",
+                v_show="dataset_ready",
+            )
+
             with vuetify.VTreeview(
                 v_show="dataset_ready",
                 dense=True,
                 activatable=True,
+                active=("active_tree_nodes",),
                 items=("data_vars",),
-                update_active="array_active = data_vars[$event[0] || 0]?.name",
-                # TODO: set active/selected on startup
+                item_key="name",
+                update_active="array_active = $event[0]",
                 multiple_active=False,
             ):
                 with vuetify.Template(v_slot_label="{ item }"):
@@ -68,152 +78,126 @@ def initialize(server):
 
         # Content
         with layout.content:
-            with vuetify.VContainer(fluid=True, classes="pa-0 fill-height"):
-                with vuetify.VCol(
-                    v_show="!dataset_ready",
-                    classes="fill-height",
-                ):
-                    with vuetify.VForm():
-                        datasets = [
-                            "air_temperature",
-                            "basin_mask",
-                            "eraint_uvz",
-                        ]
-                        vuetify.VSelect(
-                            label="Choose a dataset",
-                            v_model="dataset_path",
-                            items=("datasets", datasets),
-                            hide_details=True,
-                            dense=True,
-                            outlined=True,
-                            classes="pt-1",
-                        )
-                with vuetify.VCol(
+            vuetify.VBanner(
+                "{{ error_message }}",
+                v_show=("error_message",),
+            )
+            with html.Div(
+                classes="d-flex",
+                style="flex-direction: column; height: 100%",
+            ):
+                with vuetify.VContainer(
                     v_show="array_active",
-                    classes="fill-height",
+                    classes="pa-2",
+                    fluid=True,
                 ):
-                    with vuetify.VCard(style="flex: none;"):
-                        vuetify.VDivider()
-                        with vuetify.VCardText():
-                            with vuetify.VCol():
-                                with vuetify.VRow():
-                                    html.Div("X:", classes="text-subtitle-2 pr-2")
-                                    html.Div("{{ grid_x_array || 'Undefined' }}")
-                                    vuetify.VSpacer()
-                                    vuetify.VSlider(
-                                        label="X Scale",
-                                        v_show="grid_x_array",
-                                        v_model=("x_scale", 0),
-                                        min=1,
-                                        max=1000,
-                                        step=10,
-                                        dense=True,
-                                        hide_details=True,
-                                        style="max-width: 250px;",
-                                    )
-                                    vuetify.VSelect(
-                                        v_model=("grid_x_array", None),
-                                        items=("coordinates",),
-                                        hide_details=True,
-                                        dense=True,
-                                        style="max-width: 250px;",
-                                    )
-                                    with vuetify.VBtn(
-                                        icon=True,
-                                        click="grid_x_array = undefined",
-                                    ):
-                                        vuetify.VIcon("mdi-delete")
-                                with vuetify.VRow():
-                                    html.Div("Y:", classes="text-subtitle-2 pr-2")
-                                    html.Div("{{ grid_y_array || 'Undefined' }}")
-                                    vuetify.VSpacer()
-                                    vuetify.VSlider(
-                                        label="Y Scale",
-                                        v_show="grid_y_array",
-                                        v_model=("y_scale", 0),
-                                        min=1,
-                                        max=1000,
-                                        step=10,
-                                        dense=True,
-                                        hide_details=True,
-                                        style="max-width: 250px;",
-                                    )
-                                    vuetify.VSelect(
-                                        v_model=("grid_y_array", None),
-                                        items=("coordinates",),
-                                        hide_details=True,
-                                        dense=True,
-                                        style="max-width: 250px;",
-                                    )
-                                    with vuetify.VBtn(
-                                        icon=True,
-                                        click="grid_y_array = undefined",
-                                    ):
-                                        vuetify.VIcon("mdi-delete")
-                                with vuetify.VRow():
-                                    html.Div("Z:", classes="text-subtitle-2 pr-2")
-                                    html.Div("{{ grid_z_array || 'Undefined' }}")
-                                    vuetify.VSpacer()
-                                    vuetify.VSlider(
-                                        label="Z Scale",
-                                        v_show="grid_z_array",
-                                        v_model=("z_scale", 0),
-                                        min=1,
-                                        max=1000,
-                                        step=10,
-                                        dense=True,
-                                        hide_details=True,
-                                        style="max-width: 250px;",
-                                    )
-                                    vuetify.VSelect(
-                                        v_model=("grid_z_array", None),
-                                        items=("coordinates",),
-                                        hide_details=True,
-                                        dense=True,
-                                        style="max-width: 250px;",
-                                    )
-                                    with vuetify.VBtn(
-                                        icon=True,
-                                        click="grid_z_array = undefined",
-                                    ):
-                                        vuetify.VIcon("mdi-delete")
-                                with vuetify.VRow():
-                                    html.Div("T:", classes="text-subtitle-2 pr-2")
-                                    html.Div("{{ grid_t_array || 'Undefined' }}")
-                                    vuetify.VSpacer()
-                                    vuetify.VSlider(
-                                        label="Time",
-                                        v_show="grid_t_array && time_max > 0",
-                                        v_model=("time_index", 0),
-                                        min=0,
-                                        max=("time_max", 0),
-                                        step=1,
-                                        dense=True,
-                                        hide_details=True,
-                                        style="max-width: 250px;",
-                                    )
-                                    vuetify.VSelect(
-                                        v_model=("grid_t_array", None),
-                                        items=("coordinates",),
-                                        hide_details=True,
-                                        dense=True,
-                                        style="max-width: 250px;",
-                                    )
-                                    with vuetify.VBtn(
-                                        icon=True,
-                                        click="grid_t_array = undefined",
-                                    ):
-                                        vuetify.VIcon("mdi-delete")
-                    with html.Div(
-                        style="display: flex; flex: 1; height: calc(100vh - 300px);"
-                    ):
-                        with vtk.VtkRemoteView(
-                            ctrl.get_render_window(),
-                            # v_show="view_mode === 'view_grid'",
-                            interactive_ratio=1,
-                        ) as vtk_view:
-                            ctrl.view_update = vtk_view.update
-                            ctrl.reset_camera = vtk_view.reset_camera
+                    with vuetify.VCol():
+                        with vuetify.VRow():
+                            html.Div("X:", classes="text-subtitle-2 pr-2")
+                            vuetify.VSelect(
+                                v_model=("grid_x_array", None),
+                                items=("coordinates",),
+                                hide_details=True,
+                                dense=True,
+                                clearable="True",
+                                clear="grid_x_array = undefined",
+                                style="max-width: 250px;",
+                            )
+                            vuetify.VSlider(
+                                v_show="grid_x_array",
+                                v_model=("x_scale", 0),
+                                classes="ml-2",
+                                label="Scale",
+                                min=1,
+                                max=1000,
+                                step=10,
+                                dense=True,
+                                hide_details=True,
+                                style="max-width: 250px;",
+                            )
+
+                        with vuetify.VRow():
+                            html.Div("Y:", classes="text-subtitle-2 pr-2")
+                            vuetify.VSelect(
+                                v_model=("grid_y_array", None),
+                                items=("coordinates",),
+                                hide_details=True,
+                                dense=True,
+                                clearable="True",
+                                clear="grid_y_array = undefined",
+                                style="max-width: 250px;",
+                            )
+                            vuetify.VSlider(
+                                v_show="grid_y_array",
+                                v_model=("y_scale", 0),
+                                classes="ml-2",
+                                label="Scale",
+                                min=1,
+                                max=1000,
+                                step=10,
+                                dense=True,
+                                hide_details=True,
+                                style="max-width: 250px;",
+                            )
+
+                        with vuetify.VRow():
+                            html.Div("Z:", classes="text-subtitle-2 pr-2")
+                            vuetify.VSelect(
+                                v_model=("grid_z_array", None),
+                                items=("coordinates",),
+                                hide_details=True,
+                                dense=True,
+                                clearable="True",
+                                clear="grid_z_array = undefined",
+                                style="max-width: 250px;",
+                            )
+                            vuetify.VSlider(
+                                v_show="grid_z_array",
+                                v_model=("z_scale", 0),
+                                classes="ml-2",
+                                label="Scale",
+                                min=1,
+                                max=1000,
+                                step=10,
+                                dense=True,
+                                hide_details=True,
+                                style="max-width: 250px;",
+                            )
+
+                        with vuetify.VRow():
+                            html.Div("T:", classes="text-subtitle-2 pr-2")
+                            vuetify.VSelect(
+                                v_model=("grid_t_array", None),
+                                items=("coordinates",),
+                                hide_details=True,
+                                dense=True,
+                                clearable="True",
+                                clear="grid_t_array = undefined",
+                                style="max-width: 250px;",
+                            )
+                            vuetify.VSlider(
+                                v_show="grid_t_array && time_max > 0",
+                                v_model=("time_index", 0),
+                                classes="ml-2",
+                                label="Index",
+                                min=0,
+                                max=("time_max", 0),
+                                step=1,
+                                dense=True,
+                                hide_details=True,
+                                style="max-width: 250px;",
+                            )
+
+                with html.Div(
+                    v_show="array_active",
+                    style="height: 100%; position: relative;",
+                ):
+                    with plotter_ui(
+                        ctrl.get_plotter(),
+                        interactive_ratio=1,
+                    ) as plot_view:
+                        ctrl.view_update = plot_view.update
+                        ctrl.reset_camera = plot_view.reset_camera
 
         # Footer
         # layout.footer.hide()

@@ -56,8 +56,8 @@ class MeshBuilder:
         ]
         self._state.coordinates = []
         self._state.dataset_ready = True
-        # Set first array as active
-        # TODO self._state.array_active = list(dataset.data_vars.keys())[0]
+        if len(self._state.data_vars) > 0:
+            self._state.array_active = self._state.data_vars[0]["name"]
 
     def clear_dataset(self, **kwargs):
         self._state.dataset_path = None
@@ -65,11 +65,25 @@ class MeshBuilder:
         self._state.coordinates = []
         self._state.dataset_ready = False
         self._state.array_active = None
+        self._state.active_tree_nodes = []
         self._state.grid_x_array = None
         self._state.grid_y_array = None
         self._state.grid_z_array = None
         self._state.grid_t_array = None
         self._state.time_max = 0
+        self._state.error_message = None
+
+    def validate_mesh(self):
+        data_array = self._algorithm.data_array
+        if self._algorithm.time:
+            data_array = data_array[{self._algorithm.time: self._state.time_max}]
+        data_array.pyvista.mesh(
+            self._algorithm.x,
+            self._algorithm.y,
+            self._algorithm.z,
+            self._algorithm.order,
+            self._algorithm.component,
+        )
 
     @property
     def algorithm(self):
@@ -81,24 +95,35 @@ class MeshBuilder:
 
     def on_active_array(self, array_active, **kwargs):
         if array_active is None or not self._state.dataset_ready:
+            self._state.active_tree_nodes = []
             return
         self._algorithm.data_array = self._dataset[array_active]
         self._state.coordinates = list(self.data_array.coords.keys())
+        self._state.active_tree_nodes = [array_active]
+        self._state.grid_x_array = None
+        self._state.grid_y_array = None
+        self._state.grid_z_array = None
+        self._state.grid_t_array = None
+        self._ctrl.reset()
 
     def bind_x(self, grid_x_array, **kwargs):
         self.algorithm.x = grid_x_array
+        self._ctrl.reset()
 
     def bind_y(self, grid_y_array, **kwargs):
         self.algorithm.y = grid_y_array
+        self._ctrl.reset()
 
     def bind_z(self, grid_z_array, **kwargs):
         self.algorithm.z = grid_z_array
+        self._ctrl.reset()
 
     def bind_t(self, grid_t_array, **kwargs):
         self.algorithm.time = grid_t_array
         if grid_t_array:
             # Set the time_max in the state for the slider
             self._state.time_max = len(self.data_array[grid_t_array]) - 1
+        self._ctrl.reset()
 
     @vuwrap
     def set_time_index(self, time_index, **kwargs):
@@ -110,6 +135,8 @@ class MeshBuilder:
 
     @property
     def data_range(self):
+        if self.data_array is None:
+            return 0, 0
         return self.data_array.min(), self.data_array.max()
 
 
@@ -125,7 +152,7 @@ class MeshViewer:
         self.actor = None
 
         # controller
-        ctrl.get_render_window = lambda: self.plotter.ren_win
+        ctrl.get_plotter = lambda: self.plotter
         ctrl.reset = self.reset
 
         self._state.x_scale = 1
@@ -139,15 +166,21 @@ class MeshViewer:
 
     @vuwrap
     def reset(self, **kwargs):
-        self.mesher.algorithm.Modified()
-        self.plotter.clear()
-        self.actor = self.plotter.add_mesh(
-            self.mesher.algorithm,
-            show_edges=self._state.view_edge_visiblity,
-            clim=self.mesher.data_range,
-            **kwargs
-        )
-        self.plotter.view_isometric()
+        if not self._state.array_active:
+            return
+        try:
+            self.mesher.validate_mesh()
+            self.mesher.algorithm.Update()
+            self.actor = self.plotter.add_mesh(
+                self.mesher.algorithm,
+                show_edges=self._state.view_edge_visiblity,
+                clim=self.mesher.data_range,
+                **kwargs
+            )
+            self.plotter.view_isometric()
+            self._state.error_message = None
+        except Exception as e:
+            self._state.error_message = str(e)
 
     @vuwrap
     def on_edge_visiblity_change(self, view_edge_visiblity, **kwargs):
