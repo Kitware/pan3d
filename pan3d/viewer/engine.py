@@ -206,6 +206,7 @@ class MeshViewer:
         try:
             self.mesher.validate_mesh()
             self.mesher.algorithm.Update()
+            self.plotter.clear()
             self.actor = self.plotter.add_mesh(
                 self.mesher.algorithm,
                 show_edges=self._state.view_edge_visiblity,
@@ -241,7 +242,7 @@ class MeshViewer:
 # ---------------------------------------------------------
 
 
-def initialize(server):
-    mesher = MeshBuilder(server)
+def initialize(server, **kwargs):
+    mesher = MeshBuilder(server, **kwargs)
     viewer = MeshViewer(server, mesher)
     return viewer
