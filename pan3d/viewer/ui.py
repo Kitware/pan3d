@@ -15,6 +15,13 @@ def initialize(server):
         with layout.toolbar:
             layout.toolbar.dense = True
             layout.toolbar.align = "center"
+
+            vuetify.VProgressCircular(
+                v_show=("loading",),
+                indeterminate=True,
+                classes="mx-10",
+            )
+
             vuetify.VSpacer()
 
             vuetify.VSlider(
@@ -225,4 +232,4 @@ def initialize(server):
                         ctrl.reset_camera = plot_view.reset_camera
 
         # Footer
-        # layout.footer.hide()
+        layout.footer.hide()

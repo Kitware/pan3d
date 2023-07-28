@@ -1,10 +1,10 @@
 import os
-
 import pyvista as pv
 import xarray as xr
-from pvxarray.vtk_source import PyVistaXarraySource
 
+from pvxarray.vtk_source import PyVistaXarraySource
 from pan3d.pangeo_forge import get_catalog
+from pan3d.viewer.utils import run_singleton_task
 
 
 def vuwrap(func):
@@ -80,7 +80,6 @@ class MeshBuilder:
                 "value": str(dict(self._dataset.dims)),
             },
         )
-        print(self._state.data_attrs)
         if len(self._state.data_attrs) > 0:
             self._state.show_data_attrs = True
         self._state.coordinates = []
@@ -107,6 +106,7 @@ class MeshBuilder:
         self._state.grid_t_array = None
         self._state.time_max = 0
         self._state.error_message = None
+        self._state.loading = False
 
     def validate_mesh(self):
         data_array = self._algorithm.data_array
@@ -193,6 +193,7 @@ class MeshViewer:
         self._state.x_scale = 1
         self._state.y_scale = 1
         self._state.z_scale = 1
+        self._state.mesh_timeout = 5
         # Listen to changes
         self._state.change("view_edge_visiblity")(self.on_edge_visiblity_change)
         self._state.change("x_scale")(self.set_scale)
@@ -203,25 +204,33 @@ class MeshViewer:
     def reset(self, **kwargs):
         if not self._state.array_active:
             return
-        try:
-            self.mesher.validate_mesh()
-            self.mesher.algorithm.Update()
-            self.plotter.clear()
-            self.actor = self.plotter.add_mesh(
-                self.mesher.algorithm,
-                show_edges=self._state.view_edge_visiblity,
-                clim=self.mesher.data_range,
-                **kwargs
-            )
-            self.plotter.view_isometric()
-        except AttributeError:
-            # TODO: AttributeError will be raised when RequestData
-            # is otherwise successful because we pass None to outputData
-            # We can ignore this and continue, but it would be better to pass
-            # the proper type to outputData
-            pass
-        except Exception as e:
-            self._state.error_message = str(e)
+        self._state.error_message = None
+        self._state.loading = True
+
+        def update_mesh():
+            with self._state:
+                self.mesher.validate_mesh()
+                self.mesher.algorithm.Update()
+                self.plotter.clear()
+                self.plotter.add_mesh(
+                    self.mesher.algorithm,
+                    show_edges=self._state.view_edge_visiblity,
+                    clim=self.mesher.data_range,
+                    **kwargs
+                )
+                self.plotter.view_isometric()
+
+        def mesh_updated(exception):
+            with self._state:
+                if exception:
+                    self._state.error_message = str(exception)
+                self._state.loading = False
+
+        run_singleton_task(
+            update_mesh,
+            mesh_updated,
+            timeout=self._state.mesh_timeout,
+        )
 
     @vuwrap
     def on_edge_visiblity_change(self, view_edge_visiblity, **kwargs):
