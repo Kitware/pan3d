@@ -51,6 +51,7 @@ class MeshBuilder:
         dataset_path = self._state.dataset_path
         if not dataset_path:
             return
+        self._state.loading = True
         for available_dataset in self._state.available_datasets:
             if (
                 available_dataset["url"] == dataset_path
@@ -88,6 +89,7 @@ class MeshBuilder:
             self._state.array_active = self._state.data_vars[0]["name"]
         else:
             self._state.no_data_vars = True
+        self._state.loading = False
 
     def clear_dataset(self, **kwargs):
         self._state.dataset_path = None
@@ -108,17 +110,49 @@ class MeshBuilder:
         self._state.error_message = None
         self._state.loading = False
 
-    def validate_mesh(self):
-        data_array = self._algorithm.data_array
-        if self._algorithm.time:
-            data_array = data_array[{self._algorithm.time: self._state.time_max}]
-        data_array.pyvista.mesh(
-            self._algorithm.x,
-            self._algorithm.y,
-            self._algorithm.z,
-            self._algorithm.order,
-            self._algorithm.component,
-        )
+    def on_active_array(self, array_active, **kwargs):
+        if array_active is None or not self._state.dataset_ready:
+            self._state.active_tree_nodes = []
+            return
+        # self._algorithm.data_array = self._dataset[array_active]
+        self._state.coordinates = list(self.data_array.coords.keys())
+        self._state.active_tree_nodes = [array_active]
+        self._state.grid_x_array = None
+        self._state.grid_y_array = None
+        self._state.grid_z_array = None
+        self._state.grid_t_array = None
+        # self._ctrl.reset()
+
+    def bind_x(self, grid_x_array, **kwargs):
+        self.algorithm.x = grid_x_array
+        # self._ctrl.reset()
+
+    def bind_y(self, grid_y_array, **kwargs):
+        self.algorithm.y = grid_y_array
+        # self._ctrl.reset()
+
+    def bind_z(self, grid_z_array, **kwargs):
+        self.algorithm.z = grid_z_array
+        # self._ctrl.reset()
+
+    def bind_t(self, grid_t_array, **kwargs):
+        self.algorithm.time = grid_t_array
+        if grid_t_array:
+            time_steps = self._dataset[self._state.array_active][grid_t_array]
+            # Set the time_max in the state for the slider
+            self._state.time_max = len(time_steps) - 1
+            self.algorithm.time_index = 0
+        # self._ctrl.reset()
+
+    @vuwrap
+    def set_time_index(self, time_index, **kwargs):
+        self.algorithm.time_index = time_index
+        # self._ctrl.reset()
+
+    @vuwrap
+    def set_resolution(self, resolution, **kwargs):
+        self.algorithm.resolution = resolution
+        # self._ctrl.reset()
 
     @property
     def algorithm(self):
@@ -126,47 +160,11 @@ class MeshBuilder:
 
     @property
     def data_array(self):
-        return self._algorithm.data_array
-
-    def on_active_array(self, array_active, **kwargs):
-        if array_active is None or not self._state.dataset_ready:
-            self._state.active_tree_nodes = []
-            return
-        self._algorithm.data_array = self._dataset[array_active]
-        self._state.coordinates = list(self.data_array.coords.keys())
-        self._state.active_tree_nodes = [array_active]
-        self._state.grid_x_array = None
-        self._state.grid_y_array = None
-        self._state.grid_z_array = None
-        self._state.grid_t_array = None
-        self._ctrl.reset()
-
-    def bind_x(self, grid_x_array, **kwargs):
-        self.algorithm.x = grid_x_array
-        self._ctrl.reset()
-
-    def bind_y(self, grid_y_array, **kwargs):
-        self.algorithm.y = grid_y_array
-        self._ctrl.reset()
-
-    def bind_z(self, grid_z_array, **kwargs):
-        self.algorithm.z = grid_z_array
-        self._ctrl.reset()
-
-    def bind_t(self, grid_t_array, **kwargs):
-        self.algorithm.time = grid_t_array
-        if grid_t_array:
-            # Set the time_max in the state for the slider
-            self._state.time_max = len(self.data_array[grid_t_array]) - 1
-        self._ctrl.reset()
-
-    @vuwrap
-    def set_time_index(self, time_index, **kwargs):
-        self.algorithm.time_index = time_index
-
-    @vuwrap
-    def set_resolution(self, resolution, **kwargs):
-        self.algorithm.resolution = resolution
+        if self.algorithm.time is not None and self.algorithm.time_index is not None:
+            return self._dataset[self._state.array_active][
+                {self.algorithm.time: self.algorithm.time_index}
+            ]
+        return self._dataset[self._state.array_active]
 
     @property
     def data_range(self):
@@ -193,7 +191,7 @@ class MeshViewer:
         self._state.x_scale = 1
         self._state.y_scale = 1
         self._state.z_scale = 1
-        self._state.mesh_timeout = 5
+        self._state.mesh_timeout = 30
         # Listen to changes
         self._state.change("view_edge_visiblity")(self.on_edge_visiblity_change)
         self._state.change("x_scale")(self.set_scale)
@@ -206,31 +204,46 @@ class MeshViewer:
             return
         self._state.error_message = None
         self._state.loading = True
+        print("reset called")
 
-        def update_mesh():
+        async def update_mesh():
+            print("creating mesh...")
+            mesh = self.mesher.data_array.pyvista.mesh(
+                self.mesher.algorithm.x,
+                self.mesher.algorithm.y,
+                self.mesher.algorithm.z,
+                self.mesher.algorithm.order,
+                self.mesher.algorithm.component,
+            )
+            print(mesh)
+
+            self.plotter.clear()
+            print("adding mesh to plotter...")
+            # print(self.mesher.data_range)
+            self.plotter.add_mesh(
+                mesh,
+                show_edges=self._state.view_edge_visiblity,
+                # clim=self.mesher.data_range,
+                **kwargs,
+            )
+            self.plotter.view_isometric()
+            print("Test complete.")
+
+        def mesh_updated(exception=None):
             with self._state:
-                self.mesher.validate_mesh()
-                self.mesher.algorithm.Update()
-                self.plotter.clear()
-                self.plotter.add_mesh(
-                    self.mesher.algorithm,
-                    show_edges=self._state.view_edge_visiblity,
-                    clim=self.mesher.data_range,
-                    **kwargs
+                self._state.error_message = (
+                    str(exception) if exception is not None else None
                 )
-                self.plotter.view_isometric()
-
-        def mesh_updated(exception):
-            with self._state:
-                if exception:
-                    self._state.error_message = str(exception)
                 self._state.loading = False
+                print("error message = ", self._state.error_message)
 
         run_singleton_task(
             update_mesh,
             mesh_updated,
             timeout=self._state.mesh_timeout,
+            timeout_message=f"Failed to create mesh in under {self._state.mesh_timeout} seconds. Try reducing data size by slicing or decreasing resolution.",
         )
+        print("task spawned. loading =", self._state.loading)
 
     @vuwrap
     def on_edge_visiblity_change(self, view_edge_visiblity, **kwargs):
