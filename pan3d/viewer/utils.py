@@ -45,5 +45,6 @@ def run_singleton_task(
     if not task_thread:
         start_task_thread()
     if singleton_task and not singleton_task.done():
-        print("DO SOMETHING WITH OLD TASK", singleton_task)
+        # TODO: Can the task be truly interrupted and cancelled?
+        singleton_task.cancel()
     singleton_task = asyncio.run_coroutine_threadsafe(coroutine(), task_loop)

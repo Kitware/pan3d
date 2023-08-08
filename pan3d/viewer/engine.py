@@ -94,21 +94,40 @@ class MeshBuilder:
     def clear_dataset(self, **kwargs):
         self._state.dataset_path = None
         self._state.more_info_link = None
+
         self._state.data_vars = []
         self._state.data_attrs = []
-        self._state.show_data_attrs = False
+        self._state.active_tree_nodes = []
         self._state.coordinates = []
+
+        self._state.show_data_attrs = False
         self._state.dataset_ready = False
         self._state.no_data_vars = False
+
         self._state.array_active = None
-        self._state.active_tree_nodes = []
         self._state.grid_x_array = None
         self._state.grid_y_array = None
         self._state.grid_z_array = None
         self._state.grid_t_array = None
         self._state.time_max = 0
+
         self._state.error_message = None
+        self._state.da_size = None
         self._state.loading = False
+        self._state.unapplied_changes = False
+
+    def mesh_changed(self):
+        if self._state.array_active:
+            total_bytes = self.data_array.size * self.data_array.dtype.itemsize
+            exponents_map = {0: "bytes", 1: "KB", 2: "MB", 3: "GB"}
+            for exponent in sorted(exponents_map.keys(), reverse=True):
+                divisor = 1024**exponent
+                suffix = exponents_map[exponent]
+                if total_bytes > divisor:
+                    self._state.da_size = f"{round(total_bytes / divisor)} {suffix}"
+                    break
+
+            self._state.unapplied_changes = True
 
     def on_active_array(self, array_active, **kwargs):
         if array_active is None or not self._state.dataset_ready:
@@ -123,12 +142,15 @@ class MeshBuilder:
 
     def bind_x(self, grid_x_array, **kwargs):
         self.algorithm.x = grid_x_array
+        self.mesh_changed()
 
     def bind_y(self, grid_y_array, **kwargs):
         self.algorithm.y = grid_y_array
+        self.mesh_changed()
 
     def bind_z(self, grid_z_array, **kwargs):
         self.algorithm.z = grid_z_array
+        self.mesh_changed()
 
     def bind_t(self, grid_t_array, **kwargs):
         self.algorithm.time = grid_t_array
@@ -137,14 +159,17 @@ class MeshBuilder:
             # Set the time_max in the state for the slider
             self._state.time_max = len(time_steps) - 1
             self.algorithm.time_index = 0
+        self.mesh_changed()
 
     @vuwrap
     def set_time_index(self, time_index, **kwargs):
         self.algorithm.time_index = time_index
+        self.mesh_changed()
 
     @vuwrap
     def set_resolution(self, resolution, **kwargs):
         self.algorithm.resolution = resolution
+        self.mesh_changed()
 
     @property
     def algorithm(self):
@@ -212,7 +237,6 @@ class MeshViewer:
         self._state.loading = True
 
         async def update_mesh():
-            print("creating mesh...")
             self.mesh = self.mesher.data_array.pyvista.mesh(
                 self.mesher.algorithm.x,
                 self.mesher.algorithm.y,
@@ -220,10 +244,7 @@ class MeshViewer:
                 self.mesher.algorithm.order,
                 self.mesher.algorithm.component,
             )
-
-            print("adding mesh to plotter...")
             self.plot_mesh()
-            print("Done.")
 
         def mesh_updated(exception=None):
             with self._state:
@@ -231,6 +252,7 @@ class MeshViewer:
                     str(exception) if exception is not None else None
                 )
                 self._state.loading = False
+                self._state.unapplied_changes = False
 
         run_singleton_task(
             update_mesh,
