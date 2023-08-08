@@ -267,7 +267,7 @@ class MeshViewer:
         self.actor = self.plotter.add_mesh(
             self.mesh,
             show_edges=self._state.view_edge_visiblity,
-            # clim=self.mesher.data_range,
+            clim=self.mesher.data_range,
         )
         self.plotter.view_isometric()
 
