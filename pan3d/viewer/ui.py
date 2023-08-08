@@ -23,8 +23,14 @@ def initialize(server):
             )
 
             vuetify.VSpacer()
-            with vuetify.VBtn(icon=True, click=ctrl.reset):
-                vuetify.VIcon("mdi-test-tube")
+            with vuetify.VBtn(
+                click=ctrl.reset,
+                v_show="unapplied_changes",
+                classes="mr-5",
+                small=True,
+            ):
+                html.Span("Apply & Render")
+                html.Span("({{ da_size }})", v_show="da_size")
 
             resolutions = [
                 0.001,
