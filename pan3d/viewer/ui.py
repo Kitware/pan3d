@@ -15,18 +15,41 @@ def initialize(server):
         with layout.toolbar:
             layout.toolbar.dense = True
             layout.toolbar.align = "center"
-            vuetify.VSpacer()
 
-            vuetify.VSlider(
+            vuetify.VProgressCircular(
+                v_show=("loading",),
+                indeterminate=True,
+                classes="mx-10",
+            )
+
+            vuetify.VSpacer()
+            with vuetify.VBtn(
+                click=ctrl.reset,
+                v_show="unapplied_changes",
+                classes="mr-5",
+                small=True,
+            ):
+                html.Span("Apply & Render")
+                html.Span("({{ da_size }})", v_show="da_size")
+
+            resolutions = [
+                0.001,
+                0.01,
+                0.1,
+                0.25,
+                0.5,
+                0.75,
+                1.0,
+            ]
+            vuetify.VSelect(
                 label="Resolution",
                 v_model=("resolution", 1.0),
                 v_show="array_active",
-                min=0.5,
-                max=1,
-                step=0.25,
+                items=(resolutions,),
                 hide_details=True,
                 dense=True,
-                style="max-width: 300px",
+                style="max-width: 100px",
+                classes="mt-3",
             )
 
             vuetify.VCheckbox(
@@ -40,16 +63,13 @@ def initialize(server):
 
         # Drawer
         with layout.drawer:
-            with vuetify.VForm(classes="pa-1"):
-                datasets = [
-                    "air_temperature",
-                    "basin_mask",
-                    "eraint_uvz",
-                ]
+            with html.Div(classes="pa-2"):
                 vuetify.VSelect(
                     label="Choose a dataset",
                     v_model="dataset_path",
-                    items=("datasets", datasets),
+                    items=("available_datasets",),
+                    item_text="name",
+                    item_value="url",
                     hide_details=True,
                     dense=True,
                     clearable=True,
@@ -58,23 +78,51 @@ def initialize(server):
                     click_clear=ctrl.clear_dataset,
                 )
 
-            vuetify.VCardText(
-                "Available Arrays",
-                v_show="dataset_ready",
-            )
+                html.A(
+                    "More information about this dataset",
+                    href=("more_info_link",),
+                    v_show=("more_info_link",),
+                    target="_blank",
+                )
 
-            with vuetify.VTreeview(
-                v_show="dataset_ready",
-                dense=True,
-                activatable=True,
-                active=("active_tree_nodes",),
-                items=("data_vars",),
-                item_key="name",
-                update_active="array_active = $event[0]",
-                multiple_active=False,
-            ):
-                with vuetify.Template(v_slot_label="{ item }"):
-                    html.Span("{{ item?.name }}", classes="text-subtitle-2")
+                vuetify.VCardText(
+                    "Available Arrays",
+                    v_show="dataset_ready",
+                    classes="font-weight-bold",
+                )
+                vuetify.VCardText(
+                    "No data variables found.",
+                    v_show=("no_data_vars",),
+                )
+                with vuetify.VTreeview(
+                    v_show="dataset_ready",
+                    dense=True,
+                    activatable=True,
+                    active=("active_tree_nodes",),
+                    items=("data_vars",),
+                    item_key="name",
+                    update_active="array_active = $event[0]",
+                    multiple_active=False,
+                ):
+                    with vuetify.Template(v_slot_label="{ item }"):
+                        html.Span("{{ item?.name }}", classes="text-subtitle-2")
+
+                attrs_headers = [
+                    {"text": "key", "value": "key"},
+                    {"text": "value", "value": "value"},
+                ]
+                vuetify.VCardText(
+                    "Data Attributes",
+                    v_show="show_data_attrs",
+                    classes="font-weight-bold",
+                )
+                vuetify.VDataTable(
+                    v_show="show_data_attrs",
+                    dense=True,
+                    items=("data_attrs",),
+                    headers=("headers", attrs_headers),
+                    hide_default_header=True,
+                )
 
         # Content
         with layout.content:
@@ -108,9 +156,9 @@ def initialize(server):
                                 v_model=("x_scale", 0),
                                 classes="ml-2",
                                 label="Scale",
+                                thumb_label=True,
                                 min=1,
-                                max=1000,
-                                step=10,
+                                max=10,
                                 dense=True,
                                 hide_details=True,
                                 style="max-width: 250px;",
@@ -132,9 +180,9 @@ def initialize(server):
                                 v_model=("y_scale", 0),
                                 classes="ml-2",
                                 label="Scale",
+                                thumb_label=True,
                                 min=1,
-                                max=1000,
-                                step=10,
+                                max=10,
                                 dense=True,
                                 hide_details=True,
                                 style="max-width: 250px;",
@@ -156,9 +204,9 @@ def initialize(server):
                                 v_model=("z_scale", 0),
                                 classes="ml-2",
                                 label="Scale",
+                                thumb_label=True,
                                 min=1,
-                                max=1000,
-                                step=10,
+                                max=10,
                                 dense=True,
                                 hide_details=True,
                                 style="max-width: 250px;",
@@ -180,6 +228,7 @@ def initialize(server):
                                 v_model=("time_index", 0),
                                 classes="ml-2",
                                 label="Index",
+                                thumb_label=True,
                                 min=0,
                                 max=("time_max", 0),
                                 step=1,
@@ -200,4 +249,4 @@ def initialize(server):
                         ctrl.reset_camera = plot_view.reset_camera
 
         # Footer
-        # layout.footer.hide()
+        layout.footer.hide()
