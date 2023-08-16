@@ -1,3 +1,4 @@
+import json
 import os
 import pyvista
 from pvxarray.vtk_source import PyVistaXarraySource
@@ -7,8 +8,8 @@ from trame.decorators import TrameApp, change
 from trame.ui.vuetify import SinglePageWithDrawerLayout  # TODO: upgrade to vuetify 3
 from trame.app import get_server
 
-from .ui import initialize as viewer_ui
-from .utils import initial_state, run_singleton_task
+from pan3d.ui import initialize as viewer_ui
+from pan3d.utils import initial_state, run_singleton_task
 
 
 @TrameApp()
@@ -22,16 +23,21 @@ class Pan3DViewer:
 
         self.server = server
         self.state.update(initial_state)
-        self.dataset = None
-        self.dataset_path = dataset_path
         self.algorithm = PyVistaXarraySource()
         self.plotter = pyvista.Plotter(off_screen=True, notebook=False)
         self.plotter.set_background("lightgrey")
+        self.dataset = None
+        self.dataset_path = None
         self.mesh = None
         self.actor = None
 
         self.ctrl.get_plotter = lambda: self.plotter
         self.ctrl.reset = self.reset
+
+        if dataset_path:
+            self.set_dataset_path(dataset_path=dataset_path)
+        if state:
+            self.state.update(state)
 
         # Fix version of vue
         server.client_type = "vue2"  # TODO: upgrade to vue3
@@ -82,28 +88,15 @@ class Pan3DViewer:
             return 0, 0
         return self.data_array.min(), self.data_array.max()
 
-    def mesh_changed(self):
-        if self.state.array_active:
-            total_bytes = self.data_array.size * self.data_array.dtype.itemsize
-            exponents_map = {0: "bytes", 1: "KB", 2: "MB", 3: "GB"}
-            for exponent in sorted(exponents_map.keys(), reverse=True):
-                divisor = 1024**exponent
-                suffix = exponents_map[exponent]
-                if total_bytes > divisor:
-                    self.state.da_size = f"{round(total_bytes / divisor)} {suffix}"
-                    break
-
-            self.state.unapplied_changes = True
-
     # -----------------------------------------------------
     # State change callbacks
     # -----------------------------------------------------
 
     @change("dataset_path")
-    def set_dataset_path(self, **kwargs):
-        dataset_path = self.state.dataset_path
-        if not dataset_path:
+    def set_dataset_path(self, dataset_path, **kwargs):
+        if self.dataset_path == dataset_path or dataset_path is None:
             return
+        self.dataset_path = dataset_path
         self.state.loading = True
         for available_dataset in self.state.available_datasets:
             if (
@@ -174,7 +167,6 @@ class Pan3DViewer:
             time_steps = self.dataset[self.state.array_active][t_array]
             # Set the time_max in the state for the slider
             self.state.t_max = len(time_steps) - 1
-            self.state.t_index = 0
         self.mesh_changed()
 
     @change("t_index")
@@ -204,6 +196,19 @@ class Pan3DViewer:
     # -----------------------------------------------------
     # Render Logic
     # -----------------------------------------------------
+
+    def mesh_changed(self):
+        if self.state.array_active:
+            total_bytes = self.data_array.size * self.data_array.dtype.itemsize
+            exponents_map = {0: "bytes", 1: "KB", 2: "MB", 3: "GB"}
+            for exponent in sorted(exponents_map.keys(), reverse=True):
+                divisor = 1024**exponent
+                suffix = exponents_map[exponent]
+                if total_bytes > divisor:
+                    self.state.da_size = f"{round(total_bytes / divisor)} {suffix}"
+                    break
+
+            self.state.unapplied_changes = True
 
     def plot_mesh(self):
         self.plotter.clear()
@@ -244,3 +249,17 @@ class Pan3DViewer:
             timeout=self.state.mesh_timeout,
             timeout_message=f"Failed to create mesh in under {self.state.mesh_timeout} seconds. Try reducing data size by slicing or decreasing resolution.",
         )
+
+    # -----------------------------------------------------
+    # Bookmark logic
+    # -----------------------------------------------------
+
+    def import_bookmark(self, bookmark_path):
+        with open(bookmark_path) as bookmark_file:
+            bookmark = json.load(bookmark_file)
+            self.set_dataset_path(dataset_path=bookmark.get("dataset_path"))
+            self.state.update(bookmark.get("state"))
+
+    def export_bookmark(self, bookmark_path):
+        # TODO
+        pass
