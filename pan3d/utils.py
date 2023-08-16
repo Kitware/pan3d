@@ -48,3 +48,39 @@ def run_singleton_task(
         # TODO: Can the task be truly interrupted and cancelled?
         singleton_task.cancel()
     singleton_task = asyncio.run_coroutine_threadsafe(coroutine(), task_loop)
+
+
+initial_state = {
+    "trame__title": "Pan3D Viewer",
+    "dataset_ready": False,
+    "loading": False,
+    "unapplied_changes": False,
+    "available_datasets": [
+        {
+            "name": "XArray Examples - air temperature",
+            "url": "air_temperature",
+        },
+        {"name": "XArray Examples - basin mask", "url": "basin_mask"},
+        {"name": "XArray Examples - eraint uvz", "url": "eraint_uvz"},
+    ],
+    "dataset_path": None,
+    "more_info_link": None,
+    "array_active": None,
+    "data_vars": [],
+    "data_attrs": [],
+    "coordinates": [],
+    "x_array": None,
+    "x_scale": 1,
+    "y_array": None,
+    "y_scale": 1,
+    "z_array": None,
+    "z_scale": 1,
+    "t_array": None,
+    "t_index": 0,
+    "t_max": 0,
+    "resolution": 1.0,
+    "view_edge_visibility": True,
+    "error_message": None,
+    "da_size": None,
+    "mesh_timeout": 30,
+}
