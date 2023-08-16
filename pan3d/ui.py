@@ -96,7 +96,14 @@ def initialize(layout, ctrl):
                     active=("[array_active]",),
                     items=("data_vars",),
                     item_key="name",
-                    update_active="array_active = $event[0]",
+                    update_active="""
+                        array_active = $event[0];
+                        x_array = null;
+                        y_array = null;
+                        z_array = null;
+                        t_array = null;
+                        t_index = 0;
+                    """,
                     multiple_active=False,
                 ):
                     with vuetify.Template(v_slot_label="{ item }"):
