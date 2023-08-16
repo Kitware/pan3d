@@ -1,16 +1,11 @@
-from trame.ui.vuetify import SinglePageWithDrawerLayout
 from trame.widgets import html, vuetify
 from pyvista.trame.ui import plotter_ui
 
 
 # Create single page layout type
 # (FullScreenPage, SinglePage, SinglePageWithDrawer)
-def initialize(server):
-    state, ctrl = server.state, server.controller
-    state.trame__title = "Pan3D Viewer"
-
-    with SinglePageWithDrawerLayout(server) as layout:
-        # Toolbar
+def initialize(layout, ctrl):
+    with layout:
         layout.title.set_text("Pan3D Viewer")
         with layout.toolbar:
             layout.toolbar.dense = True
@@ -53,7 +48,7 @@ def initialize(server):
             )
 
             vuetify.VCheckbox(
-                v_model=("view_edge_visiblity", True),
+                v_model=("view_edge_visibility", True),
                 v_show="array_active",
                 dense=True,
                 hide_details=True,
@@ -92,13 +87,13 @@ def initialize(server):
                 )
                 vuetify.VCardText(
                     "No data variables found.",
-                    v_show=("no_data_vars",),
+                    v_show=("dataset_ready && data_vars.length === 0",),
                 )
                 with vuetify.VTreeview(
                     v_show="dataset_ready",
                     dense=True,
                     activatable=True,
-                    active=("active_tree_nodes",),
+                    active=("[array_active]",),
                     items=("data_vars",),
                     item_key="name",
                     update_active="array_active = $event[0]",
@@ -113,11 +108,11 @@ def initialize(server):
                 ]
                 vuetify.VCardText(
                     "Data Attributes",
-                    v_show="show_data_attrs",
+                    v_show="data_attrs.length",
                     classes="font-weight-bold",
                 )
                 vuetify.VDataTable(
-                    v_show="show_data_attrs",
+                    v_show="data_attrs.length",
                     dense=True,
                     items=("data_attrs",),
                     headers=("headers", attrs_headers),
@@ -143,16 +138,16 @@ def initialize(server):
                         with vuetify.VRow():
                             html.Div("X:", classes="text-subtitle-2 pr-2")
                             vuetify.VSelect(
-                                v_model=("grid_x_array", None),
+                                v_model=("x_array", None),
                                 items=("coordinates",),
                                 hide_details=True,
                                 dense=True,
                                 clearable="True",
-                                clear="grid_x_array = undefined",
+                                clear="x_array = undefined",
                                 style="max-width: 250px;",
                             )
                             vuetify.VSlider(
-                                v_show="grid_x_array",
+                                v_show="x_array",
                                 v_model=("x_scale", 0),
                                 classes="ml-2",
                                 label="Scale",
@@ -167,16 +162,16 @@ def initialize(server):
                         with vuetify.VRow():
                             html.Div("Y:", classes="text-subtitle-2 pr-2")
                             vuetify.VSelect(
-                                v_model=("grid_y_array", None),
+                                v_model=("y_array", None),
                                 items=("coordinates",),
                                 hide_details=True,
                                 dense=True,
                                 clearable="True",
-                                clear="grid_y_array = undefined",
+                                clear="y_array = undefined",
                                 style="max-width: 250px;",
                             )
                             vuetify.VSlider(
-                                v_show="grid_y_array",
+                                v_show="y_array",
                                 v_model=("y_scale", 0),
                                 classes="ml-2",
                                 label="Scale",
@@ -191,16 +186,16 @@ def initialize(server):
                         with vuetify.VRow():
                             html.Div("Z:", classes="text-subtitle-2 pr-2")
                             vuetify.VSelect(
-                                v_model=("grid_z_array", None),
+                                v_model=("z_array", None),
                                 items=("coordinates",),
                                 hide_details=True,
                                 dense=True,
                                 clearable="True",
-                                clear="grid_z_array = undefined",
+                                clear="z_array = undefined",
                                 style="max-width: 250px;",
                             )
                             vuetify.VSlider(
-                                v_show="grid_z_array",
+                                v_show="z_array",
                                 v_model=("z_scale", 0),
                                 classes="ml-2",
                                 label="Scale",
@@ -215,22 +210,22 @@ def initialize(server):
                         with vuetify.VRow():
                             html.Div("T:", classes="text-subtitle-2 pr-2")
                             vuetify.VSelect(
-                                v_model=("grid_t_array", None),
+                                v_model=("t_array", None),
                                 items=("coordinates",),
                                 hide_details=True,
                                 dense=True,
                                 clearable="True",
-                                clear="grid_t_array = undefined",
+                                clear="t_array = undefined",
                                 style="max-width: 250px;",
                             )
                             vuetify.VSlider(
-                                v_show="grid_t_array && time_max > 0",
-                                v_model=("time_index", 0),
+                                v_show="t_array && t_max > 0",
+                                v_model=("t_index", 0),
                                 classes="ml-2",
                                 label="Index",
                                 thumb_label=True,
                                 min=0,
-                                max=("time_max", 0),
+                                max=("t_max", 0),
                                 step=1,
                                 dense=True,
                                 hide_details=True,
