@@ -2,8 +2,6 @@ from trame.widgets import html, vuetify
 from pyvista.trame.ui import plotter_ui
 
 
-# Create single page layout type
-# (FullScreenPage, SinglePage, SinglePageWithDrawer)
 def initialize(layout, ctrl):
     with layout:
         layout.title.set_text("Pan3D Viewer")
