@@ -31,6 +31,7 @@ class DatasetBuilder:
         self.dataset_path = None
         self.mesh = None
         self.actor = None
+        self.layout = None
 
         self.ctrl.get_plotter = lambda: self.plotter
         self.ctrl.reset = self.reset
