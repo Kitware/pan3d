@@ -270,15 +270,15 @@ class DatasetBuilder:
         )
 
     # -----------------------------------------------------
-    # Bookmark logic
+    # Config logic
     # -----------------------------------------------------
 
-    def import_bookmark(self, bookmark_path):
-        with open(bookmark_path) as bookmark_file:
-            bookmark = json.load(bookmark_file)
-            self.set_dataset_path(dataset_path=bookmark.get("dataset_path"))
-            self.state.update(bookmark.get("state"))
+    def import_config(self, config_path):
+        with open(config_path) as config_file:
+            config = json.load(config_file)
+            self.set_dataset_path(dataset_path=config.get("dataset_path"))
+            self.state.update(config.get("state"))
 
-    def export_bookmark(self, bookmark_path):
+    def export_config(self, config_path):
         # TODO
         pass
