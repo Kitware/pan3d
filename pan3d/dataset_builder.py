@@ -8,8 +8,9 @@ from pyvista.trame.ui import plotter_ui
 from trame.decorators import TrameApp, change
 from trame.ui.vuetify import SinglePageWithDrawerLayout  # TODO: upgrade to vuetify 3
 from trame.app import get_server
+from trame.widgets import html, vuetify
 
-from pan3d.ui import AxisSelection, MainDrawer, RenderArea, Toolbar
+from pan3d.ui import AxisSelection, MainDrawer, Toolbar
 from pan3d.utils import initial_state, run_singleton_task
 
 
@@ -71,13 +72,20 @@ class DatasetBuilder:
                 with self.layout.drawer:
                     MainDrawer()
                 with self.layout.content:
-                    plot_view = plotter_ui(
-                        self.ctrl.get_plotter(),
-                        interactive_ratio=1,
-                    )
-                    self.ctrl.view_update = plot_view.update
-                    self.ctrl.reset_camera = plot_view.reset_camera
-                    RenderArea(plot_view=plot_view)
+                    with html.Div(
+                        v_show="array_active",
+                        style="height: 100%; position: relative; width: calc(100% - 300px)",
+                    ):
+                        vuetify.VBanner(
+                            "{{ error_message }}",
+                            v_show=("error_message",),
+                        )
+                        with plotter_ui(
+                            self.ctrl.get_plotter(),
+                            interactive_ratio=1,
+                        ) as plot_view:
+                            self.ctrl.view_update = plot_view.update
+                            self.ctrl.reset_camera = plot_view.reset_camera
                 AxisSelection()
         return self.layout
 
