@@ -46,10 +46,16 @@ class DatasetBuilder:
         self.layout = SinglePageWithDrawerLayout(self.server)
         self.layout.title.set_text("Pan3D Viewer")
         self.layout.footer.hide()
-        Toolbar(self.layout)
-        MainDrawer(self.layout)
-        AxisSelection(self.layout)
-        RenderArea(self.layout)
+        with self.layout:
+            with self.layout.toolbar:
+                self.layout.toolbar.dense = True
+                self.layout.toolbar.align = "center"
+                Toolbar(self.ctrl)
+            with self.layout.drawer:
+                MainDrawer()
+            with self.layout.content:
+                RenderArea(self.ctrl)
+            AxisSelection()
 
     # -----------------------------------------------------
     # Properties
