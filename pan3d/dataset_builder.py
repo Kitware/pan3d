@@ -42,7 +42,7 @@ class DatasetBuilder:
         # Fix version of vue
         server.client_type = "vue2"  # TODO: upgrade to vue3
 
-        # Build GUI
+        # Build UI
         self.layout = SinglePageWithDrawerLayout(self.server)
         self.layout.title.set_text("Pan3D Viewer")
         self.layout.footer.hide()
@@ -70,7 +70,7 @@ class DatasetBuilder:
         return self.server.controller
 
     @property
-    def gui(self):
+    def viewer(self):
         return self.layout
 
     @property
