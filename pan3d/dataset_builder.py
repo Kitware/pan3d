@@ -8,7 +8,7 @@ from trame.decorators import TrameApp, change
 from trame.ui.vuetify import SinglePageWithDrawerLayout  # TODO: upgrade to vuetify 3
 from trame.app import get_server
 
-from pan3d.ui import initialize as viewer_ui
+from pan3d.ui import AxisSelection, MainDrawer, RenderArea, Toolbar
 from pan3d.utils import initial_state, run_singleton_task
 
 
@@ -41,9 +41,15 @@ class DatasetBuilder:
 
         # Fix version of vue
         server.client_type = "vue2"  # TODO: upgrade to vue3
+
         # Build GUI
         self.layout = SinglePageWithDrawerLayout(self.server)
-        viewer_ui(self.layout, self.ctrl)
+        self.layout.title.set_text("Pan3D Viewer")
+        self.layout.footer.hide()
+        Toolbar(self.layout)
+        MainDrawer(self.layout)
+        AxisSelection(self.layout)
+        RenderArea(self.layout)
 
     # -----------------------------------------------------
     # Properties
