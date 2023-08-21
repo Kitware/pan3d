@@ -3,7 +3,7 @@ from trame.widgets import html, vuetify
 
 class Toolbar(html.Div):
     def __init__(self, reset=None):
-        super().__init__()
+        super().__init__(style="width: 90%; display: flex")
         with self:
             vuetify.VProgressCircular(
                 v_show=("loading",),
