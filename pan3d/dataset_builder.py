@@ -1,8 +1,9 @@
 import json
 import os
 import pyvista
-from pvxarray.vtk_source import PyVistaXarraySource
 import xarray
+from pvxarray.vtk_source import PyVistaXarraySource
+from pyvista.trame.ui import plotter_ui
 
 from trame.decorators import TrameApp, change
 from trame.ui.vuetify import SinglePageWithDrawerLayout  # TODO: upgrade to vuetify 3
@@ -50,11 +51,17 @@ class DatasetBuilder:
             with self.layout.toolbar:
                 self.layout.toolbar.dense = True
                 self.layout.toolbar.align = "center"
-                Toolbar(self.ctrl)
+                Toolbar(reset=self.ctrl.reset)
             with self.layout.drawer:
                 MainDrawer()
             with self.layout.content:
-                RenderArea(self.ctrl)
+                plot_view = plotter_ui(
+                    self.ctrl.get_plotter(),
+                    interactive_ratio=1,
+                )
+                self.ctrl.view_update = plot_view.update
+                self.ctrl.reset_camera = plot_view.reset_camera
+                RenderArea(plot_view=plot_view)
             AxisSelection()
 
     # -----------------------------------------------------
