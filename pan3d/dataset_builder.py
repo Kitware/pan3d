@@ -43,27 +43,6 @@ class DatasetBuilder:
         # Fix version of vue
         server.client_type = "vue2"  # TODO: upgrade to vue3
 
-        # Build UI
-        self.layout = SinglePageWithDrawerLayout(self.server)
-        self.layout.title.set_text("Pan3D Viewer")
-        self.layout.footer.hide()
-        with self.layout:
-            with self.layout.toolbar:
-                self.layout.toolbar.dense = True
-                self.layout.toolbar.align = "center"
-                Toolbar(reset=self.ctrl.reset)
-            with self.layout.drawer:
-                MainDrawer()
-            with self.layout.content:
-                plot_view = plotter_ui(
-                    self.ctrl.get_plotter(),
-                    interactive_ratio=1,
-                )
-                self.ctrl.view_update = plot_view.update
-                self.ctrl.reset_camera = plot_view.reset_camera
-                RenderArea(plot_view=plot_view)
-            AxisSelection()
-
     # -----------------------------------------------------
     # Properties
     # -----------------------------------------------------
@@ -78,6 +57,27 @@ class DatasetBuilder:
 
     @property
     def viewer(self):
+        if self.layout is None:
+            # Build UI
+            self.layout = SinglePageWithDrawerLayout(self.server)
+            self.layout.title.set_text("Pan3D Viewer")
+            self.layout.footer.hide()
+            with self.layout:
+                with self.layout.toolbar:
+                    self.layout.toolbar.dense = True
+                    self.layout.toolbar.align = "center"
+                    Toolbar(reset=self.ctrl.reset)
+                with self.layout.drawer:
+                    MainDrawer()
+                with self.layout.content:
+                    plot_view = plotter_ui(
+                        self.ctrl.get_plotter(),
+                        interactive_ratio=1,
+                    )
+                    self.ctrl.view_update = plot_view.update
+                    self.ctrl.reset_camera = plot_view.reset_camera
+                    RenderArea(plot_view=plot_view)
+                AxisSelection()
         return self.layout
 
     @property
