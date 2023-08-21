@@ -23,7 +23,11 @@ class DatasetBuilder:
         if isinstance(server, str):
             server = get_server(server)
 
+        # Fix version of vue
+        server.client_type = "vue2"  # TODO: upgrade to vue3
         self.server = server
+        self._layout = None
+
         self.state.update(initial_state)
         self.algorithm = PyVistaXarraySource()
         self.plotter = pyvista.Plotter(off_screen=True, notebook=False)
@@ -32,7 +36,6 @@ class DatasetBuilder:
         self.dataset_path = None
         self.mesh = None
         self.actor = None
-        self.layout = None
 
         self.ctrl.get_plotter = lambda: self.plotter
         self.ctrl.reset = self.reset
@@ -41,9 +44,6 @@ class DatasetBuilder:
             self.set_dataset_path(dataset_path=dataset_path)
         if state:
             self.state.update(state)
-
-        # Fix version of vue
-        server.client_type = "vue2"  # TODO: upgrade to vue3
 
     # -----------------------------------------------------
     # Properties
@@ -59,19 +59,19 @@ class DatasetBuilder:
 
     @property
     def viewer(self):
-        if self.layout is None:
+        if self._layout is None:
             # Build UI
-            self.layout = SinglePageWithDrawerLayout(self.server)
-            self.layout.title.set_text("Pan3D Viewer")
-            self.layout.footer.hide()
-            with self.layout:
-                with self.layout.toolbar:
-                    self.layout.toolbar.dense = True
-                    self.layout.toolbar.align = "center"
+            self._layout = SinglePageWithDrawerLayout(self.server)
+            with self._layout as layout:
+                layout.title.set_text("Pan3D Viewer")
+                layout.footer.hide()
+                with layout.toolbar:
+                    layout.toolbar.dense = True
+                    layout.toolbar.align = "center"
                     Toolbar(reset=self.ctrl.reset)
-                with self.layout.drawer:
+                with layout.drawer:
                     MainDrawer()
-                with self.layout.content:
+                with layout.content:
                     with html.Div(
                         v_show="array_active",
                         style="height: 100%; position: relative; width: calc(100% - 300px)",
@@ -87,7 +87,7 @@ class DatasetBuilder:
                             self.ctrl.view_update = plot_view.update
                             self.ctrl.reset_camera = plot_view.reset_camera
                 AxisSelection()
-        return self.layout
+        return self._layout
 
     @property
     def data_array(self):
