@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from viewer import Pan3DViewer
+from viewer import DatasetBuilder
 
 parser = ArgumentParser(
     prog="Pan3D",
@@ -11,7 +11,7 @@ parser.add_argument("-d", "--dataset_path")
 
 args = parser.parse_args()
 
-viewer = Pan3DViewer(dataset_path=args.dataset_path)
+viewer = DatasetBuilder(dataset_path=args.dataset_path)
 if args.bookmark_path:
     viewer.import_bookmark(args.bookmark_path)
 viewer.server.start()

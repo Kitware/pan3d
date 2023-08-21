@@ -13,7 +13,7 @@ from pan3d.utils import initial_state, run_singleton_task
 
 
 @TrameApp()
-class Pan3DViewer:
+class DatasetBuilder:
     def __init__(self, server=None, dataset_path=None, state=None):
         if server is None:
             server = get_server()
