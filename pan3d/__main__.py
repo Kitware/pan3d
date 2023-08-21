@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from viewer import DatasetBuilder
+from dataset_builder import DatasetBuilder
 
 parser = ArgumentParser(
     prog="Pan3D",
