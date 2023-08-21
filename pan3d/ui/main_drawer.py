@@ -1,9 +1,10 @@
 from trame.widgets import html, vuetify
 
 
-class MainDrawer:
+class MainDrawer(html.Div):
     def __init__(self):
-        with html.Div(classes="pa-2"):
+        super().__init__(classes="pa-2")
+        with self:
             vuetify.VSelect(
                 label="Choose a dataset",
                 v_model="dataset_path",
