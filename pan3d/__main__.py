@@ -14,5 +14,4 @@ args = parser.parse_args()
 builder = DatasetBuilder(dataset_path=args.dataset_path)
 if args.config_path:
     builder.import_config(args.config_path)
-viewer = builder.viewer
-builder.server.start()
+builder.viewer.server.start()
