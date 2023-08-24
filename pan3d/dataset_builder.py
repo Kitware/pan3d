@@ -86,7 +86,7 @@ class DatasetBuilder:
                         ) as plot_view:
                             self.ctrl.view_update = plot_view.update
                             self.ctrl.reset_camera = plot_view.reset_camera
-                AxisSelection()
+                    AxisSelection()
         return self._layout
 
     @property
