@@ -1,17 +1,16 @@
 from trame.widgets import html, vuetify
+from .axis_configure import AxisConfigure
 
 
 class AxisSelection(vuetify.VNavigationDrawer):
     def __init__(
         self,
+        coordinate_select_axis,
         array_active="array_active",
         coordinates="coordinates",
         x_array="x_array",
-        x_scale="x_scale",
         y_array="y_array",
-        y_scale="y_scale",
         z_array="z_array",
-        z_scale="z_scale",
         t_array="t_array",
         t_index="t_index",
         t_max="t_max",
@@ -21,104 +20,79 @@ class AxisSelection(vuetify.VNavigationDrawer):
             classes="pa-2",
             width="300",
             right=True,
-            style="position: absolute; top: 50px",
+            permanent=True,
+            style="position: absolute",
         )
+        axes = [
+            {
+                "label": "X",
+                "name_var": x_array,
+                "index_var": "undefined",
+                "max_var": "undefined",
+            },
+            {
+                "label": "Y",
+                "name_var": y_array,
+                "index_var": "undefined",
+                "max_var": "undefined",
+            },
+            {
+                "label": "Z",
+                "name_var": z_array,
+                "index_var": "undefined",
+                "max_var": "undefined",
+            },
+            {
+                "label": "T",
+                "name_var": t_array,
+                "index_var": t_index,
+                "max_var": t_max,
+            },
+        ]
         with self:
-            # TODO: redesign this drawer
-            with vuetify.VCol():
-                with vuetify.VRow():
-                    html.Div("X:", classes="text-subtitle-2 pr-2")
-                    vuetify.VSelect(
-                        v_model=(x_array, None),
-                        items=(coordinates,),
-                        hide_details=True,
-                        dense=True,
-                        clearable="True",
-                        clear=f"{x_array} = undefined",
-                        style="max-width: 250px;",
-                    )
-                    vuetify.VSlider(
-                        v_show=x_array,
-                        v_model=(x_scale, 0),
-                        classes="ml-2",
-                        label="Scale",
-                        thumb_label=True,
-                        min=1,
-                        max=10,
-                        dense=True,
-                        hide_details=True,
-                        style="max-width: 250px;",
-                    )
-
-                with vuetify.VRow():
-                    html.Div("Y:", classes="text-subtitle-2 pr-2")
-                    vuetify.VSelect(
-                        v_model=(y_array, None),
-                        items=(coordinates,),
-                        hide_details=True,
-                        dense=True,
-                        clearable="True",
-                        clear=f"{y_array} = undefined",
-                        style="max-width: 250px;",
-                    )
-                    vuetify.VSlider(
-                        v_show=y_array,
-                        v_model=(y_scale, 0),
-                        classes="ml-2",
-                        label="Scale",
-                        thumb_label=True,
-                        min=1,
-                        max=10,
-                        dense=True,
-                        hide_details=True,
-                        style="max-width: 250px;",
-                    )
-
-                with vuetify.VRow():
-                    html.Div("Z:", classes="text-subtitle-2 pr-2")
-                    vuetify.VSelect(
-                        v_model=(z_array, None),
-                        items=(coordinates,),
-                        hide_details=True,
-                        dense=True,
-                        clearable="True",
-                        clear=f"{z_array} = undefined",
-                        style="max-width: 250px;",
-                    )
-                    vuetify.VSlider(
-                        v_show=z_array,
-                        v_model=(z_scale, 0),
-                        classes="ml-2",
-                        label="Scale",
-                        thumb_label=True,
-                        min=1,
-                        max=10,
-                        dense=True,
-                        hide_details=True,
-                        style="max-width: 250px;",
-                    )
-
-                with vuetify.VRow():
-                    html.Div("T:", classes="text-subtitle-2 pr-2")
-                    vuetify.VSelect(
-                        v_model=(t_array, None),
-                        items=(coordinates,),
-                        hide_details=True,
-                        dense=True,
-                        clearable="True",
-                        clear=f"{t_array} = undefined",
-                        style="max-width: 250px;",
-                    )
-                    vuetify.VSlider(
-                        v_show=f"{t_array} && {t_max} > 0",
-                        v_model=(t_index, 0),
-                        classes="ml-2",
-                        label="Index",
-                        thumb_label=True,
-                        min=0,
-                        max=(t_max, 0),
-                        step=1,
-                        dense=True,
-                        hide_details=True,
-                        style="max-width: 250px;",
-                    )
+            with vuetify.VExpansionPanels(
+                value=([0, 1],), multiple=True, accordion=True
+            ):
+                with vuetify.VExpansionPanel():
+                    vuetify.VExpansionPanelHeader("Assigned Coordinates")
+                    with vuetify.VExpansionPanelContent():
+                        for axis in axes:
+                            with vuetify.VSheet(classes="d-flex"):
+                                html.Span(axis["label"])
+                                AxisConfigure(
+                                    axes,
+                                    coordinate_select_axis,
+                                    name_var=axis["name_var"],
+                                    index_var=axis["index_var"],
+                                    max_var=axis["max_var"],
+                                )
+                                vuetify.VSheet(
+                                    v_show=f"!{axis['name_var']}",
+                                    rounded=True,
+                                    color="grey lighten-2",
+                                    style="flex-grow: 1",
+                                    height="40",
+                                    classes="ml-3 mb-1",
+                                )
+                with vuetify.VExpansionPanel():
+                    vuetify.VExpansionPanelHeader("Available Coordinates")
+                    with vuetify.VExpansionPanelContent():
+                        with html.Div(
+                            v_for="coord in coordinates",
+                            v_show="![%s, %s, %s, %s].includes(coord.name)"
+                            % (x_array, y_array, z_array, t_array),
+                        ):
+                            AxisConfigure(
+                                axes,
+                                coordinate_select_axis,
+                                name="coord.name",
+                            )
+                        html.Span(
+                            "No coordinates remain.",
+                            v_show="""
+                            coordinates.every(
+                                (c) => [%s, %s, %s, %s].includes(c.name)
+                            )
+                        """
+                            % (x_array, y_array, z_array, t_array),
+                        )
