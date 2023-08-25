@@ -86,7 +86,9 @@ class DatasetBuilder:
                         ) as plot_view:
                             self.ctrl.view_update = plot_view.update
                             self.ctrl.reset_camera = plot_view.reset_camera
-                    AxisSelection()
+                    AxisSelection(
+                        coordinate_select_axis=self.coordinate_select_axis,
+                    )
         return self._layout
 
     @property
@@ -115,6 +117,16 @@ class DatasetBuilder:
         if self.data_array is None:
             return 0, 0
         return self.data_array.min(), self.data_array.max()
+
+    # -----------------------------------------------------
+    # UI bound methods
+    # -----------------------------------------------------
+
+    def coordinate_select_axis(self, coordinate_name, current_axis, new_axis):
+        if getattr(self.state, current_axis):
+            setattr(self.state, current_axis, None)
+        if new_axis:
+            setattr(self.state, new_axis, coordinate_name)
 
     # -----------------------------------------------------
     # State change callbacks
@@ -171,7 +183,16 @@ class DatasetBuilder:
     def on_set_array_active(self, array_active, **kwargs):
         if array_active is None or not self.state.dataset_ready:
             return
-        self.state.coordinates = list(self.data_array.coords.keys())
+        da = self.data_array
+        self.state.coordinates = [
+            {
+                "name": key,
+                "dtype": str(da.coords[key].dtype),
+                "length": da.coords[key].size,
+                "range": [float(da.coords[key].min()), float(da.coords[key].max())],
+            }
+            for key in da.coords.keys()
+        ]
 
     @change("x_array")
     def on_set_x_array(self, x_array, **kwargs):
