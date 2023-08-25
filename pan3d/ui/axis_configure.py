@@ -25,20 +25,39 @@ class AxisConfigure(vuetify.VCard):
                 with vuetify.VExpansionPanel():
                     vuetify.VExpansionPanelHeader("{{ %s }}" % (name_var or name,))
                     with vuetify.VExpansionPanelContent():
-                        vuetify.VSelect(
+                        with vuetify.VSelect(
                             label="Assign axis",
                             items=(axes,),
                             item_text="label",
                             item_value="name_var",
-                            clearable=True,
                             value=name_var or "undefined",
-                            change=(
+                            clearable=True,
+                            click_clear=(
                                 coordinate_select_axis,
                                 # args: coord name, current axis, new axis
-                                "[%s, '%s', $event]"
-                                % (
-                                    name_var or name or "undefined",
-                                    name_var or "undefined",
-                                ),
+                                f"[{name_var}, '{name_var}', 'undefined']",
                             ),
-                        )
+                        ):
+                            # use a slot for defining change function
+                            # so input value is not changed in this instance of the card.
+                            # if this change is not prevented, the select maintains the last input
+                            # if this card becomes visible again
+                            with vuetify.Template(
+                                v_slot_item="{ attrs, item, parent }"
+                            ):
+                                with vuetify.VListItem(
+                                    v_bind="attrs",
+                                    click=(
+                                        coordinate_select_axis,
+                                        # args: coord name, current axis, new axis
+                                        f"""[
+                                            {name_var or name or "undefined"},
+                                            '{name_var or "undefined"}',
+                                            item.name_var
+                                        ]""",
+                                        # make selection dropdown disappear
+                                        "parent.$el.style.display = 'none'",
+                                    ),
+                                ):
+                                    with vuetify.VListItemContent():
+                                        vuetify.VListItemTitle("{{ item.label }}")
