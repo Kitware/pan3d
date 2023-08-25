@@ -122,10 +122,10 @@ class DatasetBuilder:
     # UI bound methods
     # -----------------------------------------------------
 
-    def coordinate_select_axis(self, coordinate_name, current_axis, new_axis):
+    def coordinate_select_axis(self, coordinate_name, current_axis, new_axis, **kwargs):
         if getattr(self.state, current_axis):
             setattr(self.state, current_axis, None)
-        if new_axis:
+        if new_axis and new_axis != "undefined":
             setattr(self.state, new_axis, coordinate_name)
 
     # -----------------------------------------------------
