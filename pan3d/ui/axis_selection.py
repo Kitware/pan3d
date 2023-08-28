@@ -1,4 +1,5 @@
-from trame.widgets import html, vuetify
+from trame.widgets import html
+from trame.widgets import vuetify3 as vuetify
 from .axis_configure import AxisConfigure
 
 
@@ -16,10 +17,10 @@ class AxisSelection(vuetify.VNavigationDrawer):
         t_max="t_max",
     ):
         super().__init__(
-            value=(array_active,),
+            model_value=(array_active,),
             classes="pa-2",
             width="300",
-            right=True,
+            location="right",
             permanent=True,
             style="position: absolute",
         )
@@ -51,11 +52,10 @@ class AxisSelection(vuetify.VNavigationDrawer):
         ]
         with self:
             with vuetify.VExpansionPanels(
-                value=([0, 1],), multiple=True, accordion=True
+                model_value=([0, 1],), multiple=True, accordion=True
             ):
-                with vuetify.VExpansionPanel():
-                    vuetify.VExpansionPanelHeader("Assigned Coordinates")
-                    with vuetify.VExpansionPanelContent():
+                with vuetify.VExpansionPanel(title="Assigned Coordinates"):
+                    with vuetify.VExpansionPanelText():
                         for axis in axes:
                             with vuetify.VSheet(classes="d-flex"):
                                 html.Span(axis["label"])
@@ -74,9 +74,8 @@ class AxisSelection(vuetify.VNavigationDrawer):
                                     height="40",
                                     classes="ml-3 mb-1",
                                 )
-                with vuetify.VExpansionPanel():
-                    vuetify.VExpansionPanelHeader("Available Coordinates")
-                    with vuetify.VExpansionPanelContent():
+                with vuetify.VExpansionPanel(title="Available Coordinates"):
+                    with vuetify.VExpansionPanelText():
                         with html.Div(
                             v_for="coord in coordinates",
                             v_show="![%s, %s, %s, %s].includes(coord.name)"
