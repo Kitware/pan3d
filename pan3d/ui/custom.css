@@ -1,0 +1,7 @@
+.v-expansion-panel-text__wrapper {
+    padding: 5px !important;
+}
+
+.v-expansion-panel--active>.v-expansion-panel-title {
+    min-height: 30px !important;
+}

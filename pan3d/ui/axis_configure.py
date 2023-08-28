@@ -1,4 +1,4 @@
-from trame.widgets import vuetify
+from trame.widgets import vuetify3 as vuetify
 
 
 class AxisConfigure(vuetify.VCard):
@@ -21,16 +21,16 @@ class AxisConfigure(vuetify.VCard):
 
         with self:
             # Open expansion panel by default
-            with vuetify.VExpansionPanels(value=([0],), accordion=True):
+            with vuetify.VExpansionPanels(model_value=([0],), accordion=True):
                 with vuetify.VExpansionPanel():
-                    vuetify.VExpansionPanelHeader("{{ %s }}" % (name_var or name,))
-                    with vuetify.VExpansionPanelContent():
+                    vuetify.VExpansionPanelTitle("{{ %s }}" % (name_var or name,))
+                    with vuetify.VExpansionPanelText():
                         with vuetify.VSelect(
                             label="Assign axis",
                             items=(axes,),
-                            item_text="label",
+                            item_title="label",
                             item_value="name_var",
-                            value=name_var or "undefined",
+                            model_value=(name_var or "undefined",),
                             clearable=True,
                             click_clear=(
                                 coordinate_select_axis,
@@ -43,21 +43,18 @@ class AxisConfigure(vuetify.VCard):
                             # if this change is not prevented, the select maintains the last input
                             # if this card becomes visible again
                             with vuetify.Template(
-                                v_slot_item="{ attrs, item, parent }"
+                                v_slot_item="{ props, item, parent }"
                             ):
-                                with vuetify.VListItem(
-                                    v_bind="attrs",
+                                vuetify.VListItem(
+                                    v_bind="props",
+                                    title="{{ props.title }}",
                                     click=(
                                         coordinate_select_axis,
                                         # args: coord name, current axis, new axis
                                         f"""[
                                             {name_var or name or "undefined"},
                                             '{name_var or "undefined"}',
-                                            item.name_var
+                                            props.value
                                         ]""",
-                                        # make selection dropdown disappear
-                                        "parent.$el.style.display = 'none'",
                                     ),
-                                ):
-                                    with vuetify.VListItemContent():
-                                        vuetify.VListItemTitle("{{ item.label }}")
+                                )
