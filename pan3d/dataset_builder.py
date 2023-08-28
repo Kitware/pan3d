@@ -14,6 +14,8 @@ from trame.widgets import vuetify3 as vuetify
 from pan3d.ui import AxisSelection, MainDrawer, Toolbar
 from pan3d.utils import initial_state, run_singleton_task
 
+DIR = os.path.dirname(os.path.realpath(__file__))
+
 
 @TrameApp()
 class DatasetBuilder:
@@ -64,7 +66,7 @@ class DatasetBuilder:
             # Build UI
             self._layout = SinglePageWithDrawerLayout(self.server)
             with self._layout as layout:
-                client.Style(open("pan3d/ui/custom.css").read())
+                client.Style(open(f"{DIR}/ui/custom.css").read())
                 layout.title.set_text("Pan3D Viewer")
                 layout.footer.hide()
                 with layout.toolbar:
