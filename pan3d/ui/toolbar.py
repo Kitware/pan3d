@@ -44,7 +44,7 @@ class Toolbar(html.Div):
                 v_show=array_active,
                 items=(resolutions,),
                 density="compact",
-                style="width: 100px",
+                style="width: 150px",
             )
             vuetify.VCheckbox(
                 v_model=(view_edge_visibility, True),

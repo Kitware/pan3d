@@ -89,9 +89,10 @@ class AxisSelection(vuetify.VNavigationDrawer):
                         html.Span(
                             "No coordinates remain.",
                             v_show="""
-                            coordinates.every(
-                                (c) => [%s, %s, %s, %s].includes(c.name)
-                            )
-                        """
+                                coordinates.every(
+                                    (c) => [%s, %s, %s, %s].includes(c.name)
+                                )
+                            """
                             % (x_array, y_array, z_array, t_array),
+                            classes="mx-5",
                         )
