@@ -176,11 +176,9 @@ class DatasetBuilder:
         if len(self.state.data_attrs) > 0:
             self.state.show_data_attrs = True
         self.state.coordinates = []
-        self.state.x_array = None
-        self.state.y_array = None
-        self.state.z_array = None
-        self.state.t_array = None
-        self.state.t_index = 0
+        self.state.update(
+            dict(x_array=None, y_array=None, z_array=None, t_array=None, t_index=0)
+        )
         self.state.dataset_ready = True
         if len(self.state.data_vars) > 0:
             self.state.array_active = self.state.data_vars[0]["name"]
