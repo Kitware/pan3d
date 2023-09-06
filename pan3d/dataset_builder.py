@@ -2,6 +2,7 @@ import json
 import os
 import pyvista
 import xarray
+from pathlib import Path
 from pvxarray.vtk_source import PyVistaXarraySource
 from pyvista.trame.ui import plotter_ui
 
@@ -66,7 +67,7 @@ class DatasetBuilder:
             # Build UI
             self._layout = SinglePageWithDrawerLayout(self.server)
             with self._layout as layout:
-                client.Style(open(f"{DIR}/ui/custom.css").read())
+                client.Style(open(Path(DIR, "ui/custom.css")).read())
                 layout.title.set_text("Pan3D Viewer")
                 layout.footer.hide()
                 with layout.toolbar:
