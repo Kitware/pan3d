@@ -1,5 +1,5 @@
-from argparse import ArgumentParser
-from .dataset_builder import DatasetBuilder
+from argparse import ArgumentParser, BooleanOptionalAction
+from pan3d.dataset_builder import DatasetBuilder
 
 
 def main():
@@ -10,6 +10,7 @@ def main():
 
     parser.add_argument("-b", "--config_path")
     parser.add_argument("-d", "--dataset_path")
+    parser.add_argument("-s", "--server", action=BooleanOptionalAction)
 
     args = parser.parse_args()
 
@@ -17,3 +18,7 @@ def main():
     if args.config_path:
         builder.import_config(args.config_path)
     builder.viewer.server.start()
+
+
+if __name__ == "__main__":
+    main()
