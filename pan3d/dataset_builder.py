@@ -2,16 +2,21 @@ import json
 import os
 import pyvista
 import xarray
+from pathlib import Path
 from pvxarray.vtk_source import PyVistaXarraySource
 from pyvista.trame.ui import plotter_ui
 
 from trame.decorators import TrameApp, change
-from trame.ui.vuetify import SinglePageWithDrawerLayout  # TODO: upgrade to vuetify 3
+from trame.ui.vuetify3 import SinglePageWithDrawerLayout
 from trame.app import get_server
-from trame.widgets import html, vuetify
+from trame.widgets import html, client
+from trame.widgets import vuetify3 as vuetify
 
 from pan3d.ui import AxisSelection, MainDrawer, Toolbar
 from pan3d.utils import initial_state, run_singleton_task
+
+BASE_DIR = Path(__file__).parent
+CSS_FILE = BASE_DIR / "ui" / "custom.css"
 
 
 @TrameApp()
@@ -24,7 +29,7 @@ class DatasetBuilder:
             server = get_server(server)
 
         # Fix version of vue
-        server.client_type = "vue2"  # TODO: upgrade to vue3
+        server.client_type = "vue3"
         self.server = server
         self._layout = None
 
@@ -63,10 +68,10 @@ class DatasetBuilder:
             # Build UI
             self._layout = SinglePageWithDrawerLayout(self.server)
             with self._layout as layout:
+                client.Style(CSS_FILE.read_text())
                 layout.title.set_text("Pan3D Viewer")
                 layout.footer.hide()
                 with layout.toolbar:
-                    layout.toolbar.dense = True
                     layout.toolbar.align = "center"
                     Toolbar(reset=self.ctrl.reset)
                 with layout.drawer:
@@ -74,7 +79,7 @@ class DatasetBuilder:
                 with layout.content:
                     with html.Div(
                         v_show="array_active",
-                        style="height: 100%; position: relative; width: calc(100% - 300px)",
+                        style="height: 100%; position: relative;",
                     ):
                         vuetify.VBanner(
                             "{{ error_message }}",
@@ -172,6 +177,9 @@ class DatasetBuilder:
         if len(self.state.data_attrs) > 0:
             self.state.show_data_attrs = True
         self.state.coordinates = []
+        self.state.update(
+            dict(x_array=None, y_array=None, z_array=None, t_array=None, t_index=0)
+        )
         self.state.dataset_ready = True
         if len(self.state.data_vars) > 0:
             self.state.array_active = self.state.data_vars[0]["name"]
