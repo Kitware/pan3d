@@ -13,7 +13,7 @@ from trame.widgets import html, client
 from trame.widgets import vuetify3 as vuetify
 
 from pan3d.ui import AxisSelection, MainDrawer, Toolbar
-from pan3d.utils import initial_state, run_singleton_task
+from pan3d.utils import initial_state, run_singleton_task, coordinate_auto_selection
 
 BASE_DIR = Path(__file__).parent
 CSS_FILE = BASE_DIR / "ui" / "custom.css"
@@ -46,6 +46,7 @@ class DatasetBuilder:
         self.ctrl.reset = self.reset
 
         if dataset_path:
+            self.state.dataset_path = dataset_path
             self.set_dataset_path(dataset_path=dataset_path)
         if state:
             self.state.update(state)
@@ -77,14 +78,14 @@ class DatasetBuilder:
                 with layout.drawer:
                     MainDrawer()
                 with layout.content:
+                    vuetify.VBanner(
+                        "{{ error_message }}",
+                        v_show=("error_message",),
+                    )
                     with html.Div(
                         v_show="array_active",
                         style="height: 100%; position: relative;",
                     ):
-                        vuetify.VBanner(
-                            "{{ error_message }}",
-                            v_show=("error_message",),
-                        )
                         with plotter_ui(
                             self.ctrl.get_plotter(),
                             interactive_ratio=1,
@@ -205,6 +206,7 @@ class DatasetBuilder:
             }
             for key in da.coords.keys()
         ]
+        self.auto_select_coordinates()
 
     @change("x_array")
     def on_set_x_array(self, x_array, **kwargs):
@@ -224,11 +226,11 @@ class DatasetBuilder:
     @change("t_array")
     def on_set_t_array(self, t_array, **kwargs):
         self.algorithm.time = t_array
-        if t_array:
+        if self.dataset and self.state.array_active and t_array:
             time_steps = self.dataset[self.state.array_active][t_array]
             # Set the time_max in the state for the slider
             self.state.t_max = len(time_steps) - 1
-        self.mesh_changed()
+            self.mesh_changed()
 
     @change("t_index")
     def on_set_t_index(self, t_index, **kwargs):
@@ -257,6 +259,23 @@ class DatasetBuilder:
     # -----------------------------------------------------
     # Render Logic
     # -----------------------------------------------------
+
+    def auto_select_coordinates(self):
+        state_update = {}
+        for coordinate in self.state.coordinates:
+            name = coordinate["name"].lower()
+            for axis, accepted_names in coordinate_auto_selection.items():
+                # If accepted name is longer than one letter, look for contains match
+                name_match = [
+                    coordinate["name"]
+                    for accepted in accepted_names
+                    if (len(accepted) == 1 and accepted == name)
+                    or (len(accepted) > 1 and accepted in name)
+                ]
+                if len(name_match) > 0:
+                    state_update[axis] = name_match[0]
+        if len(state_update.keys()) > 0:
+            self.state.update(state_update)
 
     def mesh_changed(self):
         if self.state.array_active:
