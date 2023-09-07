@@ -133,10 +133,14 @@ class DatasetBuilder:
             ):
                 self.state.more_info_link = available_dataset["more_info"]
         if "https://" in dataset_path or os.path.exists(dataset_path):
-            # Assumes zarr store
+            engine = None
+            if ".zarr" in dataset_path:
+                engine = "zarr"
+            if ".nc" in dataset_path:
+                engine = "netcdf4"
             try:
                 self.dataset = xarray.open_dataset(
-                    dataset_path, engine="zarr", chunks={}
+                    dataset_path, engine=engine, chunks={}
                 )
             except Exception as e:
                 self.state.error_message = str(e)
