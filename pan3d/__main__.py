@@ -8,9 +8,9 @@ def main():
         description="Launch the Pan3D Dataset Builder",
     )
 
-    parser.add_argument("-b", "--config_path")
-    parser.add_argument("-d", "--dataset_path")
-    parser.add_argument("-s", "--server", action=BooleanOptionalAction)
+    parser.add_argument("-C", "--config_path")
+    parser.add_argument("-D", "--dataset_path")
+    parser.add_argument("-S", "--server", action=BooleanOptionalAction)
 
     args = parser.parse_args()
 
