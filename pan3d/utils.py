@@ -84,3 +84,10 @@ initial_state = {
     "da_size": None,
     "mesh_timeout": 30,
 }
+
+coordinate_auto_selection = {
+    "x_array": ["x", "lat", "len"],
+    "y_array": ["y", "lon", "width"],
+    "z_array": ["z", "depth"],
+    "t_array": ["t", "time"],
+}
