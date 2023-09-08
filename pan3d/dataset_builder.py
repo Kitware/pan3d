@@ -93,7 +93,7 @@ class DatasetBuilder:
                             self.ctrl.view_update = plot_view.update
                             self.ctrl.reset_camera = plot_view.reset_camera
                     AxisSelection(
-                        coordinate_select_axis=self.coordinate_select_axis,
+                        coordinate_select_axis_function=self.coordinate_select_axis,
                     )
         return self._layout
 
