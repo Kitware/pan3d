@@ -1,12 +1,12 @@
 from trame.widgets import html
 from trame.widgets import vuetify3 as vuetify
-from .axis_configure import AxisConfigure
+from .coordinate_configure import CoordinateConfigure
 
 
 class AxisSelection(vuetify.VNavigationDrawer):
     def __init__(
         self,
-        coordinate_select_axis,
+        coordinate_select_axis_function,
         array_active="array_active",
         coordinates="coordinates",
         x_array="x_array",
@@ -52,19 +52,23 @@ class AxisSelection(vuetify.VNavigationDrawer):
         ]
         with self:
             with vuetify.VExpansionPanels(
-                model_value=([0, 1],), multiple=True, accordion=True
+                model_value=([0, 1],),
+                multiple=True,
+                accordion=True,
+                v_show=coordinates,
             ):
                 with vuetify.VExpansionPanel(title="Assigned Coordinates"):
                     with vuetify.VExpansionPanelText():
                         for axis in axes:
                             with vuetify.VSheet(classes="d-flex"):
                                 html.Span(axis["label"])
-                                AxisConfigure(
+                                CoordinateConfigure(
                                     axes,
-                                    coordinate_select_axis,
-                                    name_var=axis["name_var"],
-                                    index_var=axis["index_var"],
-                                    max_var=axis["max_var"],
+                                    coordinates,
+                                    "%s.find((c) => c.name === %s)"
+                                    % (coordinates, axis["name_var"]),
+                                    coordinate_select_axis_function,
+                                    axis_info=axis,
                                 )
                                 vuetify.VSheet(
                                     v_show=f"!{axis['name_var']}",
@@ -81,10 +85,11 @@ class AxisSelection(vuetify.VNavigationDrawer):
                             v_show="![%s, %s, %s, %s].includes(coord.name)"
                             % (x_array, y_array, z_array, t_array),
                         ):
-                            AxisConfigure(
+                            CoordinateConfigure(
                                 axes,
-                                coordinate_select_axis,
-                                name="coord.name",
+                                coordinates,
+                                "coord",
+                                coordinate_select_axis_function,
                             )
                         html.Span(
                             "No coordinates remain.",
