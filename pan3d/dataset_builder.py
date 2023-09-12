@@ -94,6 +94,7 @@ class DatasetBuilder:
                             self.ctrl.reset_camera = plot_view.reset_camera
                     AxisSelection(
                         coordinate_select_axis_function=self.coordinate_select_axis,
+                        coordinate_change_slice_function=self.coordinate_change_slice,
                     )
         return self._layout
 
@@ -133,6 +134,22 @@ class DatasetBuilder:
             setattr(self.state, current_axis, None)
         if new_axis and new_axis != "undefined":
             setattr(self.state, new_axis, coordinate_name)
+
+    def coordinate_change_slice(self, coordinate_name, slice_attribute_name, value):
+        coordinate_matches = [
+            (index, coordinate)
+            for index, coordinate in enumerate(self.state.coordinates)
+            if coordinate["name"] == coordinate_name
+        ]
+        if len(coordinate_matches) > 0:
+            value = float(value)
+            coord_i, coordinate = coordinate_matches[0]
+            if slice_attribute_name == "step":
+                if value > 0 and value < coordinate["range"][1]:
+                    coordinate[slice_attribute_name] = value
+            else:
+                if value > coordinate["range"][0] and value < coordinate["range"][1]:
+                    coordinate[slice_attribute_name] = value
 
     # -----------------------------------------------------
     # State change callbacks
@@ -197,15 +214,20 @@ class DatasetBuilder:
         if array_active is None or not self.state.dataset_ready:
             return
         da = self.data_array
-        self.state.coordinates = [
-            {
-                "name": key,
-                "dtype": str(da.coords[key].dtype),
-                "length": da.coords[key].size,
-                "range": [float(da.coords[key].min()), float(da.coords[key].max())],
-            }
-            for key in da.coords.keys()
-        ]
+        for key in da.coords.keys():
+            array_min = float(da.coords[key].min())
+            array_max = float(da.coords[key].max())
+            self.state.coordinates.append(
+                {
+                    "name": key,
+                    "dtype": str(da.coords[key].dtype),
+                    "length": da.coords[key].size,
+                    "range": [array_min, array_max],
+                    "start": array_min,
+                    "stop": array_max,
+                    "step": 1,
+                }
+            )
         self.auto_select_coordinates()
 
     @change("x_array")

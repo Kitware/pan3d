@@ -7,6 +7,7 @@ class AxisSelection(vuetify.VNavigationDrawer):
     def __init__(
         self,
         coordinate_select_axis_function,
+        coordinate_change_slice_function,
         array_active="array_active",
         coordinates="coordinates",
         x_array="x_array",
@@ -19,7 +20,7 @@ class AxisSelection(vuetify.VNavigationDrawer):
         super().__init__(
             model_value=(array_active,),
             classes="pa-2",
-            width="300",
+            width="400",
             location="right",
             permanent=True,
             style="position: absolute",
@@ -68,6 +69,7 @@ class AxisSelection(vuetify.VNavigationDrawer):
                                     "%s.find((c) => c.name === %s)"
                                     % (coordinates, axis["name_var"]),
                                     coordinate_select_axis_function,
+                                    coordinate_change_slice_function,
                                     axis_info=axis,
                                 )
                                 vuetify.VSheet(
@@ -90,6 +92,7 @@ class AxisSelection(vuetify.VNavigationDrawer):
                                 coordinates,
                                 "coord",
                                 coordinate_select_axis_function,
+                                coordinate_change_slice_function,
                             )
                         html.Span(
                             "No coordinates remain.",
