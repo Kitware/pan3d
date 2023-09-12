@@ -167,7 +167,10 @@ class DatasetBuilder:
             else:
                 if value > coordinate["range"][0] and value < coordinate["range"][1]:
                     coordinate[slice_attribute_name] = value
+
+            self.state.coordinates[coord_i] = coordinate
             self.mesh_changed()
+            self.state.dirty("coordinates")
 
     # -----------------------------------------------------
     # State change callbacks
