@@ -62,24 +62,30 @@ class AxisSelection(vuetify.VNavigationDrawer):
                     with vuetify.VExpansionPanelText():
                         for axis in axes:
                             with vuetify.VSheet(classes="d-flex"):
-                                html.Span(axis["label"])
-                                CoordinateConfigure(
-                                    axes,
-                                    coordinates,
-                                    "%s.find((c) => c.name === %s)"
-                                    % (coordinates, axis["name_var"]),
-                                    coordinate_select_axis_function,
-                                    coordinate_change_slice_function,
-                                    axis_info=axis,
-                                )
-                                vuetify.VSheet(
+                                html.Span(axis["label"], classes="pt-2")
+                                with html.Div(
+                                    v_show=f"{axis['name_var']}", style="width: 100%"
+                                ):
+                                    CoordinateConfigure(
+                                        axes,
+                                        coordinates,
+                                        "%s.find((c) => c.name === %s)"
+                                        % (coordinates, axis["name_var"]),
+                                        coordinate_select_axis_function,
+                                        coordinate_change_slice_function,
+                                        axis_info=axis,
+                                    )
+                                with vuetify.VCard(
                                     v_show=f"!{axis['name_var']}",
-                                    rounded=True,
-                                    color="grey lighten-2",
-                                    style="flex-grow: 1",
-                                    height="40",
+                                    height="45",
                                     classes="ml-3 mb-1",
-                                )
+                                    style="flex-grow: 1",
+                                ):
+                                    vuetify.VCardSubtitle(
+                                        f"No coordinate assigned to {axis['label']}",
+                                        classes="text-center pt-3",
+                                    )
+
                 with vuetify.VExpansionPanel(title="Available Coordinates"):
                     with vuetify.VExpansionPanelText():
                         with html.Div(
