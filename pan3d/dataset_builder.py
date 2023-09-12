@@ -240,6 +240,12 @@ class DatasetBuilder:
             ]
             coord_attrs.append({"key": "dtype", "value": str(da.coords[key].dtype)})
             coord_attrs.append({"key": "length", "value": da.coords[key].size})
+            coord_attrs.append(
+                {
+                    "key": "range",
+                    "value": [array_min, array_max],
+                }
+            )
             self.state.coordinates.append(
                 {
                     "name": key,
