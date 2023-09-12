@@ -24,7 +24,8 @@ class Toolbar(html.Div):
             with vuetify.VBtn(
                 click=reset,
                 v_show=unapplied_changes,
-                small=True,
+                # small=True,
+                variant="tonal",
             ):
                 html.Span("Apply & Render")
                 html.Span("({{ %s }})" % da_size, v_show=da_size)
