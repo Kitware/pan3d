@@ -96,24 +96,17 @@ class CoordinateConfigure(vuetify.VCard):
                             )
                             if axis_info
                             else "undefined",
+                            update_modelValue=(
+                                coordinate_select_axis_function,
+                                # args: coord name, current axis, new axis
+                                f"""[
+                                    {coordinate_info}.name,
+                                    '{axis_info["name_var"] if axis_info else "undefined"}',
+                                    $event
+                                ]""",
+                            ),
                         ):
-                            # use a slot for defining change function
-                            # so input value is not changed in this instance of the card.
-                            # if this change is not prevented, the select maintains the last input
-                            # if this card becomes visible again
                             with vuetify.Template(
-                                v_slot_item="{ props, item, parent }"
+                                v_slot_selection="{ props, item, parent }"
                             ):
-                                vuetify.VListItem(
-                                    v_bind="props",
-                                    title="{{ props.title }}",
-                                    click=(
-                                        coordinate_select_axis_function,
-                                        # args: coord name, current axis, new axis
-                                        f"""[
-                                            {coordinate_info}.name,
-                                            '{axis_info["name_var"] if axis_info else "undefined"}',
-                                            props.value
-                                        ]""",
-                                    ),
-                                )
+                                html.Span(axis_info["label"] if axis_info else "")
