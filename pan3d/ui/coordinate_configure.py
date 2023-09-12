@@ -102,7 +102,7 @@ class CoordinateConfigure(vuetify.VCard):
                                     density="compact",
                                     type="number",
                                     min="1",
-                                    max=("%s?.range[1]" % coordinate_info, 0),
+                                    max=("%s?.size" % coordinate_info, 0),
                                     __properties=[("min", "min"), ("max", "max")],
                                     input=(
                                         coordinate_change_slice_function,
