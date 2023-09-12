@@ -85,8 +85,8 @@ initial_state = {
 }
 
 coordinate_auto_selection = {
-    "x_array": ["x", "lat", "len"],
-    "y_array": ["y", "lon", "width"],
+    "x_array": ["x", "lon", "len"],
+    "y_array": ["y", "lat", "width"],
     "z_array": ["z", "depth"],
     "t_array": ["t", "time"],
 }
