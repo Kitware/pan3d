@@ -20,7 +20,7 @@ class AxisSelection(vuetify.VNavigationDrawer):
         super().__init__(
             model_value=(array_active,),
             classes="pa-2",
-            width="400",
+            width="350",
             location="right",
             permanent=True,
             style="position: absolute",
