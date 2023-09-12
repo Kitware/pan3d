@@ -108,14 +108,30 @@ class DatasetBuilder:
         else:
             da = self.dataset[self.state.array_active]
 
-        if self.algorithm.resolution != 1:
-            rx, ry, rz = self.algorithm.resolution_to_sampling_rate(da)
-            if da.ndim <= 1:
-                da = da[::rx]
-            elif da.ndim == 2:
-                da = da[::rx, ::ry]
-            elif da.ndim == 3:
-                da = da[::rx, ::ry, ::rz]
+        step_slices = {}
+        array_condition = None
+        for axis in ["x_array", "y_array", "z_array"][: da.ndim]:
+            coordinate_matches = [
+                (index, coordinate)
+                for index, coordinate in enumerate(self.state.coordinates)
+                if coordinate["name"] == self.state[axis]
+            ]
+            if len(coordinate_matches) > 0:
+                coord_i, coordinate = coordinate_matches[0]
+                step_slices[coordinate["name"]] = slice(0, -1, int(coordinate["step"]))
+                coordinate_condition = (
+                    da[coordinate["name"]] >= coordinate["start"]
+                ) & (da[coordinate["name"]] <= coordinate["stop"])
+                if array_condition is None:
+                    array_condition = coordinate_condition
+                else:
+                    array_condition = (array_condition) & (coordinate_condition)
+
+        if array_condition is not None:
+            da = da.where((array_condition), drop=True)
+
+        if len(step_slices.keys()) > 0:
+            da = da[step_slices]
 
         return da
 
@@ -134,6 +150,7 @@ class DatasetBuilder:
             setattr(self.state, current_axis, None)
         if new_axis and new_axis != "undefined":
             setattr(self.state, new_axis, coordinate_name)
+        self.mesh_changed()
 
     def coordinate_change_slice(self, coordinate_name, slice_attribute_name, value):
         coordinate_matches = [
@@ -150,8 +167,7 @@ class DatasetBuilder:
             else:
                 if value > coordinate["range"][0] and value < coordinate["range"][1]:
                     coordinate[slice_attribute_name] = value
-
-            print(self.state.coordinates[coord_i])
+            self.mesh_changed()
 
     # -----------------------------------------------------
     # State change callbacks
@@ -222,6 +238,7 @@ class DatasetBuilder:
             self.state.coordinates.append(
                 {
                     "name": key,
+                    "attrs": da.coords[key].attrs,
                     "dtype": str(da.coords[key].dtype),
                     "length": da.coords[key].size,
                     "range": [array_min, array_max],
