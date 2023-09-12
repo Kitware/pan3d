@@ -7,6 +7,7 @@ class CoordinateConfigure(vuetify.VCard):
         axes,
         coordinates,
         coordinate_info,
+        expanded_coordinates,
         coordinate_select_axis_function,
         coordinate_change_slice_function,
         axis_info=None,  # Defined only after an axis is selected for this coord
@@ -16,11 +17,11 @@ class CoordinateConfigure(vuetify.VCard):
         with self:
             # Open expansion panel by default
             with vuetify.VExpansionPanels(
-                model_value=([0],),
+                model_value=(expanded_coordinates, []),
                 accordion=True,
                 v_show=coordinate_info,
             ):
-                with vuetify.VExpansionPanel():
+                with vuetify.VExpansionPanel(value=("%s?.name" % coordinate_info, 0)):
                     vuetify.VExpansionPanelTitle("{{ %s?.name }}" % coordinate_info)
                     with vuetify.VExpansionPanelText():
                         vuetify.VCardSubtitle("Attributes")

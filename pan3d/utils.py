@@ -69,6 +69,7 @@ initial_state = {
     "data_vars": [],
     "data_attrs": [],
     "coordinates": [],
+    "expanded_coordinates": [],
     "x_array": None,
     "x_scale": 1,
     "y_array": None,
