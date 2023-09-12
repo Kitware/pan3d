@@ -10,6 +10,7 @@ class AxisSelection(vuetify.VNavigationDrawer):
         coordinate_change_slice_function,
         array_active="array_active",
         coordinates="coordinates",
+        expanded_coordinates="expanded_coordinates",
         x_array="x_array",
         y_array="y_array",
         z_array="z_array",
@@ -67,6 +68,7 @@ class AxisSelection(vuetify.VNavigationDrawer):
                                         coordinates,
                                         "%s.find((c) => c.name === %s)"
                                         % (coordinates, axis["name_var"]),
+                                        expanded_coordinates,
                                         coordinate_select_axis_function,
                                         coordinate_change_slice_function,
                                         axis_info=axis,
@@ -93,6 +95,7 @@ class AxisSelection(vuetify.VNavigationDrawer):
                                 axes,
                                 coordinates,
                                 "coord",
+                                expanded_coordinates,
                                 coordinate_select_axis_function,
                                 coordinate_change_slice_function,
                             )
