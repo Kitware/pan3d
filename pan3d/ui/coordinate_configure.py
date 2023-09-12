@@ -78,9 +78,7 @@ class CoordinateConfigure(vuetify.VCard):
                             items=(axes,),
                             item_title="label",
                             item_value="name_var",
-                            model_value=(
-                                axis_info["name_var"] if axis_info else "undefined",
-                            ),
+                            model_value=(axis_info or "undefined",),
                             clearable=True,
                             click_clear=(
                                 coordinate_select_axis_function,
