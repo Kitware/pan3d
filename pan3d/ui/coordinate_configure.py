@@ -32,9 +32,7 @@ class CoordinateConfigure(vuetify.VCard):
                                     html.Td("{{ data_attr.key }}")
                                     html.Td("{{ data_attr.value }}")
 
-                        vuetify.VDivider(classes="pb-3 mt-3", thickness="3")
-
-                        vuetify.VCardSubtitle("Select values")
+                        vuetify.VCardSubtitle("Select values", classes="mt-3")
                         with vuetify.VContainer(
                             classes="d-flex pa-0", style="column-gap: 3px"
                         ):
@@ -84,9 +82,7 @@ class CoordinateConfigure(vuetify.VCard):
                                 __events=[("input", "input.prevent")],
                             )
 
-                        vuetify.VDivider(classes="pb-3 mt-3", thickness="3")
-
-                        vuetify.VCardSubtitle("Assign axis")
+                        vuetify.VCardSubtitle("Assign axis", classes="mt-3")
                         with vuetify.VSelect(
                             items=(axes,),
                             item_title="label",
