@@ -78,7 +78,6 @@ initial_state = {
     "t_array": None,
     "t_index": 0,
     "t_max": 0,
-    "resolution": 1.0,
     "view_edge_visibility": True,
     "error_message": None,
     "da_size": None,

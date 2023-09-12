@@ -7,7 +7,6 @@
         "y_array": "lon",
         "t_array": "time",
         "t_index": 5,
-        "resolution": 0.1,
         "main_drawer": false
     }
 }
