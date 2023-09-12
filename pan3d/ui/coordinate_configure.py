@@ -1,4 +1,4 @@
-from trame.widgets import vuetify3 as vuetify
+from trame.widgets import html, vuetify3 as vuetify
 
 
 class CoordinateConfigure(vuetify.VCard):
@@ -23,6 +23,17 @@ class CoordinateConfigure(vuetify.VCard):
                 with vuetify.VExpansionPanel():
                     vuetify.VExpansionPanelTitle("{{ %s?.name }}" % coordinate_info)
                     with vuetify.VExpansionPanelText():
+                        vuetify.VCardSubtitle("Attributes")
+                        with vuetify.VTable(density="compact", v_show=coordinate_info):
+                            with html.Tbody():
+                                with html.Tr(
+                                    v_for=f"data_attr in {coordinate_info}?.attrs",
+                                ):
+                                    html.Td("{{ data_attr.key }}")
+                                    html.Td("{{ data_attr.value }}")
+
+                        vuetify.VDivider(classes="pb-3 mt-3", thickness="3")
+
                         vuetify.VCardSubtitle("Select values")
                         with vuetify.VContainer(
                             classes="d-flex pa-0", style="column-gap: 3px"
@@ -72,9 +83,11 @@ class CoordinateConfigure(vuetify.VCard):
                                 ),
                                 __events=[("input", "input.prevent")],
                             )
+
                         vuetify.VDivider(classes="pb-3 mt-3", thickness="3")
+
+                        vuetify.VCardSubtitle("Assign axis")
                         with vuetify.VSelect(
-                            label="Assign axis",
                             items=(axes,),
                             item_title="label",
                             item_value="name_var",

@@ -235,12 +235,15 @@ class DatasetBuilder:
         for key in da.coords.keys():
             array_min = float(da.coords[key].min())
             array_max = float(da.coords[key].max())
+            coord_attrs = [
+                {"key": k, "value": v} for k, v in da.coords[key].attrs.items()
+            ]
+            coord_attrs.append({"key": "dtype", "value": str(da.coords[key].dtype)})
+            coord_attrs.append({"key": "length", "value": da.coords[key].size})
             self.state.coordinates.append(
                 {
                     "name": key,
-                    "attrs": da.coords[key].attrs,
-                    "dtype": str(da.coords[key].dtype),
-                    "length": da.coords[key].size,
+                    "attrs": coord_attrs,
                     "range": [array_min, array_max],
                     "start": array_min,
                     "stop": array_max,
