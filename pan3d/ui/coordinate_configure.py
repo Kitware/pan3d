@@ -1,4 +1,4 @@
-from trame.widgets import vuetify3 as vuetify
+from trame.widgets import html, vuetify3 as vuetify
 
 
 class CoordinateConfigure(vuetify.VCard):
@@ -8,13 +8,10 @@ class CoordinateConfigure(vuetify.VCard):
         coordinates,
         coordinate_info,
         coordinate_select_axis_function,
+        coordinate_change_slice_function,
         axis_info=None,  # Defined only after an axis is selected for this coord
     ):
         super().__init__(width="100%", classes="ml-3 mb-1")
-        print(
-            coordinate_info,
-            axis_info,
-        )
 
         with self:
             # Open expansion panel by default
@@ -26,30 +23,56 @@ class CoordinateConfigure(vuetify.VCard):
                 with vuetify.VExpansionPanel():
                     vuetify.VExpansionPanelTitle("{{ %s?.name }}" % coordinate_info)
                     with vuetify.VExpansionPanelText():
-                        with vuetify.VContainer(
-                            classes="d-flex pa-0", style="column-gap: 3px"
-                        ):
-                            vuetify.VTextField(
-                                v_model=("x_start", 0),
-                                label="Start",
-                                hide_details=True,
-                                density="compact",
-                                type="number",
-                            )
-                            vuetify.VTextField(
-                                v_model=("x_stop", 0),
-                                label="Stop",
-                                hide_details=True,
-                                density="compact",
-                                type="number",
-                            )
-                            vuetify.VTextField(
-                                v_model=("x_step", 0),
-                                label="Step",
-                                hide_details=True,
-                                density="compact",
-                                type="number",
-                            )
+                        vuetify.VCardSubtitle("Select values")
+                        # Use html inputs because vuetify 3 text inputs do not accept min and max
+                        with vuetify.VContainer(classes="mx-3"):
+                            with vuetify.VRow():
+                                with vuetify.VCol(cols="4"):
+                                    html.Span("Start")
+                                with vuetify.VCol(cols="4"):
+                                    html.Span("Stop")
+                                with vuetify.VCol(cols="4"):
+                                    html.Span("Step")
+                            with vuetify.VRow():
+                                with vuetify.VCol(cols="4"):
+                                    html.Input(
+                                        type="number",
+                                        value=("%s?.start" % coordinate_info, 0),
+                                        min=("%s?.range[0]" % coordinate_info, 0),
+                                        max=("%s?.stop" % coordinate_info, 0),
+                                        input=(
+                                            coordinate_change_slice_function,
+                                            f"[{coordinate_info}.name, 'start', $event.target.value]",
+                                        ),
+                                        __events=[("input", "input.prevent")],
+                                        style="width: 90px",
+                                    )
+                                with vuetify.VCol(cols="4"):
+                                    html.Input(
+                                        type="number",
+                                        value=("%s?.stop" % coordinate_info, 0),
+                                        min=("%s?.start" % coordinate_info, 0),
+                                        max=("%s?.range[1]" % coordinate_info, 0),
+                                        input=(
+                                            coordinate_change_slice_function,
+                                            f"[{coordinate_info}.name, 'stop', $event.target.value]",
+                                        ),
+                                        __events=[("input", "input.prevent")],
+                                        style="width: 90px",
+                                    )
+                                with vuetify.VCol(cols="4"):
+                                    html.Input(
+                                        type="number",
+                                        value=("%s?.step" % coordinate_info, 0),
+                                        min="1",
+                                        max=("%s?.range[1]" % coordinate_info, 0),
+                                        input=(
+                                            coordinate_change_slice_function,
+                                            f"[{coordinate_info}.name, 'step', $event.target.value]",
+                                        ),
+                                        __events=[("input", "input.prevent")],
+                                        style="width: 90px",
+                                    )
                         vuetify.VDivider(classes="pb-3 mt-3", thickness="3")
                         with vuetify.VSelect(
                             label="Assign axis",
