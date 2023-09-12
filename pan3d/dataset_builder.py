@@ -151,6 +151,8 @@ class DatasetBuilder:
                 if value > coordinate["range"][0] and value < coordinate["range"][1]:
                     coordinate[slice_attribute_name] = value
 
+            print(self.state.coordinates[coord_i])
+
     # -----------------------------------------------------
     # State change callbacks
     # -----------------------------------------------------
