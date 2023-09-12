@@ -246,6 +246,7 @@ class DatasetBuilder:
                 {
                     "name": key,
                     "attrs": coord_attrs,
+                    "size": da.coords[key].size,
                     "range": [array_min, array_max],
                     "start": array_min,
                     "stop": array_max,
@@ -280,7 +281,7 @@ class DatasetBuilder:
 
     @change("t_index")
     def on_set_t_index(self, t_index, **kwargs):
-        self.algorithm.time_index = t_index
+        self.algorithm.time_index = int(t_index)
         self.mesh_changed()
 
     @change("view_edge_visibility")

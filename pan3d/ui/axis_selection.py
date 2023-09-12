@@ -30,25 +30,21 @@ class AxisSelection(vuetify.VNavigationDrawer):
                 "label": "X",
                 "name_var": x_array,
                 "index_var": "undefined",
-                "max_var": "undefined",
             },
             {
                 "label": "Y",
                 "name_var": y_array,
                 "index_var": "undefined",
-                "max_var": "undefined",
             },
             {
                 "label": "Z",
                 "name_var": z_array,
                 "index_var": "undefined",
-                "max_var": "undefined",
             },
             {
                 "label": "T",
                 "name_var": t_array,
                 "index_var": t_index,
-                "max_var": t_max,
             },
         ]
         with self:
