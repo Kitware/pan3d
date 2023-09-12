@@ -278,11 +278,6 @@ class DatasetBuilder:
         self.algorithm.time_index = t_index
         self.mesh_changed()
 
-    @change("resolution")
-    def on_set_resolution(self, resolution, **kwargs):
-        self.algorithm.resolution = resolution
-        self.mesh_changed()
-
     @change("view_edge_visibility")
     def on_set_edge_visiblity(self, view_edge_visibility, **kwargs):
         if self.actor is None:
@@ -368,7 +363,7 @@ class DatasetBuilder:
             update_mesh,
             mesh_updated,
             timeout=self.state.mesh_timeout,
-            timeout_message=f"Failed to create mesh in under {self.state.mesh_timeout} seconds. Try reducing data size by slicing or decreasing resolution.",
+            timeout_message=f"Failed to create mesh in under {self.state.mesh_timeout} seconds. Try reducing data size by slicing.",
         )
 
     # -----------------------------------------------------
