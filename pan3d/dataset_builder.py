@@ -130,7 +130,7 @@ class DatasetBuilder:
         if array_condition is not None:
             da = da.where((array_condition), drop=True)
 
-        if len(step_slices.keys()) > 0:
+        if len(step_slices) > 0:
             da = da[step_slices]
 
         return da
@@ -325,7 +325,7 @@ class DatasetBuilder:
                 ]
                 if len(name_match) > 0:
                     state_update[axis] = name_match[0]
-        if len(state_update.keys()) > 0:
+        if len(state_update) > 0:
             self.state.update(state_update)
 
     def mesh_changed(self):
