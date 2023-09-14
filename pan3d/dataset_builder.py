@@ -146,10 +146,10 @@ class DatasetBuilder:
     # -----------------------------------------------------
 
     def coordinate_select_axis(self, coordinate_name, current_axis, new_axis, **kwargs):
-        if getattr(self.state, current_axis):
-            setattr(self.state, current_axis, None)
+        if self.state[current_axis]:
+            self.state[current_axis] = None
         if new_axis and new_axis != "undefined":
-            setattr(self.state, new_axis, coordinate_name)
+            self.state[new_axis] = coordinate_name
         self.mesh_changed()
 
     def coordinate_change_slice(self, coordinate_name, slice_attribute_name, value):
