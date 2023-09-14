@@ -259,6 +259,7 @@ class DatasetBuilder:
             )
             self.state.expanded_coordinates.append(key),
         self.auto_select_coordinates()
+        self.state.dirty("coordinates", "expanded_coordinates")
 
     @change("x_array")
     def on_set_x_array(self, x_array, **kwargs):
