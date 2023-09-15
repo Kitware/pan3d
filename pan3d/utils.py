@@ -69,6 +69,7 @@ initial_state = {
     "data_vars": [],
     "data_attrs": [],
     "coordinates": [],
+    "expanded_coordinates": [],
     "x_array": None,
     "x_scale": 1,
     "y_array": None,
@@ -78,9 +79,15 @@ initial_state = {
     "t_array": None,
     "t_index": 0,
     "t_max": 0,
-    "resolution": 1.0,
     "view_edge_visibility": True,
     "error_message": None,
     "da_size": None,
     "mesh_timeout": 30,
+}
+
+coordinate_auto_selection = {
+    "x_array": ["x", "lon", "len"],
+    "y_array": ["y", "lat", "width"],
+    "z_array": ["z", "depth"],
+    "t_array": ["t", "time"],
 }

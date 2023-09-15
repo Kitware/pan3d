@@ -2,16 +2,21 @@ import json
 import os
 import pyvista
 import xarray
+from pathlib import Path
 from pvxarray.vtk_source import PyVistaXarraySource
 from pyvista.trame.ui import plotter_ui
 
 from trame.decorators import TrameApp, change
-from trame.ui.vuetify import SinglePageWithDrawerLayout  # TODO: upgrade to vuetify 3
+from trame.ui.vuetify3 import SinglePageWithDrawerLayout
 from trame.app import get_server
-from trame.widgets import html, vuetify
+from trame.widgets import html, client
+from trame.widgets import vuetify3 as vuetify
 
 from pan3d.ui import AxisSelection, MainDrawer, Toolbar
-from pan3d.utils import initial_state, run_singleton_task
+from pan3d.utils import initial_state, run_singleton_task, coordinate_auto_selection
+
+BASE_DIR = Path(__file__).parent
+CSS_FILE = BASE_DIR / "ui" / "custom.css"
 
 
 @TrameApp()
@@ -24,7 +29,7 @@ class DatasetBuilder:
             server = get_server(server)
 
         # Fix version of vue
-        server.client_type = "vue2"  # TODO: upgrade to vue3
+        server.client_type = "vue3"
         self.server = server
         self._layout = None
 
@@ -41,6 +46,7 @@ class DatasetBuilder:
         self.ctrl.reset = self.reset
 
         if dataset_path:
+            self.state.dataset_path = dataset_path
             self.set_dataset_path(dataset_path=dataset_path)
         if state:
             self.state.update(state)
@@ -63,30 +69,33 @@ class DatasetBuilder:
             # Build UI
             self._layout = SinglePageWithDrawerLayout(self.server)
             with self._layout as layout:
+                client.Style(CSS_FILE.read_text())
                 layout.title.set_text("Pan3D Viewer")
                 layout.footer.hide()
                 with layout.toolbar:
-                    layout.toolbar.dense = True
                     layout.toolbar.align = "center"
                     Toolbar(reset=self.ctrl.reset)
                 with layout.drawer:
                     MainDrawer()
                 with layout.content:
+                    vuetify.VBanner(
+                        "{{ error_message }}",
+                        v_show=("error_message",),
+                    )
                     with html.Div(
                         v_show="array_active",
-                        style="height: 100%; position: relative; width: calc(100% - 300px)",
+                        style="height: 100%; position: relative;",
                     ):
-                        vuetify.VBanner(
-                            "{{ error_message }}",
-                            v_show=("error_message",),
-                        )
                         with plotter_ui(
                             self.ctrl.get_plotter(),
                             interactive_ratio=1,
                         ) as plot_view:
                             self.ctrl.view_update = plot_view.update
                             self.ctrl.reset_camera = plot_view.reset_camera
-                AxisSelection()
+                    AxisSelection(
+                        coordinate_select_axis_function=self.coordinate_select_axis,
+                        coordinate_change_slice_function=self.coordinate_change_slice,
+                    )
         return self._layout
 
     @property
@@ -99,14 +108,30 @@ class DatasetBuilder:
         else:
             da = self.dataset[self.state.array_active]
 
-        if self.algorithm.resolution != 1:
-            rx, ry, rz = self.algorithm.resolution_to_sampling_rate(da)
-            if da.ndim <= 1:
-                da = da[::rx]
-            elif da.ndim == 2:
-                da = da[::rx, ::ry]
-            elif da.ndim == 3:
-                da = da[::rx, ::ry, ::rz]
+        step_slices = {}
+        array_condition = None
+        for axis in ["x_array", "y_array", "z_array"][: da.ndim]:
+            coordinate_matches = [
+                (index, coordinate)
+                for index, coordinate in enumerate(self.state.coordinates)
+                if coordinate["name"] == self.state[axis]
+            ]
+            if len(coordinate_matches) > 0:
+                coord_i, coordinate = coordinate_matches[0]
+                step_slices[coordinate["name"]] = slice(0, -1, int(coordinate["step"]))
+                coordinate_condition = (
+                    da[coordinate["name"]] >= coordinate["start"]
+                ) & (da[coordinate["name"]] <= coordinate["stop"])
+                if array_condition is None:
+                    array_condition = coordinate_condition
+                else:
+                    array_condition = (array_condition) & (coordinate_condition)
+
+        if array_condition is not None:
+            da = da.where((array_condition), drop=True)
+
+        if len(step_slices) > 0:
+            da = da[step_slices]
 
         return da
 
@@ -115,6 +140,37 @@ class DatasetBuilder:
         if self.data_array is None:
             return 0, 0
         return self.data_array.min(), self.data_array.max()
+
+    # -----------------------------------------------------
+    # UI bound methods
+    # -----------------------------------------------------
+
+    def coordinate_select_axis(self, coordinate_name, current_axis, new_axis, **kwargs):
+        if self.state[current_axis]:
+            self.state[current_axis] = None
+        if new_axis and new_axis != "undefined":
+            self.state[new_axis] = coordinate_name
+        self.mesh_changed()
+
+    def coordinate_change_slice(self, coordinate_name, slice_attribute_name, value):
+        coordinate_matches = [
+            (index, coordinate)
+            for index, coordinate in enumerate(self.state.coordinates)
+            if coordinate["name"] == coordinate_name
+        ]
+        if len(coordinate_matches) > 0:
+            value = float(value)
+            coord_i, coordinate = coordinate_matches[0]
+            if slice_attribute_name == "step":
+                if value > 0 and value < coordinate["range"][1]:
+                    coordinate[slice_attribute_name] = value
+            else:
+                if value > coordinate["range"][0] and value < coordinate["range"][1]:
+                    coordinate[slice_attribute_name] = value
+
+            self.state.coordinates[coord_i] = coordinate
+            self.mesh_changed()
+            self.state.dirty("coordinates")
 
     # -----------------------------------------------------
     # State change callbacks
@@ -164,6 +220,10 @@ class DatasetBuilder:
         if len(self.state.data_attrs) > 0:
             self.state.show_data_attrs = True
         self.state.coordinates = []
+        self.state.expanded_coordinates = []
+        self.state.update(
+            dict(x_array=None, y_array=None, z_array=None, t_array=None, t_index=0)
+        )
         self.state.dataset_ready = True
         if len(self.state.data_vars) > 0:
             self.state.array_active = self.state.data_vars[0]["name"]
@@ -175,7 +235,35 @@ class DatasetBuilder:
     def on_set_array_active(self, array_active, **kwargs):
         if array_active is None or not self.state.dataset_ready:
             return
-        self.state.coordinates = list(self.data_array.coords.keys())
+        da = self.data_array
+        for key in da.coords.keys():
+            array_min = float(da.coords[key].min())
+            array_max = float(da.coords[key].max())
+            coord_attrs = [
+                {"key": k, "value": v} for k, v in da.coords[key].attrs.items()
+            ]
+            coord_attrs.append({"key": "dtype", "value": str(da.coords[key].dtype)})
+            coord_attrs.append({"key": "length", "value": da.coords[key].size})
+            coord_attrs.append(
+                {
+                    "key": "range",
+                    "value": [array_min, array_max],
+                }
+            )
+            self.state.coordinates.append(
+                {
+                    "name": key,
+                    "attrs": coord_attrs,
+                    "size": da.coords[key].size,
+                    "range": [array_min, array_max],
+                    "start": array_min,
+                    "stop": array_max,
+                    "step": 1,
+                }
+            )
+            self.state.expanded_coordinates.append(key),
+        self.auto_select_coordinates()
+        self.state.dirty("coordinates", "expanded_coordinates")
 
     @change("x_array")
     def on_set_x_array(self, x_array, **kwargs):
@@ -195,20 +283,15 @@ class DatasetBuilder:
     @change("t_array")
     def on_set_t_array(self, t_array, **kwargs):
         self.algorithm.time = t_array
-        if t_array:
+        if self.dataset and self.state.array_active and t_array:
             time_steps = self.dataset[self.state.array_active][t_array]
             # Set the time_max in the state for the slider
             self.state.t_max = len(time_steps) - 1
-        self.mesh_changed()
+            self.mesh_changed()
 
     @change("t_index")
     def on_set_t_index(self, t_index, **kwargs):
-        self.algorithm.time_index = t_index
-        self.mesh_changed()
-
-    @change("resolution")
-    def on_set_resolution(self, resolution, **kwargs):
-        self.algorithm.resolution = resolution
+        self.algorithm.time_index = int(t_index)
         self.mesh_changed()
 
     @change("view_edge_visibility")
@@ -228,6 +311,23 @@ class DatasetBuilder:
     # -----------------------------------------------------
     # Render Logic
     # -----------------------------------------------------
+
+    def auto_select_coordinates(self):
+        state_update = {}
+        for coordinate in self.state.coordinates:
+            name = coordinate["name"].lower()
+            for axis, accepted_names in coordinate_auto_selection.items():
+                # If accepted name is longer than one letter, look for contains match
+                name_match = [
+                    coordinate["name"]
+                    for accepted in accepted_names
+                    if (len(accepted) == 1 and accepted == name)
+                    or (len(accepted) > 1 and accepted in name)
+                ]
+                if len(name_match) > 0:
+                    state_update[axis] = name_match[0]
+        if len(state_update) > 0:
+            self.state.update(state_update)
 
     def mesh_changed(self):
         if self.state.array_active:
@@ -279,7 +379,7 @@ class DatasetBuilder:
             update_mesh,
             mesh_updated,
             timeout=self.state.mesh_timeout,
-            timeout_message=f"Failed to create mesh in under {self.state.mesh_timeout} seconds. Try reducing data size by slicing or decreasing resolution.",
+            timeout_message=f"Failed to create mesh in under {self.state.mesh_timeout} seconds. Try reducing data size by slicing.",
         )
 
     # -----------------------------------------------------
