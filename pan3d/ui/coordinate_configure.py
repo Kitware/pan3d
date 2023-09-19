@@ -15,7 +15,6 @@ class CoordinateConfigure(vuetify.VCard):
         super().__init__(width="95%", classes="ml-3 mb-1")
 
         with self:
-            # Open expansion panel by default
             with vuetify.VExpansionPanels(
                 model_value=(expanded_coordinates, []),
                 accordion=True,

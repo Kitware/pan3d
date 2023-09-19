@@ -235,9 +235,11 @@ class DatasetBuilder:
     def set_array_active(self, array_active, **kwargs):
         if array_active is None or not self.state.dataset_ready:
             return
-        if array_active != self.state.array_active:
-            self.state.array_active = array_active
+        if array_active == self.state.array_active and not kwargs.get("force"):
+            return
+        self.state.array_active = array_active
         da = self.data_array
+        self.state.expanded_coordinates = []
         for key in da.coords.keys():
             array_min = float(da.coords[key].min())
             array_max = float(da.coords[key].max())
@@ -397,7 +399,7 @@ class DatasetBuilder:
             state_config = config.get("state")
             coordinate_config = config.get("coordinates")
             if "active_array" in state_config:
-                self.set_array_active(state_config["active_array"])
+                self.set_array_active(state_config["active_array"], force=True)
             self.state.update(state_config)
 
             if coordinate_config:
