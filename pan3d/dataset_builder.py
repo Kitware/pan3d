@@ -232,9 +232,11 @@ class DatasetBuilder:
         self.state.loading = False
 
     @change("array_active")
-    def on_set_array_active(self, array_active, **kwargs):
+    def set_array_active(self, array_active, **kwargs):
         if array_active is None or not self.state.dataset_ready:
             return
+        if array_active != self.state.array_active:
+            self.state.array_active = array_active
         da = self.data_array
         for key in da.coords.keys():
             array_min = float(da.coords[key].min())
@@ -317,15 +319,17 @@ class DatasetBuilder:
         for coordinate in self.state.coordinates:
             name = coordinate["name"].lower()
             for axis, accepted_names in coordinate_auto_selection.items():
-                # If accepted name is longer than one letter, look for contains match
-                name_match = [
-                    coordinate["name"]
-                    for accepted in accepted_names
-                    if (len(accepted) == 1 and accepted == name)
-                    or (len(accepted) > 1 and accepted in name)
-                ]
-                if len(name_match) > 0:
-                    state_update[axis] = name_match[0]
+                # don't overwrite if already assigned
+                if not self.state[axis]:
+                    # If accepted name is longer than one letter, look for contains match
+                    name_match = [
+                        coordinate["name"]
+                        for accepted in accepted_names
+                        if (len(accepted) == 1 and accepted == name)
+                        or (len(accepted) > 1 and accepted in name)
+                    ]
+                    if len(name_match) > 0:
+                        state_update[axis] = name_match[0]
         if len(state_update) > 0:
             self.state.update(state_update)
 
@@ -390,7 +394,29 @@ class DatasetBuilder:
         with open(config_path) as config_file:
             config = json.load(config_file)
             self.set_dataset_path(dataset_path=config.get("dataset_path"))
-            self.state.update(config.get("state"))
+            state_config = config.get("state")
+            coordinate_config = config.get("coordinates")
+            if "active_array" in state_config:
+                self.set_array_active(state_config["active_array"])
+            self.state.update(state_config)
+
+            if coordinate_config:
+                coordinates = self.state.coordinates.copy()
+                for axis in ["x_array", "y_array", "z_array"]:
+                    if axis in state_config:
+                        coordinate_matches = [
+                            (index, coordinate)
+                            for index, coordinate in enumerate(coordinates)
+                            if coordinate["name"] == self.state[axis]
+                        ]
+                        if len(coordinate_matches) > 0:
+                            coord_i, coordinate = coordinate_matches[0]
+                            for key in ["start", "stop", "step"]:
+                                value = coordinate_config.get(
+                                    axis.replace("array", key)
+                                )
+                                coordinates[coord_i].update({key: value})
+                self.state.update({"coordinates": coordinates})
 
     def export_config(self, config_path):
         # TODO
