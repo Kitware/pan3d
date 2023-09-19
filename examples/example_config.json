@@ -12,9 +12,9 @@
     "coordinates": {
         "x_start": -45,
         "x_stop": 45,
-        "x_step": 50,
+        "x_step": 100,
         "y_start": -90,
         "y_stop": 90,
-        "y_step": 50
+        "y_step": 100
     }
 }

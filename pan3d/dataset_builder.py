@@ -74,7 +74,11 @@ class DatasetBuilder:
                 layout.footer.hide()
                 with layout.toolbar:
                     layout.toolbar.align = "center"
-                    Toolbar(reset=self.ctrl.reset)
+                    Toolbar(
+                        self.ctrl.reset,
+                        self.import_config,
+                        self.export_config,
+                    )
                 with layout.drawer:
                     MainDrawer()
                 with layout.content:
@@ -362,6 +366,7 @@ class DatasetBuilder:
             return
         self.state.error_message = None
         self.state.loading = True
+        self.state.unapplied_changes = False
 
         async def update_mesh():
             self.mesh = self.data_array.pyvista.mesh(
@@ -379,7 +384,6 @@ class DatasetBuilder:
                     str(exception) if exception is not None else None
                 )
                 self.state.loading = False
-                self.state.unapplied_changes = False
 
         run_singleton_task(
             update_mesh,
@@ -392,33 +396,35 @@ class DatasetBuilder:
     # Config logic
     # -----------------------------------------------------
 
-    def import_config(self, config_path):
-        with open(config_path) as config_file:
-            config = json.load(config_file)
-            self.set_dataset_path(dataset_path=config.get("dataset_path"))
-            state_config = config.get("state")
-            coordinate_config = config.get("coordinates")
-            if "active_array" in state_config:
-                self.set_array_active(state_config["active_array"], force=True)
-            self.state.update(state_config)
+    def import_config(self, config_file):
+        if isinstance(config_file, str) and Path(config_file).exists():
+            with open(config_file) as f:
+                config = json.load(f)
+        else:
+            config = json.loads(config_file)
+        self.set_dataset_path(dataset_path=config.get("dataset_path"))
+        state_config = config.get("state")
+        coordinate_config = config.get("coordinates")
+        if "active_array" in state_config:
+            self.set_array_active(state_config["active_array"], force=True)
+        self.state.update(state_config)
 
-            if coordinate_config:
-                coordinates = self.state.coordinates.copy()
-                for axis in ["x_array", "y_array", "z_array"]:
-                    if axis in state_config:
-                        coordinate_matches = [
-                            (index, coordinate)
-                            for index, coordinate in enumerate(coordinates)
-                            if coordinate["name"] == self.state[axis]
-                        ]
-                        if len(coordinate_matches) > 0:
-                            coord_i, coordinate = coordinate_matches[0]
-                            for key in ["start", "stop", "step"]:
-                                value = coordinate_config.get(
-                                    axis.replace("array", key)
-                                )
-                                coordinates[coord_i].update({key: value})
-                self.state.update({"coordinates": coordinates})
+        if coordinate_config:
+            coordinates = self.state.coordinates.copy()
+            for axis in ["x_array", "y_array", "z_array"]:
+                if axis in state_config:
+                    coordinate_matches = [
+                        (index, coordinate)
+                        for index, coordinate in enumerate(coordinates)
+                        if coordinate["name"] == self.state[axis]
+                    ]
+                    if len(coordinate_matches) > 0:
+                        coord_i, coordinate = coordinate_matches[0]
+                        for key in ["start", "stop", "step"]:
+                            value = coordinate_config.get(axis.replace("array", key))
+                            coordinates[coord_i].update({key: value})
+            self.state.update({"coordinates": coordinates})
+        self.state.update({"dialog_shown": None})
 
     def export_config(self, config_path):
         # TODO

@@ -83,6 +83,8 @@ initial_state = {
     "error_message": None,
     "da_size": None,
     "mesh_timeout": 30,
+    "dialog_shown": None,
+    "selected_config_file": None,
 }
 
 coordinate_auto_selection = {

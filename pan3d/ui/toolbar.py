@@ -1,11 +1,15 @@
 from trame.widgets import html
 from trame.widgets import vuetify3 as vuetify
+from .file_select import FileSelect
 
 
 class Toolbar(html.Div):
     def __init__(
         self,
-        reset=None,
+        reset_function,
+        import_function,
+        export_function,
+        dialog_shown="dialog_shown",
         loading="loading",
         unapplied_changes="unapplied_changes",
         array_active="array_active",
@@ -22,9 +26,8 @@ class Toolbar(html.Div):
                 classes="mx-10",
             )
             with vuetify.VBtn(
-                click=reset,
+                click=reset_function,
                 v_show=unapplied_changes,
-                # small=True,
                 variant="tonal",
             ):
                 html.Span("Apply & Render")
@@ -36,3 +39,19 @@ class Toolbar(html.Div):
                 true_icon="mdi-border-all",
                 false_icon="mdi-border-outside",
             )
+            vuetify.VBtn(
+                click="%s = 'Export'" % dialog_shown,
+                variant="tonal",
+                text="Export",
+            )
+            vuetify.VBtn(
+                click="%s = 'Import'" % dialog_shown,
+                variant="tonal",
+                text="Import",
+            )
+            with vuetify.VDialog(v_model=dialog_shown, max_width=800):
+                FileSelect(
+                    import_function,
+                    export_function,
+                    dialog_shown=dialog_shown,
+                )
