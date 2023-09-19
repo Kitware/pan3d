@@ -6,7 +6,8 @@
         "y_array": "lon",
         "t_array": "time",
         "t_index": 5,
-        "main_drawer": false
+        "main_drawer": false,
+        "expanded_coordinates": []
     },
     "coordinates": {
         "x_start": -45,
