@@ -3,10 +3,17 @@
     "state": {
         "active_array": "analysed_sst",
         "x_array": "lat",
-        "x_scale": 2,
         "y_array": "lon",
         "t_array": "time",
         "t_index": 5,
         "main_drawer": false
+    },
+    "coordinates": {
+        "x_start": -45,
+        "x_stop": 45,
+        "x_step": 50,
+        "y_start": -90,
+        "y_stop": 90,
+        "y_step": 50
     }
 }
