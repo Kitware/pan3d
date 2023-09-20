@@ -1,7 +1,7 @@
 {
     "dataset_path": "https://ncsa.osn.xsede.org/Pangeo/pangeo-forge/noaa-coastwatch-geopolar-sst-feedstock/noaa-coastwatch-geopolar-sst.zarr",
     "state": {
-        "active_array": "analysed_sst",
+        "array_active": "analysed_sst",
         "x_array": "lat",
         "y_array": "lon",
         "t_array": "time",
