@@ -14,7 +14,7 @@ class FileSelect(vuetify.VCard):
         state_export="state_export",
         dialog_message="dialog_message",
     ):
-        def submit():
+        def submit_import():
             files = server.state[selected_config_file]
             if files and len(files) > 0:
                 file_content = server.state[selected_config_file][0]["content"]
@@ -42,11 +42,18 @@ class FileSelect(vuetify.VCard):
                         accept=".json",
                         label="Config File",
                     )
+                    vuetify.VBtn(
+                        v_show=f"{dialog_shown} === 'Import' && {selected_config_file}",
+                        variant="tonal",
+                        text=(dialog_shown,),
+                        click=submit_import,
+                        style="width: 100%",
+                    )
+
                     vuetify.VTextField(
                         v_model=selected_config_file,
-                        v_show=f"{dialog_shown} === 'Export'",
+                        v_show=f"{dialog_shown} === 'Export' && {selected_config_file} != false",
                         label="Download Location",
-                        placeholder="Use Default Download Location",
                         prepend_icon="mdi-paperclip",
                         # FileSystem API is only available on some browsers:
                         # https://caniuse.com/native-filesystem-api
@@ -67,16 +74,29 @@ class FileSelect(vuetify.VCard):
                                             %s = 'Export complete.'
                                         })
                                     });
-                                } catch {}
+                                } catch {
+                                    %s = false;
+                                    window.alert('Your browser does not support selecting a download location. Your download will be made to the default location, saved as pan3d_state.json.')
+                                }
                             }
                         """
-                        % (state_export, dialog_message),
+                        % (state_export, dialog_message, selected_config_file),
                     )
-
                     vuetify.VBtn(
-                        v_show=selected_config_file,
+                        v_show=f"{dialog_shown} === 'Export' && {selected_config_file} === false",
                         variant="tonal",
-                        text=(dialog_shown,),
-                        click=submit,
+                        text="Download pan3d_state.json",
+                        click="""
+                            var content = JSON.stringify(%s, null, 4);
+                            var a = window.document.createElement('a');
+                            a.href = 'data:application/json;charset=utf-8,'  + encodeURIComponent(content);
+                            a.download = 'pan3d_state.json';
+                            a.style.display = 'none';
+                            window.document.body.appendChild(a);
+                            a.click()
+                            window.document.body.removeChild(a);
+                            %s = 'Export complete.'
+                        """
+                        % (state_export, dialog_message),
                         style="width: 100%",
                     )
