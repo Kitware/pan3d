@@ -186,6 +186,7 @@ class DatasetBuilder:
         if self.dataset_path == dataset_path or dataset_path is None:
             return
         self.dataset_path = dataset_path
+        self.state.dataset_path = dataset_path
         self.state.loading = True
         for available_dataset in self.state.available_datasets:
             if (
@@ -323,6 +324,12 @@ class DatasetBuilder:
         z_scale = z_scale or self.state.z_scale
         self.plotter.set_scale(xscale=x_scale, yscale=y_scale, zscale=z_scale)
 
+    @change("dialog_shown")
+    def on_set_dialog_shown(self, dialog_shown, **kwargs):
+        self.state.dialog_message = None
+        if dialog_shown == "Export":
+            self.state.state_export = self.export_config(None)
+
     # -----------------------------------------------------
     # Render Logic
     # -----------------------------------------------------
@@ -409,11 +416,17 @@ class DatasetBuilder:
                 config = json.load(f)
         else:
             config = json.loads(config_file)
-        self.set_dataset_path(dataset_path=config.get("dataset_path"))
+        dataset_config = config.get("dataset_path")
         state_config = config.get("state")
         coordinate_config = config.get("coordinates")
+
+        if not dataset_config or not state_config:
+            self.state.dialog_message = "Invalid format of import file."
+            return
+
+        self.set_dataset_path(dataset_path=dataset_config)
         if "active_array" in state_config:
-            self.set_array_active(state_config["active_array"])
+            self.set_array_active(state_config["array_active"])
         self.state.update(state_config)
 
         if coordinate_config:
@@ -431,8 +444,43 @@ class DatasetBuilder:
                             value = coordinate_config.get(axis.replace("array", key))
                             coordinates[coord_i].update({key: value})
             self.state.update({"coordinates": coordinates})
-        self.state.update({"dialog_shown": None})
+        self.state.update({"dialog_shown": None, "selected_config_file": None})
 
-    def export_config(self, config_path):
-        # TODO
-        pass
+    def export_config(self, config_file=None):
+        config = {}
+        config["dataset_path"] = self.state.dataset_path
+        config["state"] = {}
+        for state_var in [
+            "array_active",
+            "x_array",
+            "y_array",
+            "z_array",
+            "t_array",
+            "t_index",
+            "expanded_coordinates",
+            "main_drawer",
+            "view_edge_visibility",
+        ]:
+            if self.state[state_var] is not None:
+                config["state"][state_var] = self.state[state_var]
+        if self.state.coordinates and (
+            self.state.x_array or self.state.y_array or self.state.z_array
+        ):
+            config["coordinates"] = {}
+            for axis in ["x_array", "y_array", "z_array"]:
+                if self.state[axis]:
+                    coordinate_matches = [
+                        coordinate
+                        for coordinate in self.state.coordinates
+                        if coordinate["name"] == self.state[axis]
+                    ]
+                    if len(coordinate_matches) > 0:
+                        coordinate = coordinate_matches[0]
+                        for key in ["start", "stop", "step"]:
+                            value = coordinate.get(key)
+                            config["coordinates"][axis.replace("array", key)] = value
+        if config_file:
+            with open(config_file, "w") as f:
+                json.dump(config, f)
+        else:
+            return config
