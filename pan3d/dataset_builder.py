@@ -39,6 +39,7 @@ class DatasetBuilder:
         self.plotter.set_background("lightgrey")
         self.dataset = None
         self.dataset_path = None
+        self.array_active = None
         self.mesh = None
         self.actor = None
 
@@ -208,6 +209,8 @@ class DatasetBuilder:
         else:
             # Assume it is a named tutorial dataset
             self.dataset = xarray.tutorial.load_dataset(dataset_path)
+        # reset algorithm
+        self.algorithm = PyVistaXarraySource()
         self.state.data_vars = [
             {"name": k, "id": i} for i, k in enumerate(self.dataset.data_vars.keys())
         ]
@@ -230,18 +233,22 @@ class DatasetBuilder:
         )
         self.state.dataset_ready = True
         if len(self.state.data_vars) > 0:
-            self.state.array_active = self.state.data_vars[0]["name"]
+            self.set_array_active(self.state.data_vars[0]["name"])
         else:
             self.state.no_data_vars = True
         self.state.loading = False
 
     @change("array_active")
     def set_array_active(self, array_active, **kwargs):
-        if array_active is None or not self.state.dataset_ready:
+        if (
+            array_active is None
+            or not self.state.dataset_ready
+            or array_active == self.array_active
+        ):
             return
-        if array_active == self.state.array_active and not kwargs.get("force"):
-            return
+        self.array_active = array_active
         self.state.array_active = array_active
+
         da = self.data_array
         self.state.expanded_coordinates = []
         for key in da.coords.keys():
@@ -406,7 +413,7 @@ class DatasetBuilder:
         state_config = config.get("state")
         coordinate_config = config.get("coordinates")
         if "active_array" in state_config:
-            self.set_array_active(state_config["active_array"], force=True)
+            self.set_array_active(state_config["active_array"])
         self.state.update(state_config)
 
         if coordinate_config:
