@@ -142,9 +142,10 @@ class DatasetBuilder:
 
     @property
     def data_range(self):
-        if self.data_array is None:
+        da = self.data_array
+        if da is None:
             return 0, 0
-        return self.data_array.min(), self.data_array.max()
+        return da.min(), da.max()
 
     # -----------------------------------------------------
     # UI bound methods
@@ -167,7 +168,7 @@ class DatasetBuilder:
             value = float(value)
             coord_i, coordinate = coordinate_matches[0]
             if slice_attribute_name == "step":
-                if value > 0 and value < coordinate["range"][1]:
+                if value > 0 and value < coordinate["size"]:
                     coordinate[slice_attribute_name] = value
             else:
                 if value > coordinate["range"][0] and value < coordinate["range"][1]:
@@ -355,7 +356,8 @@ class DatasetBuilder:
 
     def mesh_changed(self):
         if self.state.array_active:
-            total_bytes = self.data_array.size * self.data_array.dtype.itemsize
+            da = self.data_array
+            total_bytes = da.size * da.dtype.itemsize
             exponents_map = {0: "bytes", 1: "KB", 2: "MB", 3: "GB"}
             for exponent in sorted(exponents_map.keys(), reverse=True):
                 divisor = 1024**exponent
