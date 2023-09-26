@@ -433,7 +433,7 @@ class DatasetBuilder:
         self.state.update(state_config)
 
         if coordinate_config:
-            coordinates = self.state.coordinates.copy()
+            coordinates = self.state.coordinates
             for axis in ["x_array", "y_array", "z_array"]:
                 if axis in state_config:
                     coordinate_matches = [
@@ -447,6 +447,7 @@ class DatasetBuilder:
                             value = coordinate_config.get(axis.replace("array", key))
                             coordinates[coord_i].update({key: value})
             self.state.update({"coordinates": coordinates})
+            self.state.dirty("coordinates")
         self.state.update({"dialog_shown": None, "selected_config_file": None})
 
     def export_config(self, config_file=None):
