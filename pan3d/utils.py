@@ -65,7 +65,7 @@ initial_state = {
     ],
     "dataset_path": None,
     "more_info_link": None,
-    "array_active": None,
+    "active_array": None,
     "data_vars": [],
     "data_attrs": [],
     "coordinates": [],

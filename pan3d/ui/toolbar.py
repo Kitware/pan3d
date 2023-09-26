@@ -12,7 +12,7 @@ class Toolbar(html.Div):
         dialog_shown="dialog_shown",
         loading="loading",
         unapplied_changes="unapplied_changes",
-        array_active="array_active",
+        active_array="active_array",
         da_size="da_size",
     ):
         super().__init__(

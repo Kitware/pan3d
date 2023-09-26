@@ -39,7 +39,7 @@ class DatasetBuilder:
         self.plotter.set_background("lightgrey")
         self.dataset = None
         self.dataset_path = None
-        self.array_active = None
+        self.active_array = None
         self.mesh = None
         self.actor = None
 
@@ -88,7 +88,7 @@ class DatasetBuilder:
                         v_show=("error_message",),
                     )
                     with html.Div(
-                        v_show="array_active",
+                        v_show="active_array",
                         style="height: 100%; position: relative;",
                     ):
                         with plotter_ui(
@@ -107,11 +107,11 @@ class DatasetBuilder:
     def data_array(self):
         da = None
         if self.algorithm.time is not None and self.algorithm.time_index is not None:
-            da = self.dataset[self.state.array_active][
+            da = self.dataset[self.state.active_array][
                 {self.algorithm.time: self.algorithm.time_index}
             ]
         else:
-            da = self.dataset[self.state.array_active]
+            da = self.dataset[self.state.active_array]
 
         step_slices = {}
         array_condition = None
@@ -235,21 +235,21 @@ class DatasetBuilder:
         )
         self.state.dataset_ready = True
         if len(self.state.data_vars) > 0:
-            self.set_array_active(self.state.data_vars[0]["name"])
+            self.set_active_array(self.state.data_vars[0]["name"])
         else:
             self.state.no_data_vars = True
         self.state.loading = False
 
-    @change("array_active")
-    def set_array_active(self, array_active, **kwargs):
+    @change("active_array")
+    def set_active_array(self, active_array, **kwargs):
         if (
-            array_active is None
+            active_array is None
             or not self.state.dataset_ready
-            or array_active == self.array_active
+            or active_array == self.active_array
         ):
             return
-        self.array_active = array_active
-        self.state.array_active = array_active
+        self.active_array = active_array
+        self.state.active_array = active_array
 
         da = self.data_array
         self.state.expanded_coordinates = []
@@ -300,8 +300,8 @@ class DatasetBuilder:
     @change("t_array")
     def on_set_t_array(self, t_array, **kwargs):
         self.algorithm.time = t_array
-        if self.dataset and self.state.array_active and t_array:
-            time_steps = self.dataset[self.state.array_active][t_array]
+        if self.dataset and self.state.active_array and t_array:
+            time_steps = self.dataset[self.state.active_array][t_array]
             # Set the time_max in the state for the slider
             self.state.t_max = len(time_steps) - 1
             self.mesh_changed()
@@ -341,7 +341,7 @@ class DatasetBuilder:
             self.state.update(state_update)
 
     def mesh_changed(self):
-        if self.state.array_active:
+        if self.state.active_array:
             da = self.data_array
             total_bytes = da.size * da.dtype.itemsize
             exponents_map = {0: "bytes", 1: "KB", 2: "MB", 3: "GB"}
@@ -363,7 +363,7 @@ class DatasetBuilder:
         self.plotter.view_isometric()
 
     def reset(self, **kwargs):
-        if not self.state.array_active:
+        if not self.state.active_array:
             return
         self.state.error_message = None
         self.state.loading = True
@@ -403,70 +403,73 @@ class DatasetBuilder:
                 config = json.load(f)
         else:
             config = json.loads(config_file)
-        dataset_config = config.get("dataset_path")
-        state_config = config.get("state")
-        coordinate_config = config.get("coordinates")
+        origin_config = config.get("data_origin")
+        array_config = config.get("data_array")
+        slices_config = config.get("data_slices")
+        ui_config = config.get("ui")
 
-        if not dataset_config or not state_config:
+        if not origin_config or not array_config:
             self.state.dialog_message = "Invalid format of import file."
             return
 
-        self.set_dataset_path(dataset_path=dataset_config)
-        if "active_array" in state_config:
-            self.set_array_active(state_config["array_active"])
-            del state_config["array_active"]
-        self.state.update(state_config)
+        self.set_dataset_path(dataset_path=origin_config)
+        if "active" in array_config:
+            self.set_active_array(array_config["active"])
+        for axis in ["x", "y", "z", "t"]:
+            if axis in array_config:
+                self.state[axis + "_array"] = array_config[axis]
+        if "t_index" in array_config:
+            self.state.t_index = array_config["t_index"]
 
-        if coordinate_config:
+        if slices_config:
             coordinates = self.state.coordinates
-            for axis in ["x_array", "y_array", "z_array"]:
-                if axis in state_config:
-                    coordinate_matches = [
-                        (index, coordinate)
-                        for index, coordinate in enumerate(coordinates)
-                        if coordinate["name"] == self.state[axis]
-                    ]
-                    if len(coordinate_matches) > 0:
-                        coord_i, coordinate = coordinate_matches[0]
-                        for key in ["start", "stop", "step"]:
-                            value = coordinate_config.get(axis.replace("array", key))
-                            coordinates[coord_i].update({key: value})
-            self.state.update({"coordinates": coordinates})
+            for coordinate in coordinates:
+                if coordinate["name"] in slices_config:
+                    start, stop, step = slices_config[coordinate["name"]]
+                    coordinate["start"] = start
+                    coordinate["stop"] = stop
+                    coordinate["step"] = step
+            self.state.coordinates = coordinates
             self.state.dirty("coordinates")
+
+        if ui_config:
+            self.state.update(ui_config)
+            self.state.dirty(*ui_config.keys())
+
         self.state.update({"dialog_shown": None, "selected_config_file": None})
 
     def export_config(self, config_file=None):
         config = {}
-        config["dataset_path"] = self.state.dataset_path
-        config["state"] = {}
-        for state_var in [
-            "array_active",
-            "x_array",
-            "y_array",
-            "z_array",
-            "t_array",
-            "t_index",
-            "expanded_coordinates",
-            "main_drawer",
-        ]:
-            if self.state[state_var] is not None:
-                config["state"][state_var] = self.state[state_var]
-        if self.state.coordinates and (
-            self.state.x_array or self.state.y_array or self.state.z_array
-        ):
-            config["coordinates"] = {}
-            for axis in ["x_array", "y_array", "z_array"]:
-                if self.state[axis]:
-                    coordinate_matches = [
-                        coordinate
-                        for coordinate in self.state.coordinates
-                        if coordinate["name"] == self.state[axis]
-                    ]
-                    if len(coordinate_matches) > 0:
-                        coordinate = coordinate_matches[0]
-                        for key in ["start", "stop", "step"]:
-                            value = coordinate.get(key)
-                            config["coordinates"][axis.replace("array", key)] = value
+        config["data_origin"] = self.state.dataset_path
+        config["data_array"] = {"active": self.state.active_array}
+
+        for axis in ["x", "y", "z", "t"]:
+            if self.state[axis + "_array"]:
+                config["data_array"][axis] = self.state[axis + "_array"]
+        if self.state.t_index:
+            config["data_array"]["t_index"] = self.state.t_index
+
+        coordinates = self.state.coordinates
+        for coordinate in coordinates:
+            if (
+                coordinate.get("start")
+                or coordinate.get("stop")
+                or coordinate.get("step")
+            ):
+                if "data_slices" not in config:
+                    config["data_slices"] = {}
+                coordinate_slice = [
+                    coordinate.get("start", 0),
+                    coordinate.get("stop", -1),
+                    coordinate.get("step", 1),
+                ]
+                config["data_slices"][coordinate["name"]] = coordinate_slice
+
+        for state_var in ["main_drawer", "expanded_coordinates"]:
+            if "ui" not in config:
+                config["ui"] = {}
+            config["ui"][state_var] = self.state[state_var]
+
         if config_file:
             with open(config_file, "w") as f:
                 json.dump(config, f)

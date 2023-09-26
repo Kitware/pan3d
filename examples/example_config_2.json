@@ -1,12 +1,36 @@
 {
-    "dataset_path": "eraint_uvz",
-    "state": {
-        "array_active": "z",
-        "x_array": "longitude",
-        "y_array": "latitude",
-        "z_array": "level",
-        "t_array": "month",
-        "t_index": 0,
+    "data_origin": "eraint_uvz",
+    "data_array": {
+        "active": "z",
+        "x": "longitude",
+        "y": "latitude",
+        "z": "level",
+        "t": "month",
+        "t_index": 0
+    },
+    "data_slices": {
+        "latitude": [
+            -180,
+            0,
+            10
+        ],
+        "longitude": [
+            -90,
+            90,
+            10
+        ],
+        "level": [
+            200,
+            850,
+            1
+        ],
+        "time": [
+            0,
+            7,
+            1
+        ]
+    },
+    "ui": {
         "expanded_coordinates": [
             "longitude",
             "latitude",
@@ -14,16 +38,5 @@
             "month"
         ],
         "main_drawer": true
-    },
-    "coordinates": {
-        "x_start": -180,
-        "x_stop": 0,
-        "x_step": 10,
-        "y_start": -90,
-        "y_stop": 90,
-        "y_step": 10,
-        "z_start": 200,
-        "z_stop": 850,
-        "z_step": 1
     }
 }
