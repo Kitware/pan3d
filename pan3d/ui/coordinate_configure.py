@@ -41,7 +41,7 @@ class CoordinateConfigure(vuetify.VCard):
                                     "%s?.size - 1" % coordinate_info,
                                     0,
                                 ),
-                                step=1,
+                                step=("%s?.step" % coordinate_info, 0),
                                 classes="mx-5",
                             ):
                                 with vuetify.Template(
@@ -54,62 +54,95 @@ class CoordinateConfigure(vuetify.VCard):
                                             "%s?.size - 1" % coordinate_info,
                                             0,
                                         ),
+                                        step=("%s?.step" % coordinate_info, 0),
                                         hide_details=True,
                                         density="compact",
                                         style="width: 80px",
                                         type="number",
                                         __properties=[("min", "min"), ("max", "max")],
                                     )
-                        else:
-                            vuetify.VCardSubtitle("Select values", classes="mt-3")
-                            with vuetify.VContainer(
-                                classes="d-flex pa-0", style="column-gap: 3px"
-                            ):
-                                vuetify.VTextField(
-                                    model_value=("%s?.start" % coordinate_info, 0),
-                                    label="Start",
-                                    hide_details=True,
-                                    density="compact",
-                                    type="number",
-                                    min=("%s?.range[0]" % coordinate_info, 0),
-                                    max=("%s?.stop" % coordinate_info, 0),
-                                    __properties=[("min", "min"), ("max", "max")],
-                                    input=(
-                                        coordinate_change_slice_function,
-                                        f"[{coordinate_info}.name, 'start', $event.target.value]",
-                                    ),
-                                    __events=[("input", "input.prevent")],
-                                )
-                                vuetify.VTextField(
-                                    model_value=("%s?.stop" % coordinate_info, 0),
-                                    label="Stop",
-                                    hide_details=True,
-                                    density="compact",
-                                    type="number",
-                                    min=("%s?.start" % coordinate_info, 0),
-                                    max=("%s?.range[1]" % coordinate_info, 0),
-                                    __properties=[("min", "min"), ("max", "max")],
-                                    input=(
-                                        coordinate_change_slice_function,
-                                        f"[{coordinate_info}.name, 'stop', $event.target.value]",
-                                    ),
-                                    __events=[("input", "input.prevent")],
-                                )
-                                vuetify.VTextField(
-                                    model_value=("%s?.step" % coordinate_info, 0),
-                                    label="Step",
-                                    hide_details=True,
-                                    density="compact",
-                                    type="number",
-                                    min="1",
-                                    max=("%s?.size" % coordinate_info, 0),
-                                    __properties=[("min", "min"), ("max", "max")],
-                                    input=(
-                                        coordinate_change_slice_function,
-                                        f"[{coordinate_info}.name, 'step', $event.target.value]",
-                                    ),
-                                    __events=[("input", "input.prevent")],
-                                )
+
+                        vuetify.VCardSubtitle("Select values", classes="mt-3")
+                        with vuetify.VContainer(
+                            classes="d-flex pa-0", style="column-gap: 3px"
+                        ):
+                            vuetify.VTextField(
+                                model_value=("%s?.start" % coordinate_info, 0),
+                                label="Start",
+                                hide_details=True,
+                                density="compact",
+                                type="number",
+                                min=(
+                                    "parseFloat(+ %s?.range[0].toFixed(2))"
+                                    % coordinate_info,
+                                    0,
+                                ),
+                                max=(
+                                    "parseFloat(+ %s?.stop.toFixed(2))"
+                                    % coordinate_info,
+                                    0,
+                                ),
+                                step="0.01",
+                                __properties=[
+                                    ("min", "min"),
+                                    ("max", "max"),
+                                    ("step", "step"),
+                                ],
+                                input=(
+                                    coordinate_change_slice_function,
+                                    f"[{coordinate_info}.name, 'start', $event.target.value]",
+                                ),
+                                __events=[("input", "input.prevent")],
+                                style="flex-grow: 1",
+                            )
+                            vuetify.VTextField(
+                                model_value=("%s?.stop" % coordinate_info, 0),
+                                label="Stop",
+                                hide_details=True,
+                                density="compact",
+                                type="number",
+                                min=(
+                                    "parseFloat(+ %s?.start.toFixed(2))"
+                                    % coordinate_info,
+                                    0,
+                                ),
+                                max=(
+                                    "parseFloat(+ %s?.range[1].toFixed(2))"
+                                    % coordinate_info,
+                                    0,
+                                ),
+                                step="0.01",
+                                __properties=[
+                                    ("min", "min"),
+                                    ("max", "max"),
+                                    ("step", "step"),
+                                ],
+                                input=(
+                                    coordinate_change_slice_function,
+                                    f"[{coordinate_info}.name, 'stop', $event.target.value]",
+                                ),
+                                __events=[("input", "input.prevent")],
+                                style="flex-grow: 1",
+                            )
+                            vuetify.VTextField(
+                                model_value=("%s?.step" % coordinate_info, 0),
+                                label="Step",
+                                hide_details=True,
+                                density="compact",
+                                type="number",
+                                min="1",
+                                max=("%s?.size" % coordinate_info, 0),
+                                __properties=[
+                                    ("min", "min"),
+                                    ("max", "max"),
+                                ],
+                                input=(
+                                    coordinate_change_slice_function,
+                                    f"[{coordinate_info}.name, 'step', $event.target.value]",
+                                ),
+                                __events=[("input", "input.prevent")],
+                                style="flex-grow: 1",
+                            )
 
                         vuetify.VCardSubtitle("Assign axis", classes="mt-3")
                         with vuetify.VSelect(
