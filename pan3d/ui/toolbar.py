@@ -14,7 +14,6 @@ class Toolbar(html.Div):
         unapplied_changes="unapplied_changes",
         array_active="array_active",
         da_size="da_size",
-        view_edge_visibility="view_edge_visibility",
     ):
         super().__init__(
             classes="d-flex flex-row-reverse pa-3 fill-height", style="column-gap: 10px"
@@ -32,13 +31,6 @@ class Toolbar(html.Div):
             ):
                 html.Span("Apply & Render")
                 html.Span("({{ %s }})" % da_size, v_show=da_size)
-            vuetify.VCheckbox(
-                v_model=(view_edge_visibility, True),
-                v_show=array_active,
-                density="compact",
-                true_icon="mdi-border-all",
-                false_icon="mdi-border-outside",
-            )
             vuetify.VBtn(
                 click="%s = 'Export'" % dialog_shown,
                 variant="tonal",
