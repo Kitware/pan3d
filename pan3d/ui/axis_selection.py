@@ -8,7 +8,7 @@ class AxisSelection(vuetify.VNavigationDrawer):
         self,
         coordinate_select_axis_function,
         coordinate_change_slice_function,
-        array_active="array_active",
+        active_array="active_array",
         coordinates="coordinates",
         expanded_coordinates="expanded_coordinates",
         x_array="x_array",
@@ -19,7 +19,7 @@ class AxisSelection(vuetify.VNavigationDrawer):
         t_max="t_max",
     ):
         super().__init__(
-            model_value=(array_active,),
+            model_value=(active_array,),
             classes="pa-2",
             width="350",
             location="right",

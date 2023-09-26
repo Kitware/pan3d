@@ -11,7 +11,7 @@ class MainDrawer(html.Div):
         data_attrs="data_attrs",
         available_datasets="available_datasets",
         more_info_link="more_info_link",
-        array_active="array_active",
+        active_array="active_array",
         x_array="x_array",
         y_array="y_array",
         z_array="z_array",
@@ -50,9 +50,9 @@ class MainDrawer(html.Div):
                 items=(f"{data_vars}",),
                 item_title="name",
                 item_value="name",
-                selected=(f"[{array_active}]",),
+                selected=(f"[{active_array}]",),
                 update_selected=f"""
-                    {array_active} = $event[0];
+                    {active_array} = $event[0];
                     {x_array} = undefined;
                     {y_array} = undefined;
                     {z_array} = undefined;
