@@ -5,8 +5,7 @@
         "x": "longitude",
         "y": "latitude",
         "z": "level",
-        "t": "month",
-        "t_index": 0
+        "t": "month"
     },
     "data_slices": {
         "latitude": [
@@ -24,7 +23,7 @@
             850,
             1
         ],
-        "time": [
+        "month": [
             0,
             7,
             1
