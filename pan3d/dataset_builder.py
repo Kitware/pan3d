@@ -100,6 +100,7 @@ class DatasetBuilder:
                     AxisSelection(
                         coordinate_select_axis_function=self.coordinate_select_axis,
                         coordinate_change_slice_function=self.coordinate_change_slice,
+                        coordinate_toggle_expansion_function=self.coordinate_toggle_expansion,
                     )
         return self._layout
 
@@ -159,24 +160,35 @@ class DatasetBuilder:
         self.mesh_changed()
 
     def coordinate_change_slice(self, coordinate_name, slice_attribute_name, value):
-        coordinate_matches = [
-            (index, coordinate)
-            for index, coordinate in enumerate(self.state.coordinates)
-            if coordinate["name"] == coordinate_name
-        ]
-        if len(coordinate_matches) > 0:
-            value = float(value)
-            coord_i, coordinate = coordinate_matches[0]
-            if slice_attribute_name == "step":
-                if value > 0 and value < coordinate["size"]:
-                    coordinate[slice_attribute_name] = value
-            else:
-                if value > coordinate["range"][0] and value < coordinate["range"][1]:
-                    coordinate[slice_attribute_name] = value
+        if value.isnumeric():
+            coordinate_matches = [
+                (index, coordinate)
+                for index, coordinate in enumerate(self.state.coordinates)
+                if coordinate["name"] == coordinate_name
+            ]
+            if len(coordinate_matches) > 0:
+                value = float(value)
+                coord_i, coordinate = coordinate_matches[0]
+                if slice_attribute_name == "step":
+                    if value > 0 and value < coordinate["size"]:
+                        coordinate[slice_attribute_name] = value
+                else:
+                    if (
+                        value >= coordinate["range"][0]
+                        and value <= coordinate["range"][1]
+                    ):
+                        coordinate[slice_attribute_name] = value
 
-            self.state.coordinates[coord_i] = coordinate
-            self.mesh_changed()
-            self.state.dirty("coordinates")
+                self.state.coordinates[coord_i] = coordinate
+                self.mesh_changed()
+                self.state.dirty("coordinates")
+
+    def coordinate_toggle_expansion(self, coordinate_name):
+        if coordinate_name in self.state.expanded_coordinates:
+            self.state.expanded_coordinates.remove(coordinate_name)
+        else:
+            self.state.expanded_coordinates.append(coordinate_name)
+        self.state.dirty("expanded_coordinates")
 
     # -----------------------------------------------------
     # State change callbacks
@@ -281,6 +293,8 @@ class DatasetBuilder:
             self.state.expanded_coordinates.append(key),
         self.auto_select_coordinates()
         self.state.dirty("coordinates", "expanded_coordinates")
+        self.plotter.clear()
+        self.plotter.view_isometric()
 
     @change("x_array")
     def on_set_x_array(self, x_array, **kwargs):

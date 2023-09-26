@@ -10,6 +10,7 @@ class CoordinateConfigure(vuetify.VCard):
         expanded_coordinates,
         coordinate_select_axis_function,
         coordinate_change_slice_function,
+        coordinate_toggle_expansion_function,
         axis_info=None,  # Defined only after an axis is selected for this coord
     ):
         super().__init__(width="95%", classes="ml-3 mb-1")
@@ -18,7 +19,12 @@ class CoordinateConfigure(vuetify.VCard):
             with vuetify.VExpansionPanels(
                 model_value=(expanded_coordinates, []),
                 accordion=True,
+                multiple=True,
                 v_show=coordinate_info,
+                update_modelValue=(
+                    coordinate_toggle_expansion_function,
+                    f"[{coordinate_info}.name]",
+                ),
             ):
                 with vuetify.VExpansionPanel(value=("%s?.name" % coordinate_info, 0)):
                     vuetify.VExpansionPanelTitle("{{ %s?.name }}" % coordinate_info)

@@ -8,6 +8,7 @@ class AxisSelection(vuetify.VNavigationDrawer):
         self,
         coordinate_select_axis_function,
         coordinate_change_slice_function,
+        coordinate_toggle_expansion_function,
         active_array="active_array",
         coordinates="coordinates",
         expanded_coordinates="expanded_coordinates",
@@ -71,6 +72,7 @@ class AxisSelection(vuetify.VNavigationDrawer):
                                         expanded_coordinates,
                                         coordinate_select_axis_function,
                                         coordinate_change_slice_function,
+                                        coordinate_toggle_expansion_function,
                                         axis_info=axis,
                                     )
                                 with vuetify.VCard(
@@ -98,6 +100,7 @@ class AxisSelection(vuetify.VNavigationDrawer):
                                 expanded_coordinates,
                                 coordinate_select_axis_function,
                                 coordinate_change_slice_function,
+                                coordinate_toggle_expansion_function,
                             )
                         html.Span(
                             "No coordinates remain.",
