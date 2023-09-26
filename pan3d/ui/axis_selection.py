@@ -53,7 +53,7 @@ class AxisSelection(vuetify.VNavigationDrawer):
                 model_value=([0, 1],),
                 multiple=True,
                 accordion=True,
-                v_show=coordinates,
+                v_if=coordinates,
             ):
                 with vuetify.VExpansionPanel(title="Assigned Coordinates"):
                     with vuetify.VExpansionPanelText():

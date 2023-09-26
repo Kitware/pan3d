@@ -429,6 +429,7 @@ class DatasetBuilder:
         self.set_dataset_path(dataset_path=dataset_config)
         if "active_array" in state_config:
             self.set_array_active(state_config["array_active"])
+            del state_config["array_active"]
         self.state.update(state_config)
 
         if coordinate_config:
