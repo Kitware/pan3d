@@ -13,8 +13,7 @@
             "level",
             "month"
         ],
-        "main_drawer": true,
-        "view_edge_visibility": false
+        "main_drawer": true
     },
     "coordinates": {
         "x_start": -180,

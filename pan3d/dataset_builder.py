@@ -311,20 +311,6 @@ class DatasetBuilder:
         self.algorithm.time_index = int(t_index)
         self.mesh_changed()
 
-    @change("view_edge_visibility")
-    def on_set_edge_visiblity(self, view_edge_visibility, **kwargs):
-        if self.actor is None:
-            return
-        self.actor.GetProperty().SetEdgeVisibility(1 if view_edge_visibility else 0)
-        self.plotter.update()
-
-    @change("x_scale", "y_scale", "z_scale")
-    def on_set_scale(self, x_scale=None, y_scale=None, z_scale=None, **kwargs):
-        x_scale = x_scale or self.state.x_scale
-        y_scale = y_scale or self.state.y_scale
-        z_scale = z_scale or self.state.z_scale
-        self.plotter.set_scale(xscale=x_scale, yscale=y_scale, zscale=z_scale)
-
     @change("dialog_shown")
     def on_set_dialog_shown(self, dialog_shown, **kwargs):
         self.state.dialog_message = None
@@ -372,7 +358,6 @@ class DatasetBuilder:
         self.plotter.clear()
         self.actor = self.plotter.add_mesh(
             self.mesh,
-            show_edges=self.state.view_edge_visibility,
             clim=self.data_range,
         )
         self.plotter.view_isometric()
@@ -463,7 +448,6 @@ class DatasetBuilder:
             "t_index",
             "expanded_coordinates",
             "main_drawer",
-            "view_edge_visibility",
         ]:
             if self.state[state_var] is not None:
                 config["state"][state_var] = self.state[state_var]
