@@ -65,7 +65,7 @@ class CoordinateConfigure(vuetify.VCard):
                                         density="compact",
                                         style="width: 80px",
                                         type="number",
-                                        __properties=[("min", "min"), ("max", "max")],
+                                        __properties=["min", "max"],
                                     )
 
                         vuetify.VCardSubtitle("Select values", classes="mt-3")
@@ -87,11 +87,7 @@ class CoordinateConfigure(vuetify.VCard):
                                     0,
                                 ),
                                 step="0.01",
-                                __properties=[
-                                    ("min", "min"),
-                                    ("max", "max"),
-                                    ("step", "step"),
-                                ],
+                                __properties=["min", "max", "step"],
                                 input=(
                                     coordinate_change_slice_function,
                                     f"[{coordinate_info}.name, 'start', $event.target.value]",
@@ -114,11 +110,7 @@ class CoordinateConfigure(vuetify.VCard):
                                     0,
                                 ),
                                 step="0.01",
-                                __properties=[
-                                    ("min", "min"),
-                                    ("max", "max"),
-                                    ("step", "step"),
-                                ],
+                                __properties=["min", "max", "step"],
                                 input=(
                                     coordinate_change_slice_function,
                                     f"[{coordinate_info}.name, 'stop', $event.target.value]",
@@ -134,10 +126,7 @@ class CoordinateConfigure(vuetify.VCard):
                                 type="number",
                                 min="1",
                                 max=(f"{coordinate_info}?.size", 0),
-                                __properties=[
-                                    ("min", "min"),
-                                    ("max", "max"),
-                                ],
+                                __properties=["min", "max"],
                                 input=(
                                     coordinate_change_slice_function,
                                     f"[{coordinate_info}.name, 'step', $event.target.value]",
