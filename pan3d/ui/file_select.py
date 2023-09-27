@@ -9,50 +9,50 @@ class FileSelect(vuetify.VCard):
         self,
         import_function,
         export_function,
-        dialog_shown="dialog_shown",
-        selected_config_file="selected_config_file",
+        ui_dialog_shown="ui_dialog_shown",
+        ui_selected_config_file="ui_selected_config_file",
         state_export="state_export",
-        dialog_message="dialog_message",
+        ui_dialog_message="ui_dialog_message",
     ):
         def submit_import():
-            files = server.state[selected_config_file]
+            files = server.state[ui_selected_config_file]
             if files and len(files) > 0:
-                file_content = server.state[selected_config_file][0]["content"]
+                file_content = server.state[ui_selected_config_file][0]["content"]
                 import_function(file_content)
 
         super().__init__()
         with self:
-            with vuetify.VCardText(v_show=dialog_shown):
+            with vuetify.VCardText(v_show=ui_dialog_shown):
                 vuetify.VBtn(
                     flat=True,
                     icon="mdi-close",
                     style="float: right",
-                    click=f"{dialog_shown} = undefined",
+                    click=f"{ui_dialog_shown} = undefined",
                 )
                 vuetify.VCardTitle(
-                    "{{ %s }}" % dialog_message,
-                    v_show=dialog_message,
+                    "{{ %s }}" % ui_dialog_message,
+                    v_show=ui_dialog_message,
                 )
-                with html.Div(v_show=f"!{dialog_message}"):
-                    vuetify.VCardTitle("{{ %s }} File Select" % dialog_shown)
+                with html.Div(v_show=f"!{ui_dialog_message}"):
+                    vuetify.VCardTitle("{{ %s }} File Select" % ui_dialog_shown)
 
                     vuetify.VFileInput(
-                        v_model=selected_config_file,
-                        v_show=f"{dialog_shown} === 'Import'",
+                        v_model=ui_selected_config_file,
+                        v_show=f"{ui_dialog_shown} === 'Import'",
                         accept=".json",
                         label="Config File",
                     )
                     vuetify.VBtn(
-                        v_show=f"{dialog_shown} === 'Import' && {selected_config_file}",
+                        v_show=f"{ui_dialog_shown} === 'Import' && {ui_selected_config_file}",
                         variant="tonal",
-                        text=(dialog_shown,),
+                        text=(ui_dialog_shown,),
                         click=submit_import,
                         style="width: 100%",
                     )
 
                     vuetify.VTextField(
-                        v_model=selected_config_file,
-                        v_show=f"{dialog_shown} === 'Export' && {selected_config_file} != false",
+                        v_model=ui_selected_config_file,
+                        v_show=f"{ui_dialog_shown} === 'Export' && {ui_selected_config_file} != false",
                         label="Download Location",
                         prepend_icon="mdi-paperclip",
                         # FileSystem API is only available on some browsers:
@@ -80,10 +80,10 @@ class FileSelect(vuetify.VCard):
                                 }
                             }
                         """
-                        % (state_export, dialog_message, selected_config_file),
+                        % (state_export, ui_dialog_message, ui_selected_config_file),
                     )
                     vuetify.VBtn(
-                        v_show=f"{dialog_shown} === 'Export' && {selected_config_file} === false",
+                        v_show=f"{ui_dialog_shown} === 'Export' && {ui_selected_config_file} === false",
                         variant="tonal",
                         text="Download pan3d_state.json",
                         click=f"""
@@ -95,7 +95,7 @@ class FileSelect(vuetify.VCard):
                             window.document.body.appendChild(a);
                             a.click()
                             window.document.body.removeChild(a);
-                            {dialog_message} = 'Export complete.'
+                            {ui_dialog_message} = 'Export complete.'
                         """,
                         style="width: 100%",
                     )

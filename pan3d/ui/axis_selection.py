@@ -9,18 +9,18 @@ class AxisSelection(vuetify.VNavigationDrawer):
         coordinate_select_axis_function,
         coordinate_change_slice_function,
         coordinate_toggle_expansion_function,
-        active_array="active_array",
-        coordinates="coordinates",
-        expanded_coordinates="expanded_coordinates",
-        x_array="x_array",
-        y_array="y_array",
-        z_array="z_array",
-        t_array="t_array",
-        t_index="t_index",
-        t_max="t_max",
+        da_active="da_active",
+        da_coordinates="da_coordinates",
+        ui_expanded_coordinates="ui_expanded_coordinates",
+        da_x="da_x",
+        da_y="da_y",
+        da_z="da_z",
+        da_t="da_t",
+        da_t_index="da_t_index",
+        da_t_max="da_t_max",
     ):
         super().__init__(
-            model_value=(active_array,),
+            model_value=(da_active,),
             classes="pa-2",
             width="350",
             location="right",
@@ -30,23 +30,23 @@ class AxisSelection(vuetify.VNavigationDrawer):
         axes = [
             {
                 "label": "X",
-                "name_var": x_array,
+                "name_var": da_x,
                 "index_var": "undefined",
             },
             {
                 "label": "Y",
-                "name_var": y_array,
+                "name_var": da_y,
                 "index_var": "undefined",
             },
             {
                 "label": "Z",
-                "name_var": z_array,
+                "name_var": da_z,
                 "index_var": "undefined",
             },
             {
                 "label": "T",
-                "name_var": t_array,
-                "index_var": t_index,
+                "name_var": da_t,
+                "index_var": da_t_index,
             },
         ]
         with self:
@@ -54,7 +54,7 @@ class AxisSelection(vuetify.VNavigationDrawer):
                 model_value=([0, 1],),
                 multiple=True,
                 accordion=True,
-                v_if=coordinates,
+                v_if=da_coordinates,
             ):
                 with vuetify.VExpansionPanel(title="Assigned Coordinates"):
                     with vuetify.VExpansionPanelText():
@@ -66,9 +66,9 @@ class AxisSelection(vuetify.VNavigationDrawer):
                                 ):
                                     CoordinateConfigure(
                                         axes,
-                                        coordinates,
-                                        f"{coordinates}.find((c) => c.name === {axis['name_var']})",
-                                        expanded_coordinates,
+                                        da_coordinates,
+                                        f"{da_coordinates}.find((c) => c.name === {axis['name_var']})",
+                                        ui_expanded_coordinates,
                                         coordinate_select_axis_function,
                                         coordinate_change_slice_function,
                                         coordinate_toggle_expansion_function,
@@ -88,14 +88,14 @@ class AxisSelection(vuetify.VNavigationDrawer):
                 with vuetify.VExpansionPanel(title="Available Coordinates"):
                     with vuetify.VExpansionPanelText():
                         with html.Div(
-                            v_for="coord in coordinates",
-                            v_show=f"![{x_array}, {y_array}, {z_array}, {t_array}].includes(coord.name)",
+                            v_for="coord in da_coordinates",
+                            v_show=f"![{da_x}, {da_y}, {da_z}, {da_t}].includes(coord.name)",
                         ):
                             CoordinateConfigure(
                                 axes,
-                                coordinates,
+                                da_coordinates,
                                 "coord",
-                                expanded_coordinates,
+                                ui_expanded_coordinates,
                                 coordinate_select_axis_function,
                                 coordinate_change_slice_function,
                                 coordinate_toggle_expansion_function,
@@ -103,8 +103,8 @@ class AxisSelection(vuetify.VNavigationDrawer):
                         html.Span(
                             "No coordinates remain.",
                             v_show=f"""
-                                coordinates.every(
-                                    (c) => [{x_array}, {y_array}, {z_array}, {t_array}].includes(c.name)
+                                da_coordinates.every(
+                                    (c) => [{da_x}, {da_y}, {da_z}, {da_t}].includes(c.name)
                                 )
                             """,
                             classes="mx-5",
