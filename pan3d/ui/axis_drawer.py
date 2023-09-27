@@ -3,15 +3,16 @@ from trame.widgets import vuetify3 as vuetify
 from .coordinate_configure import CoordinateConfigure
 
 
-class AxisSelection(vuetify.VNavigationDrawer):
+class AxisDrawer(vuetify.VNavigationDrawer):
     def __init__(
         self,
         coordinate_select_axis_function,
         coordinate_change_slice_function,
         coordinate_toggle_expansion_function,
+        ui_axis_drawer="ui_axis_drawer",
+        ui_expanded_coordinates="ui_expanded_coordinates",
         da_active="da_active",
         da_coordinates="da_coordinates",
-        ui_expanded_coordinates="ui_expanded_coordinates",
         da_x="da_x",
         da_y="da_y",
         da_z="da_z",
@@ -20,7 +21,7 @@ class AxisSelection(vuetify.VNavigationDrawer):
         da_t_max="da_t_max",
     ):
         super().__init__(
-            model_value=(da_active,),
+            v_model=ui_axis_drawer,
             classes="pa-2",
             width="350",
             location="right",

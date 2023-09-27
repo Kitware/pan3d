@@ -2,7 +2,7 @@ from trame.widgets import html
 from trame.widgets import vuetify3 as vuetify
 
 
-class MainDrawer(html.Div):
+class MainDrawer(vuetify.VNavigationDrawer):
     def __init__(
         self,
         dataset_ready="dataset_ready",
@@ -10,6 +10,7 @@ class MainDrawer(html.Div):
         da_vars="da_vars",
         da_attrs="da_attrs",
         available_datasets="available_datasets",
+        ui_main_drawer="ui_main_drawer",
         ui_more_info_link="ui_more_info_link",
         da_active="da_active",
         da_x="da_x",
@@ -18,7 +19,7 @@ class MainDrawer(html.Div):
         da_t="da_t",
         da_t_index="da_t_index",
     ):
-        super().__init__(classes="pa-2")
+        super().__init__(v_model=ui_main_drawer, classes="pa-2")
         with self:
             vuetify.VSelect(
                 label="Choose a dataset",

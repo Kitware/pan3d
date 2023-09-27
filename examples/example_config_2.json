@@ -36,6 +36,7 @@
             "level",
             "month"
         ],
-        "main_drawer": true
+        "main_drawer": true,
+        "axis_drawer": true
     }
 }
