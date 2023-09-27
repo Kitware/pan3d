@@ -27,13 +27,13 @@ class FileSelect(vuetify.VCard):
                     flat=True,
                     icon="mdi-close",
                     style="float: right",
-                    click="%s = undefined" % dialog_shown,
+                    click=f"{dialog_shown} = undefined",
                 )
                 vuetify.VCardTitle(
                     "{{ %s }}" % dialog_message,
                     v_show=dialog_message,
                 )
-                with html.Div(v_show="!%s" % dialog_message):
+                with html.Div(v_show=f"!{dialog_message}"):
                     vuetify.VCardTitle("{{ %s }} File Select" % dialog_shown)
 
                     vuetify.VFileInput(
@@ -86,8 +86,8 @@ class FileSelect(vuetify.VCard):
                         v_show=f"{dialog_shown} === 'Export' && {selected_config_file} === false",
                         variant="tonal",
                         text="Download pan3d_state.json",
-                        click="""
-                            var content = JSON.stringify(%s, null, 4);
+                        click=f"""
+                            var content = JSON.stringify({state_export}, null, 4);
                             var a = window.document.createElement('a');
                             a.href = 'data:application/json;charset=utf-8,'  + encodeURIComponent(content);
                             a.download = 'pan3d_state.json';
@@ -95,8 +95,7 @@ class FileSelect(vuetify.VCard):
                             window.document.body.appendChild(a);
                             a.click()
                             window.document.body.removeChild(a);
-                            %s = 'Export complete.'
-                        """
-                        % (state_export, dialog_message),
+                            {dialog_message} = 'Export complete.'
+                        """,
                         style="width: 100%",
                     )

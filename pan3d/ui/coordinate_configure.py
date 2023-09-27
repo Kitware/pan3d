@@ -26,7 +26,7 @@ class CoordinateConfigure(vuetify.VCard):
                     f"[{coordinate_info}.name]",
                 ),
             ):
-                with vuetify.VExpansionPanel(value=("%s?.name" % coordinate_info, 0)):
+                with vuetify.VExpansionPanel(value=(f"{coordinate_info}?.name", 0)):
                     vuetify.VExpansionPanelTitle("{{ %s?.name }}" % coordinate_info)
                     with vuetify.VExpansionPanelText():
                         vuetify.VCardSubtitle("Attributes")
@@ -44,10 +44,10 @@ class CoordinateConfigure(vuetify.VCard):
                                 v_model=axis_info["index_var"],
                                 min=0,
                                 max=(
-                                    "%s?.size - 1" % coordinate_info,
+                                    f"{coordinate_info}?.size - 1",
                                     0,
                                 ),
-                                step=("%s?.step" % coordinate_info, 0),
+                                step=(f"{coordinate_info}?.step", 0),
                                 classes="mx-5",
                             ):
                                 with vuetify.Template(
@@ -57,10 +57,10 @@ class CoordinateConfigure(vuetify.VCard):
                                         v_model=axis_info["index_var"],
                                         min=0,
                                         max=(
-                                            "%s?.size - 1" % coordinate_info,
+                                            f"{coordinate_info}?.size - 1",
                                             0,
                                         ),
-                                        step=("%s?.step" % coordinate_info, 0),
+                                        step=(f"{coordinate_info}?.step", 0),
                                         hide_details=True,
                                         density="compact",
                                         style="width: 80px",
@@ -73,19 +73,17 @@ class CoordinateConfigure(vuetify.VCard):
                             classes="d-flex pa-0", style="column-gap: 3px"
                         ):
                             vuetify.VTextField(
-                                model_value=("%s?.start" % coordinate_info, 0),
+                                model_value=(f"{coordinate_info}?.start", 0),
                                 label="Start",
                                 hide_details=True,
                                 density="compact",
                                 type="number",
                                 min=(
-                                    "parseFloat(+ %s?.range[0].toFixed(2))"
-                                    % coordinate_info,
+                                    f"parseFloat(+ {coordinate_info}?.range[0].toFixed(2))",
                                     0,
                                 ),
                                 max=(
-                                    "parseFloat(+ %s?.stop.toFixed(2))"
-                                    % coordinate_info,
+                                    f"parseFloat(+ {coordinate_info}?.stop.toFixed(2))",
                                     0,
                                 ),
                                 step="0.01",
@@ -102,19 +100,17 @@ class CoordinateConfigure(vuetify.VCard):
                                 style="flex-grow: 1",
                             )
                             vuetify.VTextField(
-                                model_value=("%s?.stop" % coordinate_info, 0),
+                                model_value=(f"{coordinate_info}?.stop", 0),
                                 label="Stop",
                                 hide_details=True,
                                 density="compact",
                                 type="number",
                                 min=(
-                                    "parseFloat(+ %s?.start.toFixed(2))"
-                                    % coordinate_info,
+                                    f"parseFloat(+ {coordinate_info}?.start.toFixed(2))",
                                     0,
                                 ),
                                 max=(
-                                    "parseFloat(+ %s?.range[1].toFixed(2))"
-                                    % coordinate_info,
+                                    f"parseFloat(+ {coordinate_info}?.range[1].toFixed(2))",
                                     0,
                                 ),
                                 step="0.01",
@@ -131,13 +127,13 @@ class CoordinateConfigure(vuetify.VCard):
                                 style="flex-grow: 1",
                             )
                             vuetify.VTextField(
-                                model_value=("%s?.step" % coordinate_info, 0),
+                                model_value=(f"{coordinate_info}?.step", 0),
                                 label="Step",
                                 hide_details=True,
                                 density="compact",
                                 type="number",
                                 min="1",
-                                max=("%s?.size" % coordinate_info, 0),
+                                max=(f"{coordinate_info}?.size", 0),
                                 __properties=[
                                     ("min", "min"),
                                     ("max", "max"),

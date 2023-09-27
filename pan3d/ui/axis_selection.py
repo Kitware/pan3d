@@ -67,8 +67,7 @@ class AxisSelection(vuetify.VNavigationDrawer):
                                     CoordinateConfigure(
                                         axes,
                                         coordinates,
-                                        "%s.find((c) => c.name === %s)"
-                                        % (coordinates, axis["name_var"]),
+                                        f"{coordinates}.find((c) => c.name === {axis['name_var']})",
                                         expanded_coordinates,
                                         coordinate_select_axis_function,
                                         coordinate_change_slice_function,
@@ -90,8 +89,7 @@ class AxisSelection(vuetify.VNavigationDrawer):
                     with vuetify.VExpansionPanelText():
                         with html.Div(
                             v_for="coord in coordinates",
-                            v_show="![%s, %s, %s, %s].includes(coord.name)"
-                            % (x_array, y_array, z_array, t_array),
+                            v_show=f"![{x_array}, {y_array}, {z_array}, {t_array}].includes(coord.name)",
                         ):
                             CoordinateConfigure(
                                 axes,
@@ -104,11 +102,10 @@ class AxisSelection(vuetify.VNavigationDrawer):
                             )
                         html.Span(
                             "No coordinates remain.",
-                            v_show="""
+                            v_show=f"""
                                 coordinates.every(
-                                    (c) => [%s, %s, %s, %s].includes(c.name)
+                                    (c) => [{x_array}, {y_array}, {z_array}, {t_array}].includes(c.name)
                                 )
-                            """
-                            % (x_array, y_array, z_array, t_array),
+                            """,
                             classes="mx-5",
                         )

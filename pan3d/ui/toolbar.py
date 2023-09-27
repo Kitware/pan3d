@@ -32,12 +32,12 @@ class Toolbar(html.Div):
                 html.Span("Apply & Render")
                 html.Span("({{ %s }})" % da_size, v_show=da_size)
             vuetify.VBtn(
-                click="%s = 'Export'" % dialog_shown,
+                click=f"{dialog_shown} = 'Export'",
                 variant="tonal",
                 text="Export",
             )
             vuetify.VBtn(
-                click="%s = 'Import'" % dialog_shown,
+                click=f"{dialog_shown} = 'Import'",
                 variant="tonal",
                 text="Import",
             )
