@@ -7,12 +7,12 @@ from pvxarray.vtk_source import PyVistaXarraySource
 from pyvista.trame.ui import plotter_ui
 
 from trame.decorators import TrameApp, change
-from trame.ui.vuetify3 import SinglePageWithDrawerLayout
+from trame.ui.vuetify3 import VAppLayout
 from trame.app import get_server
 from trame.widgets import html, client
 from trame.widgets import vuetify3 as vuetify
 
-from pan3d.ui import AxisSelection, MainDrawer, Toolbar
+from pan3d.ui import AxisDrawer, MainDrawer, Toolbar
 from pan3d.utils import initial_state, run_singleton_task, coordinate_auto_selection
 
 BASE_DIR = Path(__file__).parent
@@ -68,40 +68,32 @@ class DatasetBuilder:
     def viewer(self):
         if self._layout is None:
             # Build UI
-            self._layout = SinglePageWithDrawerLayout(self.server)
-            with self._layout as layout:
+            self._layout = VAppLayout(self.server)
+            with self._layout:
                 client.Style(CSS_FILE.read_text())
-                layout.title.set_text("Pan3D Viewer")
-                layout.footer.hide()
-                with layout.toolbar:
-                    layout.toolbar.align = "center"
-                    Toolbar(
-                        self.ctrl.reset,
-                        self.import_config,
-                        self.export_config,
-                    )
-                with layout.drawer:
-                    MainDrawer()
-                with layout.content:
-                    vuetify.VBanner(
-                        "{{ ui_error_message }}",
-                        v_show=("ui_error_message",),
-                    )
-                    with html.Div(
-                        v_show="da_active",
-                        style="height: 100%; position: relative;",
-                    ):
+                Toolbar(
+                    self.ctrl.reset,
+                    self.import_config,
+                    self.export_config,
+                )
+                MainDrawer()
+                AxisDrawer(
+                    coordinate_select_axis_function=self.coordinate_select_axis,
+                    coordinate_change_slice_function=self.coordinate_change_slice,
+                    coordinate_toggle_expansion_function=self.coordinate_toggle_expansion,
+                )
+                with vuetify.VMain(v_show="da_active"):
+                    with html.Div(style="height: 100%; position: relative"):
+                        vuetify.VBanner(
+                            "{{ ui_error_message }}",
+                            v_show=("ui_error_message",),
+                        )
                         with plotter_ui(
                             self.ctrl.get_plotter(),
                             interactive_ratio=1,
                         ) as plot_view:
                             self.ctrl.view_update = plot_view.update
                             self.ctrl.reset_camera = plot_view.reset_camera
-                    AxisSelection(
-                        coordinate_select_axis_function=self.coordinate_select_axis,
-                        coordinate_change_slice_function=self.coordinate_change_slice,
-                        coordinate_toggle_expansion_function=self.coordinate_toggle_expansion,
-                    )
         return self._layout
 
     @property
@@ -262,6 +254,7 @@ class DatasetBuilder:
         self.state.da_active = da_active
 
         da = self.data_array
+        self.state.ui_axis_drawer = True
         self.state.ui_expanded_coordinates = []
         for key in da.coords.keys():
             array_min = float(da.coords[key].min())
@@ -476,7 +469,7 @@ class DatasetBuilder:
                 ]
                 config["data_slices"][coordinate["name"]] = coordinate_slice
 
-        for state_var in ["main_drawer", "expanded_coordinates"]:
+        for state_var in ["main_drawer", "axis_drawer", "expanded_coordinates"]:
             if "ui" not in config:
                 config["ui"] = {}
             config["ui"][state_var] = self.state[f"ui_{state_var}"]
