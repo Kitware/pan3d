@@ -443,12 +443,10 @@ class DatasetBuilder:
                     coordinate["start"] = start
                     coordinate["stop"] = stop
                     coordinate["step"] = step
-            self.state.coordinates = coordinates
             self.state.dirty("coordinates")
 
         if ui_config:
             self.state.update(ui_config)
-            self.state.dirty(*ui_config.keys())
 
         self.state.update({"dialog_shown": None, "selected_config_file": None})
 
@@ -459,7 +457,7 @@ class DatasetBuilder:
 
         for axis in ["x", "y", "z", "t"]:
             if self.state[axis + "_array"]:
-                config["data_array"][axis] = self.state[axis + "_array"]
+                config["data_array"][axis] = self.state[f"{axis}_array"]
         if self.state.t_index:
             config["data_array"]["t_index"] = self.state.t_index
 
@@ -485,7 +483,6 @@ class DatasetBuilder:
             config["ui"][state_var] = self.state[state_var]
 
         if config_file:
-            with open(config_file, "w") as f:
-                json.dump(config, f)
+            Path(config_file).open("w").write(json.dumps(config))
         else:
             return config
