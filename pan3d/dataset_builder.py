@@ -403,11 +403,14 @@ class DatasetBuilder:
     # -----------------------------------------------------
 
     def import_config(self, config_file):
-        if isinstance(config_file, str) and Path(config_file).exists():
-            with open(config_file) as f:
-                config = json.load(f)
-        else:
-            config = json.loads(config_file)
+        if isinstance(config_file, dict):
+            config = config_file
+        elif isinstance(config_file, str):
+            if Path(config_file).exists():
+                with open(config_file) as f:
+                    config = json.load(f)
+            else:
+                config = json.loads(config_file)
         origin_config = config.get("data_origin")
         array_config = config.get("data_array")
         slices_config = config.get("data_slices")
