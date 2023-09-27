@@ -5,9 +5,9 @@ class CoordinateConfigure(vuetify.VCard):
     def __init__(
         self,
         axes,
-        coordinates,
+        da_coordinates,
         coordinate_info,
-        expanded_coordinates,
+        ui_expanded_coordinates,
         coordinate_select_axis_function,
         coordinate_change_slice_function,
         coordinate_toggle_expansion_function,
@@ -17,7 +17,7 @@ class CoordinateConfigure(vuetify.VCard):
 
         with self:
             with vuetify.VExpansionPanels(
-                model_value=(expanded_coordinates, []),
+                model_value=(ui_expanded_coordinates, []),
                 accordion=True,
                 multiple=True,
                 v_show=coordinate_info,

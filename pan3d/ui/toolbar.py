@@ -9,10 +9,10 @@ class Toolbar(html.Div):
         reset_function,
         import_function,
         export_function,
-        dialog_shown="dialog_shown",
-        loading="loading",
-        unapplied_changes="unapplied_changes",
-        active_array="active_array",
+        ui_dialog_shown="ui_dialog_shown",
+        ui_loading="ui_loading",
+        ui_unapplied_changes="ui_unapplied_changes",
+        da_active="da_active",
         da_size="da_size",
     ):
         super().__init__(
@@ -20,30 +20,30 @@ class Toolbar(html.Div):
         )
         with self:
             vuetify.VProgressCircular(
-                v_show=(loading,),
+                v_show=(ui_loading,),
                 indeterminate=True,
                 classes="mx-10",
             )
             with vuetify.VBtn(
                 click=reset_function,
-                v_show=unapplied_changes,
+                v_show=ui_unapplied_changes,
                 variant="tonal",
             ):
                 html.Span("Apply & Render")
                 html.Span("({{ %s }})" % da_size, v_show=da_size)
             vuetify.VBtn(
-                click=f"{dialog_shown} = 'Export'",
+                click=f"{ui_dialog_shown} = 'Export'",
                 variant="tonal",
                 text="Export",
             )
             vuetify.VBtn(
-                click=f"{dialog_shown} = 'Import'",
+                click=f"{ui_dialog_shown} = 'Import'",
                 variant="tonal",
                 text="Import",
             )
-            with vuetify.VDialog(v_model=dialog_shown, max_width=800):
+            with vuetify.VDialog(v_model=ui_dialog_shown, max_width=800):
                 FileSelect(
                     import_function,
                     export_function,
-                    dialog_shown=dialog_shown,
+                    ui_dialog_shown=ui_dialog_shown,
                 )

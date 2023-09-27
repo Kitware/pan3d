@@ -39,7 +39,7 @@ class DatasetBuilder:
         self.plotter.set_background("lightgrey")
         self.dataset = None
         self.dataset_path = None
-        self.active_array = None
+        self.da_active = None
         self.mesh = None
         self.actor = None
 
@@ -84,11 +84,11 @@ class DatasetBuilder:
                     MainDrawer()
                 with layout.content:
                     vuetify.VBanner(
-                        "{{ error_message }}",
-                        v_show=("error_message",),
+                        "{{ ui_error_message }}",
+                        v_show=("ui_error_message",),
                     )
                     with html.Div(
-                        v_show="active_array",
+                        v_show="da_active",
                         style="height: 100%; position: relative;",
                     ):
                         with plotter_ui(
@@ -108,18 +108,18 @@ class DatasetBuilder:
     def data_array(self):
         da = None
         if self.algorithm.time is not None and self.algorithm.time_index is not None:
-            da = self.dataset[self.state.active_array][
+            da = self.dataset[self.state.da_active][
                 {self.algorithm.time: self.algorithm.time_index}
             ]
         else:
-            da = self.dataset[self.state.active_array]
+            da = self.dataset[self.state.da_active]
 
         step_slices = {}
         array_condition = None
-        for axis in ["x_array", "y_array", "z_array"][: da.ndim]:
+        for axis in ["da_x", "da_y", "da_z"][: da.ndim]:
             coordinate_matches = [
                 (index, coordinate)
-                for index, coordinate in enumerate(self.state.coordinates)
+                for index, coordinate in enumerate(self.state.da_coordinates)
                 if coordinate["name"] == self.state[axis]
             ]
             if len(coordinate_matches) > 0:
@@ -163,7 +163,7 @@ class DatasetBuilder:
         if value.isnumeric():
             coordinate_matches = [
                 (index, coordinate)
-                for index, coordinate in enumerate(self.state.coordinates)
+                for index, coordinate in enumerate(self.state.da_coordinates)
                 if coordinate["name"] == coordinate_name
             ]
             if len(coordinate_matches) > 0:
@@ -179,16 +179,16 @@ class DatasetBuilder:
                     ):
                         coordinate[slice_attribute_name] = value
 
-                self.state.coordinates[coord_i] = coordinate
+                self.state.da_coordinates[coord_i] = coordinate
                 self.mesh_changed()
-                self.state.dirty("coordinates")
+                self.state.dirty("da_coordinates")
 
     def coordinate_toggle_expansion(self, coordinate_name):
-        if coordinate_name in self.state.expanded_coordinates:
-            self.state.expanded_coordinates.remove(coordinate_name)
+        if coordinate_name in self.state.ui_expanded_coordinates:
+            self.state.ui_expanded_coordinates.remove(coordinate_name)
         else:
-            self.state.expanded_coordinates.append(coordinate_name)
-        self.state.dirty("expanded_coordinates")
+            self.state.ui_expanded_coordinates.append(coordinate_name)
+        self.state.dirty("ui_expanded_coordinates")
 
     # -----------------------------------------------------
     # State change callbacks
@@ -200,13 +200,13 @@ class DatasetBuilder:
             return
         self.dataset_path = dataset_path
         self.state.dataset_path = dataset_path
-        self.state.loading = True
+        self.state.ui_loading = True
         for available_dataset in self.state.available_datasets:
             if (
                 available_dataset["url"] == dataset_path
                 and "more_info" in available_dataset
             ):
-                self.state.more_info_link = available_dataset["more_info"]
+                self.state.ui_more_info_link = available_dataset["more_info"]
         if "https://" in dataset_path or os.path.exists(dataset_path):
             engine = None
             if ".zarr" in dataset_path:
@@ -218,53 +218,51 @@ class DatasetBuilder:
                     dataset_path, engine=engine, chunks={}
                 )
             except Exception as e:
-                self.state.error_message = str(e)
+                self.state.ui_error_message = str(e)
                 return
         else:
             # Assume it is a named tutorial dataset
             self.dataset = xarray.tutorial.load_dataset(dataset_path)
         # reset algorithm
         self.algorithm = PyVistaXarraySource()
-        self.state.data_vars = [
+        self.state.da_vars = [
             {"name": k, "id": i} for i, k in enumerate(self.dataset.data_vars.keys())
         ]
-        self.state.data_attrs = [
+        self.state.da_attrs = [
             {"key": k, "value": v} for k, v in self.dataset.attrs.items()
         ]
-        self.state.data_attrs.insert(
+        self.state.da_attrs.insert(
             0,
             {
                 "key": "dimensions",
                 "value": str(dict(self.dataset.dims)),
             },
         )
-        if len(self.state.data_attrs) > 0:
-            self.state.show_data_attrs = True
-        self.state.coordinates = []
-        self.state.expanded_coordinates = []
+        self.state.da_coordinates = []
+        self.state.ui_expanded_coordinates = []
         self.state.update(
-            dict(x_array=None, y_array=None, z_array=None, t_array=None, t_index=0)
+            dict(da_x=None, da_y=None, da_z=None, da_t=None, da_t_index=0)
         )
         self.state.dataset_ready = True
-        if len(self.state.data_vars) > 0:
-            self.set_active_array(self.state.data_vars[0]["name"])
+        if len(self.state.da_vars) > 0:
+            self.set_da_active(self.state.da_vars[0]["name"])
         else:
-            self.state.no_data_vars = True
-        self.state.loading = False
+            self.state.no_da_vars = True
+        self.state.ui_loading = False
 
-    @change("active_array")
-    def set_active_array(self, active_array, **kwargs):
+    @change("da_active")
+    def set_da_active(self, da_active, **kwargs):
         if (
-            active_array is None
+            da_active is None
             or not self.state.dataset_ready
-            or active_array == self.active_array
+            or da_active == self.da_active
         ):
             return
-        self.active_array = active_array
-        self.state.active_array = active_array
+        self.da_active = da_active
+        self.state.da_active = da_active
 
         da = self.data_array
-        self.state.expanded_coordinates = []
+        self.state.ui_expanded_coordinates = []
         for key in da.coords.keys():
             array_min = float(da.coords[key].min())
             array_max = float(da.coords[key].max())
@@ -279,7 +277,7 @@ class DatasetBuilder:
                     "value": [array_min, array_max],
                 }
             )
-            self.state.coordinates.append(
+            self.state.da_coordinates.append(
                 {
                     "name": key,
                     "attrs": coord_attrs,
@@ -290,45 +288,45 @@ class DatasetBuilder:
                     "step": 1,
                 }
             )
-            self.state.expanded_coordinates.append(key),
+            self.state.ui_expanded_coordinates.append(key),
         self.auto_select_coordinates()
-        self.state.dirty("coordinates", "expanded_coordinates")
+        self.state.dirty("da_coordinates", "ui_expanded_coordinates")
         self.plotter.clear()
         self.plotter.view_isometric()
 
-    @change("x_array")
-    def on_set_x_array(self, x_array, **kwargs):
-        self.algorithm.x = x_array
+    @change("da_x")
+    def on_set_da_x(self, da_x, **kwargs):
+        self.algorithm.x = da_x
         self.mesh_changed()
 
-    @change("y_array")
-    def on_set_y_array(self, y_array, **kwargs):
-        self.algorithm.y = y_array
+    @change("da_y")
+    def on_set_da_y(self, da_y, **kwargs):
+        self.algorithm.y = da_y
         self.mesh_changed()
 
-    @change("z_array")
-    def on_set_z_array(self, z_array, **kwargs):
-        self.algorithm.z = z_array
+    @change("da_z")
+    def on_set_da_z(self, da_z, **kwargs):
+        self.algorithm.z = da_z
         self.mesh_changed()
 
-    @change("t_array")
-    def on_set_t_array(self, t_array, **kwargs):
-        self.algorithm.time = t_array
-        if self.dataset and self.state.active_array and t_array:
-            time_steps = self.dataset[self.state.active_array][t_array]
+    @change("da_t")
+    def on_set_da_t(self, da_t, **kwargs):
+        self.algorithm.time = da_t
+        if self.dataset and self.state.da_active and da_t:
+            time_steps = self.dataset[self.state.da_active][da_t]
             # Set the time_max in the state for the slider
-            self.state.t_max = len(time_steps) - 1
+            self.state.da_t_max = len(time_steps) - 1
             self.mesh_changed()
 
-    @change("t_index")
-    def on_set_t_index(self, t_index, **kwargs):
-        self.algorithm.time_index = int(t_index)
+    @change("da_t_index")
+    def on_set_da_t_index(self, da_t_index, **kwargs):
+        self.algorithm.time_index = int(da_t_index)
         self.mesh_changed()
 
-    @change("dialog_shown")
-    def on_set_dialog_shown(self, dialog_shown, **kwargs):
-        self.state.dialog_message = None
-        if dialog_shown == "Export":
+    @change("ui_dialog_shown")
+    def on_set_ui_dialog_shown(self, ui_dialog_shown, **kwargs):
+        self.state.ui_dialog_message = None
+        if ui_dialog_shown == "Export":
             self.state.state_export = self.export_config(None)
 
     # -----------------------------------------------------
@@ -337,7 +335,7 @@ class DatasetBuilder:
 
     def auto_select_coordinates(self):
         state_update = {}
-        for coordinate in self.state.coordinates:
+        for coordinate in self.state.da_coordinates:
             name = coordinate["name"].lower()
             for axis, accepted_names in coordinate_auto_selection.items():
                 # don't overwrite if already assigned
@@ -355,7 +353,7 @@ class DatasetBuilder:
             self.state.update(state_update)
 
     def mesh_changed(self):
-        if self.state.active_array:
+        if self.state.da_active:
             da = self.data_array
             total_bytes = da.size * da.dtype.itemsize
             exponents_map = {0: "bytes", 1: "KB", 2: "MB", 3: "GB"}
@@ -366,7 +364,7 @@ class DatasetBuilder:
                     self.state.da_size = f"{round(total_bytes / divisor)} {suffix}"
                     break
 
-            self.state.unapplied_changes = True
+            self.state.ui_unapplied_changes = True
 
     def plot_mesh(self):
         self.plotter.clear()
@@ -377,11 +375,11 @@ class DatasetBuilder:
         self.plotter.view_isometric()
 
     def reset(self, **kwargs):
-        if not self.state.active_array:
+        if not self.state.da_active:
             return
-        self.state.error_message = None
-        self.state.loading = True
-        self.state.unapplied_changes = False
+        self.state.ui_error_message = None
+        self.state.ui_loading = True
+        self.state.ui_unapplied_changes = False
 
         async def update_mesh():
             self.mesh = self.data_array.pyvista.mesh(
@@ -395,10 +393,10 @@ class DatasetBuilder:
 
         def mesh_updated(exception=None):
             with self.state:
-                self.state.error_message = (
+                self.state.ui_error_message = (
                     str(exception) if exception is not None else None
                 )
-                self.state.loading = False
+                self.state.ui_loading = False
 
         run_singleton_task(
             update_mesh,
@@ -423,46 +421,47 @@ class DatasetBuilder:
         ui_config = config.get("ui")
 
         if not origin_config or not array_config:
-            self.state.dialog_message = "Invalid format of import file."
+            self.state.ui_dialog_message = "Invalid format of import file."
             return
 
         self.set_dataset_path(dataset_path=origin_config)
         if "active" in array_config:
-            self.set_active_array(array_config["active"])
+            self.set_da_active(array_config["active"])
         for axis in ["x", "y", "z", "t"]:
             if axis in array_config:
-                self.state[axis + "_array"] = array_config[axis]
-        if "t_index" in array_config:
-            self.state.t_index = array_config["t_index"]
+                self.state[f"da_{axis}"] = array_config[axis]
+        if "da_t_index" in array_config:
+            self.state.da_t_index = array_config["t_index"]
 
         if slices_config:
-            coordinates = self.state.coordinates
-            for coordinate in coordinates:
+            da_coordinates = self.state.da_coordinates
+            for coordinate in da_coordinates:
                 if coordinate["name"] in slices_config:
                     start, stop, step = slices_config[coordinate["name"]]
                     coordinate["start"] = start
                     coordinate["stop"] = stop
                     coordinate["step"] = step
-            self.state.dirty("coordinates")
+            self.state.dirty("da_coordinates")
 
         if ui_config:
-            self.state.update(ui_config)
+            for key, value in ui_config.items():
+                self.state[f"ui_{key}"] = value
 
-        self.state.update({"dialog_shown": None, "selected_config_file": None})
+        self.state.update({"ui_dialog_shown": None, "ui_selected_config_file": None})
 
     def export_config(self, config_file=None):
         config = {}
         config["data_origin"] = self.state.dataset_path
-        config["data_array"] = {"active": self.state.active_array}
+        config["data_array"] = {"active": self.state.da_active}
 
         for axis in ["x", "y", "z", "t"]:
-            if self.state[axis + "_array"]:
-                config["data_array"][axis] = self.state[f"{axis}_array"]
-        if self.state.t_index:
-            config["data_array"]["t_index"] = self.state.t_index
+            if self.state[f"da_{axis}"]:
+                config["data_array"][axis] = self.state[f"da_{axis}"]
+        if self.state.da_t_index:
+            config["data_array"]["t_index"] = self.state.da_t_index
 
-        coordinates = self.state.coordinates
-        for coordinate in coordinates:
+        da_coordinates = self.state.da_coordinates
+        for coordinate in da_coordinates:
             if (
                 coordinate.get("start")
                 or coordinate.get("stop")
@@ -480,7 +479,7 @@ class DatasetBuilder:
         for state_var in ["main_drawer", "expanded_coordinates"]:
             if "ui" not in config:
                 config["ui"] = {}
-            config["ui"][state_var] = self.state[state_var]
+            config["ui"][state_var] = self.state[f"ui_{state_var}"]
 
         if config_file:
             Path(config_file).open("w").write(json.dumps(config))
