@@ -47,7 +47,7 @@ class CoordinateConfigure(vuetify.VCard):
                                     f"{coordinate_info}?.size - 1",
                                     0,
                                 ),
-                                step=(f"{coordinate_info}?.step", 0),
+                                step=(f"{coordinate_info}?.step", 1),
                                 classes="mx-5",
                             ):
                                 with vuetify.Template(
@@ -60,7 +60,7 @@ class CoordinateConfigure(vuetify.VCard):
                                             f"{coordinate_info}?.size - 1",
                                             0,
                                         ),
-                                        step=(f"{coordinate_info}?.step", 0),
+                                        step=(f"{coordinate_info}?.step", 1),
                                         hide_details=True,
                                         density="compact",
                                         style="width: 80px",
@@ -119,7 +119,7 @@ class CoordinateConfigure(vuetify.VCard):
                                 style="flex-grow: 1",
                             )
                             vuetify.VTextField(
-                                model_value=(f"{coordinate_info}?.step", 0),
+                                model_value=(f"{coordinate_info}?.step", 1),
                                 label="Step",
                                 hide_details=True,
                                 density="compact",
