@@ -398,9 +398,9 @@ class DatasetBuilder:
         if isinstance(config_file, dict):
             config = config_file
         elif isinstance(config_file, str):
-            if Path(config_file).exists():
-                with open(config_file) as f:
-                    config = json.load(f)
+            path = Path(config_file)
+            if path.exists():
+                config = json.loads(path.read_text())
             else:
                 config = json.loads(config_file)
         origin_config = config.get("data_origin")
@@ -470,6 +470,6 @@ class DatasetBuilder:
             config["ui"][state_var] = self.state[f"ui_{state_var}"]
 
         if config_file:
-            Path(config_file).open("w").write(json.dumps(config))
+            Path(config_file).write_text(json.dumps(config))
         else:
             return config
