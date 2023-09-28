@@ -287,18 +287,10 @@ class DatasetBuilder:
         self.plotter.clear()
         self.plotter.view_isometric()
 
-    @change("da_x")
-    def on_set_da_x(self, da_x, **kwargs):
+    @change("da_x", "da_y", "da_z")
+    def on_set_da_axis(self, da_x, da_y, da_z, **kwargs):
         self.algorithm.x = da_x
-        self.mesh_changed()
-
-    @change("da_y")
-    def on_set_da_y(self, da_y, **kwargs):
         self.algorithm.y = da_y
-        self.mesh_changed()
-
-    @change("da_z")
-    def on_set_da_z(self, da_z, **kwargs):
         self.algorithm.z = da_z
         self.mesh_changed()
 
