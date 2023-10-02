@@ -82,8 +82,8 @@ initial_state = {
     "ui_error_message": None,
     "ui_more_info_link": None,
     "ui_expanded_coordinates": [],
-    "ui_dialog_shown": None,
-    "ui_dialog_message": None,
+    "ui_action_name": None,
+    "ui_action_message": None,
     "ui_selected_config_file": None,
 }
 

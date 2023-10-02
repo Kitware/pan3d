@@ -11,7 +11,7 @@ class Toolbar(vuetify.VAppBar):
         export_function,
         ui_main_drawer="ui_main_drawer",
         ui_axis_drawer="ui_axis_drawer",
-        ui_dialog_shown="ui_dialog_shown",
+        ui_action_name="ui_action_name",
         ui_loading="ui_loading",
         ui_unapplied_changes="ui_unapplied_changes",
         da_active="da_active",
@@ -38,18 +38,18 @@ class Toolbar(vuetify.VAppBar):
                     html.Span("Apply & Render")
                     html.Span("({{ %s }})" % da_size, v_show=da_size)
                 vuetify.VBtn(
-                    click=f"{ui_dialog_shown} = 'Export'",
+                    click=f"{ui_action_name} = 'Export'",
                     variant="tonal",
                     text="Export",
                 )
                 vuetify.VBtn(
-                    click=f"{ui_dialog_shown} = 'Import'",
+                    click=f"{ui_action_name} = 'Import'",
                     variant="tonal",
                     text="Import",
                 )
-                with vuetify.VDialog(v_model=ui_dialog_shown, max_width=800):
+                with vuetify.VDialog(v_model=ui_action_name, max_width=800):
                     FileSelect(
                         import_function,
                         export_function,
-                        ui_dialog_shown=ui_dialog_shown,
+                        ui_action_name=ui_action_name,
                     )
