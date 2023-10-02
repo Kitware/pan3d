@@ -28,7 +28,6 @@ class DatasetBuilder:
         if isinstance(server, str):
             server = get_server(server)
 
-        # Fix version of vue
         server.client_type = "vue3"
         self.server = server
         self._layout = None
@@ -38,8 +37,6 @@ class DatasetBuilder:
         self.plotter = pyvista.Plotter(off_screen=True, notebook=False)
         self.plotter.set_background("lightgrey")
         self.dataset = None
-        self.dataset_path = None
-        self.da_active = None
         self.mesh = None
         self.actor = None
 
@@ -183,15 +180,36 @@ class DatasetBuilder:
         self.state.dirty("ui_expanded_coordinates")
 
     # -----------------------------------------------------
+    # User-accessible state change functions
+    # -----------------------------------------------------
+
+    def set_dataset_path(self, dataset_path):
+        self.state.dataset_path = dataset_path
+
+    def set_data_array_active_name(self, da_active):
+        self.state.da_active = da_active
+
+    def set_data_array_axis_names(self, **kwargs):
+        if "x" in kwargs:
+            self.state.da_x = kwargs["x"]
+        if "y" in kwargs:
+            self.state.da_x = kwargs["y"]
+        if "z" in kwargs:
+            self.state.da_x = kwargs["z"]
+        if "t" in kwargs:
+            self.state.da_x = kwargs["t"]
+
+    def set_data_array_time_index(self, index):
+        self.state.da_t_index = index
+
+    # -----------------------------------------------------
     # State change callbacks
     # -----------------------------------------------------
 
     @change("dataset_path")
-    def set_dataset_path(self, dataset_path, **kwargs):
-        if self.dataset_path == dataset_path or dataset_path is None:
+    def _on_change_dataset_path(self, dataset_path, **kwargs):
+        if dataset_path is None:
             return
-        self.dataset_path = dataset_path
-        self.state.dataset_path = dataset_path
         self.state.ui_loading = True
         for available_dataset in self.state.available_datasets:
             if (
@@ -237,22 +255,15 @@ class DatasetBuilder:
         )
         self.state.dataset_ready = True
         if len(self.state.da_vars) > 0:
-            self.set_da_active(self.state.da_vars[0]["name"])
+            self.set_data_array_active_name(self.state.da_vars[0]["name"])
         else:
             self.state.no_da_vars = True
         self.state.ui_loading = False
 
     @change("da_active")
-    def set_da_active(self, da_active, **kwargs):
-        if (
-            da_active is None
-            or not self.state.dataset_ready
-            or da_active == self.da_active
-        ):
+    def _on_change_da_active(self, da_active, **kwargs):
+        if da_active is None or not self.state.dataset_ready:
             return
-        self.da_active = da_active
-        self.state.da_active = da_active
-
         da = self.data_array
         self.state.ui_axis_drawer = True
         self.state.ui_expanded_coordinates = []
@@ -288,14 +299,14 @@ class DatasetBuilder:
         self.plotter.view_isometric()
 
     @change("da_x", "da_y", "da_z")
-    def on_set_da_axis(self, da_x, da_y, da_z, **kwargs):
+    def _on_change_da_axis_names(self, da_x, da_y, da_z, **kwargs):
         self.algorithm.x = da_x
         self.algorithm.y = da_y
         self.algorithm.z = da_z
         self.mesh_changed()
 
     @change("da_t")
-    def on_set_da_t(self, da_t, **kwargs):
+    def _on_change_da_t_name(self, da_t, **kwargs):
         self.algorithm.time = da_t
         if self.dataset and self.state.da_active and da_t:
             time_steps = self.dataset[self.state.da_active][da_t]
@@ -304,14 +315,14 @@ class DatasetBuilder:
             self.mesh_changed()
 
     @change("da_t_index")
-    def on_set_da_t_index(self, da_t_index, **kwargs):
+    def _on_change_da_t_index(self, da_t_index, **kwargs):
         self.algorithm.time_index = int(da_t_index)
         self.mesh_changed()
 
-    @change("ui_dialog_shown")
-    def on_set_ui_dialog_shown(self, ui_dialog_shown, **kwargs):
-        self.state.ui_dialog_message = None
-        if ui_dialog_shown == "Export":
+    @change("ui_action_name")
+    def _on_change_action_name(self, ui_action_name, **kwargs):
+        self.state.ui_action_message = None
+        if ui_action_name == "Export":
             self.state.state_export = self.export_config(None)
 
     # -----------------------------------------------------
@@ -409,12 +420,12 @@ class DatasetBuilder:
         ui_config = config.get("ui")
 
         if not origin_config or not array_config:
-            self.state.ui_dialog_message = "Invalid format of import file."
+            self.state.ui_action_message = "Invalid format of import file."
             return
 
         self.set_dataset_path(dataset_path=origin_config)
         if "active" in array_config:
-            self.set_da_active(array_config["active"])
+            self.set_data_array_active_name(array_config["active"])
         for axis in ["x", "y", "z", "t"]:
             if axis in array_config:
                 self.state[f"da_{axis}"] = array_config[axis]
@@ -435,7 +446,7 @@ class DatasetBuilder:
             for key, value in ui_config.items():
                 self.state[f"ui_{key}"] = value
 
-        self.state.update({"ui_dialog_shown": None, "ui_selected_config_file": None})
+        self.state.update({"ui_action_name": None, "ui_selected_config_file": None})
 
     def export_config(self, config_file=None):
         config = {}
