@@ -39,6 +39,7 @@ class DatasetBuilder:
         self.plotter.set_background("lightgrey")
         self.dataset_path = None
         self.dataset = None
+        self.da_active = None
         self.mesh = None
         self.actor = None
 
@@ -194,6 +195,8 @@ class DatasetBuilder:
 
     def set_data_array_active_name(self, da_active):
         self.state.da_active = da_active
+        # immediate callback because order matters for this side-effect
+        self._on_change_da_active(da_active)
 
     def set_data_array_axis_names(self, **kwargs):
         if "x" in kwargs:
@@ -269,8 +272,13 @@ class DatasetBuilder:
 
     @change("da_active")
     def _on_change_da_active(self, da_active, **kwargs):
-        if da_active is None or not self.state.dataset_ready:
+        if (
+            da_active is None
+            or not self.state.dataset_ready
+            or da_active == self.da_active
+        ):
             return
+        self.da_active = da_active
         da = self.data_array
         self.state.ui_axis_drawer = True
         self.state.ui_expanded_coordinates = []
