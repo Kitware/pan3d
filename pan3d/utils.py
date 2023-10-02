@@ -90,6 +90,6 @@ initial_state = {
 coordinate_auto_selection = {
     "da_x": ["x", "lon", "len"],
     "da_y": ["y", "lat", "width"],
-    "da_z": ["z", "depth"],
+    "da_z": ["z", "depth", "height"],
     "da_t": ["t", "time"],
 }

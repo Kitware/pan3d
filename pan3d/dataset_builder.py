@@ -37,6 +37,7 @@ class DatasetBuilder:
         self.algorithm = PyVistaXarraySource()
         self.plotter = pyvista.Plotter(off_screen=True, notebook=False)
         self.plotter.set_background("lightgrey")
+        self.dataset_path = None
         self.dataset = None
         self.mesh = None
         self.actor = None
@@ -188,6 +189,8 @@ class DatasetBuilder:
 
     def set_dataset_path(self, dataset_path):
         self.state.dataset_path = dataset_path
+        # immediate callback because order matters for this side-effect
+        self._on_change_dataset_path(dataset_path)
 
     def set_data_array_active_name(self, da_active):
         self.state.da_active = da_active
@@ -196,11 +199,11 @@ class DatasetBuilder:
         if "x" in kwargs:
             self.state.da_x = kwargs["x"]
         if "y" in kwargs:
-            self.state.da_x = kwargs["y"]
+            self.state.da_y = kwargs["y"]
         if "z" in kwargs:
-            self.state.da_x = kwargs["z"]
+            self.state.da_z = kwargs["z"]
         if "t" in kwargs:
-            self.state.da_x = kwargs["t"]
+            self.state.da_t = kwargs["t"]
 
     def set_data_array_time_index(self, index):
         self.state.da_t_index = index
@@ -211,8 +214,9 @@ class DatasetBuilder:
 
     @change("dataset_path")
     def _on_change_dataset_path(self, dataset_path, **kwargs):
-        if dataset_path is None:
+        if dataset_path is None or dataset_path == self.dataset_path:
             return
+        self.dataset_path = dataset_path
         self.state.ui_loading = True
         for available_dataset in self.state.available_datasets:
             if (
