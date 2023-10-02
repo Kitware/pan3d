@@ -12,6 +12,7 @@ from trame.app import get_server
 from trame.widgets import html, client
 from trame.widgets import vuetify3 as vuetify
 
+from pan3d.pangeo_forge import get_catalog
 from pan3d.ui import AxisDrawer, MainDrawer, Toolbar
 from pan3d.utils import initial_state, run_singleton_task, coordinate_auto_selection
 
@@ -21,7 +22,7 @@ CSS_FILE = BASE_DIR / "ui" / "custom.css"
 
 @TrameApp()
 class DatasetBuilder:
-    def __init__(self, server=None, dataset_path=None, state=None):
+    def __init__(self, server=None, dataset_path=None, state=None, pangeo=False):
         if server is None:
             server = get_server()
 
@@ -42,6 +43,9 @@ class DatasetBuilder:
 
         self.ctrl.get_plotter = lambda: self.plotter
         self.ctrl.reset = self.reset
+
+        if pangeo:
+            self.state.available_datasets += get_catalog()
 
         if dataset_path:
             self.state.dataset_path = dataset_path
@@ -80,11 +84,11 @@ class DatasetBuilder:
                     coordinate_toggle_expansion_function=self.coordinate_toggle_expansion,
                 )
                 with vuetify.VMain(v_show="da_active"):
+                    vuetify.VBanner(
+                        "{{ ui_error_message }}",
+                        v_show=("ui_error_message",),
+                    )
                     with html.Div(style="height: 100%; position: relative"):
-                        vuetify.VBanner(
-                            "{{ ui_error_message }}",
-                            v_show=("ui_error_message",),
-                        )
                         with plotter_ui(
                             self.ctrl.get_plotter(),
                             interactive_ratio=1,
@@ -156,7 +160,6 @@ class DatasetBuilder:
                 if coordinate["name"] == coordinate_name
             ]
             if len(coordinate_matches) > 0:
-                value = float(value)
                 coord_i, coordinate = coordinate_matches[0]
                 if slice_attribute_name == "step":
                     if value > 0 and value < coordinate["size"]:
