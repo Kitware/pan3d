@@ -1,12 +1,27 @@
 {
-    "dataset_path": "https://ncsa.osn.xsede.org/Pangeo/pangeo-forge/noaa-coastwatch-geopolar-sst-feedstock/noaa-coastwatch-geopolar-sst.zarr",
-    "state": {
-        "active_array": "analysed_sst",
-        "x_array": "lat",
-        "x_scale": 2,
-        "y_array": "lon",
-        "t_array": "time",
-        "t_index": 5,
-        "main_drawer": false
+    "data_origin": "https://ncsa.osn.xsede.org/Pangeo/pangeo-forge/noaa-coastwatch-geopolar-sst-feedstock/noaa-coastwatch-geopolar-sst.zarr",
+    "data_array": {
+        "active": "analysed_sst",
+        "x": "lon",
+        "y": "lat",
+        "t": "time",
+        "t_index": 5
+    },
+    "data_slices": {
+        "lat": [
+            -45,
+            45,
+            100
+        ],
+        "lon": [
+            -90,
+            90,
+            100
+        ]
+    },
+    "ui": {
+        "main_drawer": false,
+        "axis_drawer": false,
+        "expanded_coordinates": []
     }
 }

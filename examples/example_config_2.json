@@ -1,0 +1,42 @@
+{
+    "data_origin": "eraint_uvz",
+    "data_array": {
+        "active": "z",
+        "x": "longitude",
+        "y": "latitude",
+        "z": "level",
+        "t": "month"
+    },
+    "data_slices": {
+        "latitude": [
+            -90,
+            0,
+            10
+        ],
+        "longitude": [
+            -180,
+            0,
+            10
+        ],
+        "level": [
+            200,
+            850,
+            1
+        ],
+        "month": [
+            0,
+            7,
+            1
+        ]
+    },
+    "ui": {
+        "expanded_coordinates": [
+            "longitude",
+            "latitude",
+            "level",
+            "month"
+        ],
+        "main_drawer": true,
+        "axis_drawer": true
+    }
+}

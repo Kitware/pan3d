@@ -1,38 +1,55 @@
 from trame.widgets import html
 from trame.widgets import vuetify3 as vuetify
+from .file_select import FileSelect
 
 
-class Toolbar(html.Div):
+class Toolbar(vuetify.VAppBar):
     def __init__(
         self,
-        reset=None,
-        loading="loading",
-        unapplied_changes="unapplied_changes",
-        array_active="array_active",
+        reset_function,
+        import_function,
+        export_function,
+        ui_main_drawer="ui_main_drawer",
+        ui_axis_drawer="ui_axis_drawer",
+        ui_action_name="ui_action_name",
+        ui_loading="ui_loading",
+        ui_unapplied_changes="ui_unapplied_changes",
+        da_active="da_active",
         da_size="da_size",
-        view_edge_visibility="view_edge_visibility",
     ):
-        super().__init__(
-            classes="d-flex flex-row-reverse pa-3 fill-height", style="column-gap: 10px"
-        )
+        super().__init__()
         with self:
-            vuetify.VProgressCircular(
-                v_show=(loading,),
-                indeterminate=True,
-                classes="mx-10",
-            )
-            with vuetify.VBtn(
-                click=reset,
-                v_show=unapplied_changes,
-                # small=True,
-                variant="tonal",
+            vuetify.VAppBarNavIcon(click=f"{ui_main_drawer} = !{ui_main_drawer}")
+            vuetify.VAppBarTitle("Pan3D Viewer")
+            with html.Div(
+                classes="d-flex flex-row-reverse pa-3 fill-height",
+                style="column-gap: 10px",
             ):
-                html.Span("Apply & Render")
-                html.Span("({{ %s }})" % da_size, v_show=da_size)
-            vuetify.VCheckbox(
-                v_model=(view_edge_visibility, True),
-                v_show=array_active,
-                density="compact",
-                true_icon="mdi-border-all",
-                false_icon="mdi-border-outside",
-            )
+                vuetify.VProgressCircular(
+                    v_show=(ui_loading,),
+                    indeterminate=True,
+                    classes="mx-10",
+                )
+                with vuetify.VBtn(
+                    click=reset_function,
+                    v_show=ui_unapplied_changes,
+                    variant="tonal",
+                ):
+                    html.Span("Apply & Render")
+                    html.Span("({{ %s }})" % da_size, v_show=da_size)
+                vuetify.VBtn(
+                    click=f"{ui_action_name} = 'Export'",
+                    variant="tonal",
+                    text="Export",
+                )
+                vuetify.VBtn(
+                    click=f"{ui_action_name} = 'Import'",
+                    variant="tonal",
+                    text="Import",
+                )
+                with vuetify.VDialog(v_model=ui_action_name, max_width=800):
+                    FileSelect(
+                        import_function,
+                        export_function,
+                        ui_action_name=ui_action_name,
+                    )
