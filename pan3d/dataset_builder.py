@@ -381,7 +381,7 @@ class DatasetBuilder:
 
         async def update_mesh():
             start = datetime.now()
-            self.mesh = self.algorithm.compute_mesh()
+            self.mesh = self.algorithm.mesh
             print("mesh time:", (datetime.now() - start).total_seconds())
             start = datetime.now()
             self.plot_mesh()
