@@ -23,8 +23,9 @@ class Toolbar(vuetify.VAppBar):
             vuetify.VAppBarTitle("Pan3D Viewer")
             with html.Div(
                 classes="d-flex flex-row-reverse pa-3 fill-height",
-                style="column-gap: 10px",
+                style="column-gap: 10px; align-items: center",
             ):
+                vuetify.VAppBarNavIcon(click=f"{ui_axis_drawer} = !{ui_axis_drawer}")
                 vuetify.VProgressCircular(
                     v_show=(ui_loading,),
                     indeterminate=True,
