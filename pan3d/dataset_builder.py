@@ -70,6 +70,10 @@ class DatasetBuilder:
         return self.server.controller
 
     @property
+    def data_array(self):
+        return self.algorithm.sliced_data_array
+
+    @property
     def viewer(self):
         if self._layout is None:
             # Build UI
