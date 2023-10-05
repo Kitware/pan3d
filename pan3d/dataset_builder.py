@@ -1,4 +1,3 @@
-from datetime import datetime
 import json
 import os
 import pyvista
@@ -380,12 +379,8 @@ class DatasetBuilder:
         self.state.ui_unapplied_changes = False
 
         async def update_mesh():
-            start = datetime.now()
             self.mesh = self.algorithm.mesh
-            print("mesh time:", (datetime.now() - start).total_seconds())
-            start = datetime.now()
             self.plot_mesh()
-            print("plot time:", (datetime.now() - start).total_seconds())
 
         def mesh_updated(exception=None):
             with self.state:
