@@ -7,13 +7,13 @@ from pan3d import DatasetBuilder  # noqa: F401
 
 def test_import_config():
     viewer = DatasetBuilder()
-    viewer.import_config("examples/example_config.json")
+    viewer.import_config("examples/example_config_noaa.json")
     assert viewer.data_array.size == 4622832
 
 
 def test_export_config():
     viewer = DatasetBuilder()
-    import_path = "examples/example_config_2.json"
+    import_path = "examples/example_config_xarray.json"
     viewer.import_config(import_path)
     with tempfile.TemporaryDirectory() as temp_dir:
         export_path = Path(temp_dir, "exported.json")
