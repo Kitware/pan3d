@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import os
 import pyvista
@@ -40,6 +41,7 @@ class DatasetBuilder:
         self.dataset_path = None
         self.dataset = None
         self.da_active = None
+        self.da = None
         self.mesh = None
         self.actor = None
 
@@ -99,50 +101,6 @@ class DatasetBuilder:
                             self.ctrl.reset_camera = plot_view.reset_camera
         return self._layout
 
-    @property
-    def data_array(self):
-        da = None
-        if self.algorithm.time is not None and self.algorithm.time_index is not None:
-            da = self.dataset[self.state.da_active][
-                {self.algorithm.time: self.algorithm.time_index}
-            ]
-        else:
-            da = self.dataset[self.state.da_active]
-
-        step_slices = {}
-        array_condition = None
-        for axis in ["da_x", "da_y", "da_z"][: da.ndim]:
-            coordinate_matches = [
-                (index, coordinate)
-                for index, coordinate in enumerate(self.state.da_coordinates)
-                if coordinate["name"] == self.state[axis]
-            ]
-            if len(coordinate_matches) > 0:
-                coord_i, coordinate = coordinate_matches[0]
-                step_slices[coordinate["name"]] = slice(0, -1, int(coordinate["step"]))
-                coordinate_condition = (
-                    da[coordinate["name"]] >= coordinate["start"]
-                ) & (da[coordinate["name"]] <= coordinate["stop"])
-                if array_condition is None:
-                    array_condition = coordinate_condition
-                else:
-                    array_condition = (array_condition) & (coordinate_condition)
-
-        if array_condition is not None:
-            da = da.where((array_condition), drop=True)
-
-        if len(step_slices) > 0:
-            da = da[step_slices]
-
-        return da
-
-    @property
-    def data_range(self):
-        da = self.data_array
-        if da is None:
-            return 0, 0
-        return da.min(), da.max()
-
     # -----------------------------------------------------
     # UI bound methods
     # -----------------------------------------------------
@@ -163,6 +121,7 @@ class DatasetBuilder:
             ]
             if len(coordinate_matches) > 0:
                 coord_i, coordinate = coordinate_matches[0]
+                value = float(value)
                 if slice_attribute_name == "step":
                     if value > 0 and value < coordinate["size"]:
                         coordinate[slice_attribute_name] = value
@@ -279,12 +238,21 @@ class DatasetBuilder:
         ):
             return
         self.da_active = da_active
-        da = self.data_array
+        da = self.dataset[da_active]
+        self.algorithm.data_array = da
+
         self.state.ui_axis_drawer = True
+        self.state.ui_error_message = None
         self.state.ui_expanded_coordinates = []
-        for key in da.coords.keys():
-            array_min = float(da.coords[key].min())
-            array_max = float(da.coords[key].max())
+        self.state.da_coordinates = []
+        for key in da.dims:
+            try:
+                array_min = float(da.coords[key].min())
+                array_max = float(da.coords[key].max())
+            except TypeError:
+                # Use index min and max when type is not numeric
+                array_min = 0
+                array_max = da.coords[key].size
             coord_attrs = [
                 {"key": k, "value": v} for k, v in da.coords[key].attrs.items()
             ]
@@ -310,6 +278,7 @@ class DatasetBuilder:
             self.state.ui_expanded_coordinates.append(key),
         self.auto_select_coordinates()
         self.state.dirty("da_coordinates", "ui_expanded_coordinates")
+
         self.plotter.clear()
         self.plotter.view_isometric()
 
@@ -332,6 +301,18 @@ class DatasetBuilder:
     @change("da_t_index")
     def _on_change_da_t_index(self, da_t_index, **kwargs):
         self.algorithm.time_index = int(da_t_index)
+        self.mesh_changed()
+
+    @change("da_coordinates")
+    def _on_change_da_coordinates(self, da_coordinates, **kwargs):
+        slicing = {}
+        for coord in da_coordinates:
+            slicing[coord["name"]] = [
+                coord["start"],
+                coord["stop"],
+                coord["step"],
+            ]
+        self.algorithm.slicing = slicing
         self.mesh_changed()
 
     @change("ui_action_name")
@@ -364,24 +345,26 @@ class DatasetBuilder:
             self.state.update(state_update)
 
     def mesh_changed(self):
-        if self.state.da_active:
-            da = self.data_array
-            total_bytes = da.size * da.dtype.itemsize
-            exponents_map = {0: "bytes", 1: "KB", 2: "MB", 3: "GB"}
-            for exponent in sorted(exponents_map.keys(), reverse=True):
-                divisor = 1024**exponent
-                suffix = exponents_map[exponent]
-                if total_bytes > divisor:
-                    self.state.da_size = f"{round(total_bytes / divisor)} {suffix}"
-                    break
+        self.da = self.algorithm.sliced_data_array
+        if self.state.da_active and self.da is not None:
+            total_bytes = self.da.size * self.da.dtype.itemsize
+        else:
+            total_bytes = 0
+        exponents_map = {0: "bytes", 1: "KB", 2: "MB", 3: "GB"}
+        for exponent in sorted(exponents_map.keys(), reverse=True):
+            divisor = 1024**exponent
+            suffix = exponents_map[exponent]
+            if total_bytes > divisor:
+                self.state.da_size = f"{round(total_bytes / divisor)} {suffix}"
+                break
 
-            self.state.ui_unapplied_changes = True
+        self.state.ui_unapplied_changes = True
 
     def plot_mesh(self):
         self.plotter.clear()
         self.actor = self.plotter.add_mesh(
             self.mesh,
-            clim=self.data_range,
+            clim=self.algorithm.data_range,
         )
         self.plotter.view_isometric()
 
@@ -393,14 +376,12 @@ class DatasetBuilder:
         self.state.ui_unapplied_changes = False
 
         async def update_mesh():
-            self.mesh = self.data_array.pyvista.mesh(
-                self.algorithm.x,
-                self.algorithm.y,
-                self.algorithm.z,
-                self.algorithm.order,
-                self.algorithm.component,
-            )
+            start = datetime.now()
+            self.mesh = self.algorithm.compute_mesh()
+            print("mesh time:", (datetime.now() - start).total_seconds())
+            start = datetime.now()
             self.plot_mesh()
+            print("plot time:", (datetime.now() - start).total_seconds())
 
         def mesh_updated(exception=None):
             with self.state:
