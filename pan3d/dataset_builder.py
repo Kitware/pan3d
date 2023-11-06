@@ -13,7 +13,7 @@ from trame.widgets import html, client
 from trame.widgets import vuetify3 as vuetify
 
 from pan3d.pangeo_forge import get_catalog
-from pan3d.ui import AxisDrawer, MainDrawer, Toolbar
+from pan3d.ui import AxisDrawer, MainDrawer, Toolbar, RenderOptions
 from pan3d.utils import initial_state, run_singleton_task, coordinate_auto_selection
 
 BASE_DIR = Path(__file__).parent
@@ -94,6 +94,7 @@ class DatasetBuilder:
                         v_show=("ui_error_message",),
                     )
                     with html.Div(style="height: 100%; position: relative"):
+                        RenderOptions()
                         with plotter_ui(
                             self.ctrl.get_plotter(),
                             interactive_ratio=1,
@@ -282,6 +283,39 @@ class DatasetBuilder:
             ]
         self.state.slicing = slicing
 
+    def set_render_scales(self, **kwargs):
+        if "x" in kwargs and kwargs["x"] != self.state.render_x_scale:
+            self.state.render_x_scale = int(kwargs["x"])
+        if "y" in kwargs and kwargs["y"] != self.state.render_y_scale:
+            self.state.render_y_scale = int(kwargs["y"])
+        if "z" in kwargs and kwargs["z"] != self.state.render_z_scale:
+            self.state.render_z_scale = int(kwargs["z"])
+        self.plotter.set_scale(
+            xscale=self.state.render_x_scale or 1,
+            yscale=self.state.render_y_scale or 1,
+            zscale=self.state.render_z_scale or 1,
+        )
+
+
+    def set_render_options(
+        self,
+        colormap='viridis',
+        transparency=False,
+        transparency_function=None,
+        scalar_warp=False,
+    ):
+        if self.state.render_colormap != colormap:
+            self.state.render_colormap = colormap
+        if self.state.render_transparency != transparency:
+            self.state.render_transparency = transparency
+        if self.state.render_transparency_function != transparency_function:
+            self.state.render_transparency_function = transparency_function
+        if self.state.render_scalar_warp != scalar_warp:
+            self.state.render_scalar_warp = scalar_warp
+
+        if self.mesh:
+            self.plot_mesh()
+
     # -----------------------------------------------------
     # State change callbacks
     # -----------------------------------------------------
@@ -309,6 +343,31 @@ class DatasetBuilder:
         self.state.ui_action_message = None
         if ui_action_name == "Export":
             self.state.state_export = self.export_config(None)
+
+    @change("render_x_scale", "render_y_scale", "render_z_scale")
+    def _on_change_render_scales(self, render_x_scale, render_y_scale, render_z_scale, **kwargs):
+        self.set_render_scales(x=int(render_x_scale), y=int(render_y_scale), z=int(render_z_scale))
+
+    @change(
+        "render_colormap",
+        "render_transparency",
+        "render_transparency_function",
+        "render_scalar_warp"
+    )
+    def _on_change_render_options(
+        self,
+        render_colormap,
+        render_transparency,
+        render_transparency_function,
+        render_scalar_warp,
+        **kwargs
+    ):
+        self.set_render_options(
+            colormap=render_colormap,
+            transparency=render_transparency,
+            transparency_function=render_transparency_function,
+            scalar_warp=render_scalar_warp
+        )
 
     # -----------------------------------------------------
     # Render Logic
@@ -367,9 +426,20 @@ class DatasetBuilder:
 
     def plot_mesh(self):
         self.plotter.clear()
-        self.actor = self.plotter.add_mesh(
-            self.mesh,
+        args = dict(
+            cmap=self.state.render_colormap,
             clim=self.algorithm.data_range,
+            scalar_bar_args=dict(interactive=True),
+        )
+        if self.state.render_transparency:
+            args['opacity'] = self.state.render_transparency_function
+
+        mesh = self.mesh
+        if self.state.render_scalar_warp:
+            mesh = mesh.warp_by_scalar()
+        self.actor = self.plotter.add_mesh(
+            mesh,
+            **args,
         )
         self.plotter.view_isometric()
 

@@ -85,6 +85,39 @@ initial_state = {
     "ui_action_name": None,
     "ui_action_message": None,
     "ui_selected_config_file": None,
+    "render_x_scale": 1,
+    "render_y_scale": 1,
+    "render_z_scale": 1,
+    "render_scalar_warp": False,
+    "render_transparency": False,
+    "render_transparency_function": "linear",
+    "render_transparency_function_options": [
+        "linear",
+        "linear_r",
+        "geom",
+        "geom_r",
+        "sigmoid",
+        "sigmoid_r"
+    ],
+    "render_colormap": "viridis",
+    "render_colormap_options": [
+        "viridis",
+        "plasma",
+        "inferno",
+        "magma",
+        "terrain",
+        "ocean",
+        "cividis",
+        "seismic",
+        "rainbow",
+        "jet",
+        "turbo",
+        "gray",
+        "cool",
+        "hot",
+        "coolwarm",
+        "hsv",
+    ]
 }
 
 coordinate_auto_selection = {
