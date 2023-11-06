@@ -225,7 +225,8 @@ class DatasetBuilder:
                 array_min = 0
                 array_max = int(da.coords[key].size)
             coord_attrs = [
-                {"key": str(k), "value": str(v)} for k, v in da.coords[key].attrs.items()
+                {"key": str(k), "value": str(v)}
+                for k, v in da.coords[key].attrs.items()
             ]
             coord_attrs.append({"key": "dtype", "value": str(da.coords[key].dtype)})
             coord_attrs.append({"key": "length", "value": int(da.coords[key].size)})
@@ -296,10 +297,9 @@ class DatasetBuilder:
             zscale=self.state.render_z_scale or 1,
         )
 
-
     def set_render_options(
         self,
-        colormap='viridis',
+        colormap="viridis",
         transparency=False,
         transparency_function=None,
         scalar_warp=False,
@@ -345,14 +345,18 @@ class DatasetBuilder:
             self.state.state_export = self.export_config(None)
 
     @change("render_x_scale", "render_y_scale", "render_z_scale")
-    def _on_change_render_scales(self, render_x_scale, render_y_scale, render_z_scale, **kwargs):
-        self.set_render_scales(x=int(render_x_scale), y=int(render_y_scale), z=int(render_z_scale))
+    def _on_change_render_scales(
+        self, render_x_scale, render_y_scale, render_z_scale, **kwargs
+    ):
+        self.set_render_scales(
+            x=int(render_x_scale), y=int(render_y_scale), z=int(render_z_scale)
+        )
 
     @change(
         "render_colormap",
         "render_transparency",
         "render_transparency_function",
-        "render_scalar_warp"
+        "render_scalar_warp",
     )
     def _on_change_render_options(
         self,
@@ -360,13 +364,13 @@ class DatasetBuilder:
         render_transparency,
         render_transparency_function,
         render_scalar_warp,
-        **kwargs
+        **kwargs,
     ):
         self.set_render_options(
             colormap=render_colormap,
             transparency=render_transparency,
             transparency_function=render_transparency_function,
-            scalar_warp=render_scalar_warp
+            scalar_warp=render_scalar_warp,
         )
 
     # -----------------------------------------------------
@@ -432,7 +436,7 @@ class DatasetBuilder:
             scalar_bar_args=dict(interactive=True),
         )
         if self.state.render_transparency:
-            args['opacity'] = self.state.render_transparency_function
+            args["opacity"] = self.state.render_transparency_function
 
         mesh = self.mesh
         if self.state.render_scalar_warp:
