@@ -150,6 +150,9 @@ class DatasetBuilder:
         if dataset_path != self.state.dataset_path:
             self.state.dataset_path = dataset_path
 
+        if dataset_path is None:
+            return
+
         self.state.ui_loading = True
         for available_dataset in self.state.available_datasets:
             if (
@@ -204,6 +207,8 @@ class DatasetBuilder:
         if da_active != self.state.da_active:
             self.state.da_active = da_active
 
+        if self.dataset is None or da_active is None:
+            return
         da = self.dataset[da_active]
 
         self.state.ui_axis_drawer = True
@@ -217,12 +222,12 @@ class DatasetBuilder:
             except TypeError:
                 # Use index min and max when type is not numeric
                 array_min = 0
-                array_max = da.coords[key].size
+                array_max = int(da.coords[key].size)
             coord_attrs = [
-                {"key": k, "value": v} for k, v in da.coords[key].attrs.items()
+                {"key": str(k), "value": str(v)} for k, v in da.coords[key].attrs.items()
             ]
             coord_attrs.append({"key": "dtype", "value": str(da.coords[key].dtype)})
-            coord_attrs.append({"key": "length", "value": da.coords[key].size})
+            coord_attrs.append({"key": "length", "value": int(da.coords[key].size)})
             coord_attrs.append(
                 {
                     "key": "range",
@@ -242,6 +247,7 @@ class DatasetBuilder:
             )
             self.state.ui_expanded_coordinates.append(key),
         self.state.dirty("da_coordinates", "ui_expanded_coordinates")
+        self.auto_select_coordinates()
 
         self.plotter.clear()
         self.plotter.view_isometric()
@@ -267,14 +273,14 @@ class DatasetBuilder:
     def set_data_array_coordinates(self, da_coordinates):
         if self.state.da_coordinates != da_coordinates:
             self.state.da_coordinates = da_coordinates
-            slicing = {}
-            for coord in da_coordinates:
-                slicing[coord["name"]] = [
-                    coord["start"],
-                    coord["stop"],
-                    coord["step"],
-                ]
-            self.state.slicing = slicing
+        slicing = {}
+        for coord in da_coordinates:
+            slicing[coord["name"]] = [
+                coord["start"],
+                coord["stop"],
+                coord["step"],
+            ]
+        self.state.slicing = slicing
 
     # -----------------------------------------------------
     # State change callbacks
@@ -284,11 +290,15 @@ class DatasetBuilder:
     def _on_change_dataset_path(self, dataset_path, **kwargs):
         self.set_dataset_path(dataset_path)
 
+    @change("da_active")
+    def _on_change_da_active(self, da_active, **kwargs):
+        self.set_data_array_active_name(da_active)
+        self.auto_select_coordinates()
+
     @change("da_active", "da_x", "da_y", "da_z", "da_t", "da_t_index", "da_coordinates")
     def _on_change_da_inputs(
         self, da_active, da_x, da_y, da_z, da_t, da_t_index, da_coordinates, **kwargs
     ):
-        self.set_data_array_active_name(da_active)
         self.set_data_array_axis_names(x=da_x, y=da_y, z=da_z, t=da_t)
         self.set_data_array_time_index(da_t_index)
         self.set_data_array_coordinates(da_coordinates)
@@ -327,6 +337,9 @@ class DatasetBuilder:
             self.state.update(state_update)
 
     def mesh_changed(self):
+        if self.dataset is None:
+            return
+
         # Update algorithm all at once
         self.algorithm.data_array = self.dataset[self.state.da_active]
         self.algorithm.slicing = self.state.slicing
@@ -350,6 +363,7 @@ class DatasetBuilder:
                 break
 
         self.state.ui_unapplied_changes = True
+        self.state.ui_loading = False
 
     def plot_mesh(self):
         self.plotter.clear()
