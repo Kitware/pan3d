@@ -7,4 +7,5 @@ __all__ = [
     AxisDrawer,
     MainDrawer,
     Toolbar,
+    RenderOptions,
 ]
