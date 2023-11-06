@@ -27,13 +27,14 @@ class RenderOptions(vuetify.VMenu):
             with vuetify.Template(
                 activator="{ props }",
                 __properties=[
-                ("activator", "v-slot:activator"),
-            ]):
+                    ("activator", "v-slot:activator"),
+                ],
+            ):
                 vuetify.VBtn(
                     v_bind="props",
                     size="small",
                     icon="mdi-dots-vertical",
-                    style="position: absolute; right: 20px; top: 20px; z-index:2"
+                    style="position: absolute; right: 20px; top: 20px; z-index:2",
                 )
             with vuetify.VCard(classes="pa-3"):
                 vuetify.VSelect(
@@ -42,7 +43,9 @@ class RenderOptions(vuetify.VMenu):
                     items=(colormap_options,),
                     density="compact",
                 )
-                vuetify.VCheckbox(label="Transparency", v_model=transparency, density='compact')
+                vuetify.VCheckbox(
+                    label="Transparency", v_model=transparency, density="compact"
+                )
                 vuetify.VSelect(
                     label="Transparency Function",
                     v_show=(transparency,),
@@ -50,10 +53,10 @@ class RenderOptions(vuetify.VMenu):
                     items=(transparency_function_options,),
                     density="compact",
                 )
-                vuetify.VCheckbox(label="Warp by Scalars", v_model=scalar_warp, density='compact')
-                with vuetify.VContainer(
-                    classes="d-flex pa-0", style="column-gap: 3px"
-                ):
+                vuetify.VCheckbox(
+                    label="Warp by Scalars", v_model=scalar_warp, density="compact"
+                )
+                with vuetify.VContainer(classes="d-flex pa-0", style="column-gap: 3px"):
                     vuetify.VTextField(
                         v_model=x_scale,
                         label="X Scale",

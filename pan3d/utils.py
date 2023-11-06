@@ -97,7 +97,7 @@ initial_state = {
         "geom",
         "geom_r",
         "sigmoid",
-        "sigmoid_r"
+        "sigmoid_r",
     ],
     "render_colormap": "viridis",
     "render_colormap_options": [
@@ -117,7 +117,7 @@ initial_state = {
         "hot",
         "coolwarm",
         "hsv",
-    ]
+    ],
 }
 
 coordinate_auto_selection = {
