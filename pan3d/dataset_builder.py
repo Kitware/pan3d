@@ -224,7 +224,8 @@ class DatasetBuilder:
                 array_min = 0
                 array_max = int(da.coords[key].size)
             coord_attrs = [
-                {"key": str(k), "value": str(v)} for k, v in da.coords[key].attrs.items()
+                {"key": str(k), "value": str(v)}
+                for k, v in da.coords[key].attrs.items()
             ]
             coord_attrs.append({"key": "dtype", "value": str(da.coords[key].dtype)})
             coord_attrs.append({"key": "length", "value": int(da.coords[key].size)})

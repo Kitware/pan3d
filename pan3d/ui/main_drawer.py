@@ -19,7 +19,9 @@ class MainDrawer(vuetify.VNavigationDrawer):
         da_t="da_t",
         da_t_index="da_t_index",
     ):
-        super().__init__(v_model=ui_main_drawer, classes="pa-2", permanent=True, width=300)
+        super().__init__(
+            v_model=ui_main_drawer, classes="pa-2", permanent=True, width=300
+        )
         with self:
             vuetify.VSelect(
                 label="Choose a dataset",
