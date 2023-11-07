@@ -446,6 +446,7 @@ class DatasetBuilder:
             **args,
         )
         self.plotter.view_isometric()
+        self.plotter.reset_camera()
 
     def reset(self, **kwargs):
         if not self.state.da_active:
