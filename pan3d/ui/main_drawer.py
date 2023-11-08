@@ -31,24 +31,21 @@ class MainDrawer(vuetify.VNavigationDrawer):
                 item_title="name",
                 item_value="url",
                 density="compact",
-                hide_details=True
+                hide_details=True,
             )
 
             with vuetify.VListItem(v_show=(dataset_ready,)):
                 with html.Div(
-                    classes='d-flex pa-2',
-                    style="justify-content: space-between"
+                    classes="d-flex pa-2", style="justify-content: space-between"
                 ):
                     html.Span("Attributes")
                     with vuetify.VDialog(max_width=800):
-                        with vuetify.Template(
-                            v_slot_activator="{ props }"
-                        ):
+                        with vuetify.Template(v_slot_activator="{ props }"):
                             vuetify.VBtn(
-                                icon='mdi-dots-horizontal',
-                                size='x-small',
+                                icon="mdi-dots-horizontal",
+                                size="x-small",
                                 variant="plain",
-                                v_bind="props"
+                                v_bind="props",
                             )
                         with vuetify.VCard():
                             vuetify.VCardTitle(
@@ -57,8 +54,7 @@ class MainDrawer(vuetify.VNavigationDrawer):
                                 classes="font-weight-bold",
                             )
                             vuetify.VCardText(
-                                "No attributes.",
-                                v_show=f"{da_attrs}.length === 0"
+                                "No attributes.", v_show=f"{da_attrs}.length === 0"
                             )
                             with vuetify.VTable(
                                 v_show=f"{dataset_ready} && {da_attrs}.length",
@@ -76,7 +72,7 @@ class MainDrawer(vuetify.VNavigationDrawer):
                 href=(ui_more_info_link,),
                 v_show=(ui_more_info_link,),
                 target="_blank",
-                classes="mx-3"
+                classes="mx-3",
             )
 
             vuetify.VDivider(v_show=(dataset_ready,), classes="my-2")
@@ -93,22 +89,19 @@ class MainDrawer(vuetify.VNavigationDrawer):
             with vuetify.VListItem(
                 v_for=f"array in {da_vars}",
                 active=(f"array.name === {da_active}",),
-                click=f"{da_active} = array.name"
+                click=f"{da_active} = array.name",
             ):
                 with html.Div(
-                    classes='d-flex pa-2',
-                    style="justify-content: space-between"
+                    classes="d-flex pa-2", style="justify-content: space-between"
                 ):
                     html.Span("{{ array.name }}")
                     with vuetify.VDialog(max_width=800):
-                        with vuetify.Template(
-                            v_slot_activator="{ props }"
-                        ):
+                        with vuetify.Template(v_slot_activator="{ props }"):
                             vuetify.VBtn(
-                                icon='mdi-dots-horizontal',
-                                size='x-small',
+                                icon="mdi-dots-horizontal",
+                                size="x-small",
                                 variant="plain",
-                                v_bind="props"
+                                v_bind="props",
                             )
                         with vuetify.VCard():
                             vuetify.VCardTitle(
@@ -117,7 +110,7 @@ class MainDrawer(vuetify.VNavigationDrawer):
                             )
                             vuetify.VCardText(
                                 "No attributes.",
-                                v_show=f"{da_vars_attrs}[array.name].length === 0"
+                                v_show=f"{da_vars_attrs}[array.name].length === 0",
                             )
                             with vuetify.VTable(
                                 v_show=f"{da_vars_attrs}[array.name].length",

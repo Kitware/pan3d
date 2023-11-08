@@ -47,7 +47,7 @@ class DatasetBuilder:
         self.ctrl.reset = self.reset
 
         if pangeo:
-            with open('examples/pangeo_catalog.json') as f:
+            with open("examples/pangeo_catalog.json") as f:
                 self.state.available_datasets += json.load(f)
 
         if dataset_path:
@@ -204,9 +204,11 @@ class DatasetBuilder:
             {"name": k, "id": i} for i, k in enumerate(self.dataset.data_vars.keys())
         ]
         self.state.da_vars_attrs = {
-            var['name']: [
-                {"key": k, "value": v} for k, v in self.dataset.data_vars[var['name']].attrs.items()
-            ] for var in self.state.da_vars
+            var["name"]: [
+                {"key": k, "value": v}
+                for k, v in self.dataset.data_vars[var["name"]].attrs.items()
+            ]
+            for var in self.state.da_vars
         }
 
         self.state.dataset_ready = True
@@ -221,18 +223,20 @@ class DatasetBuilder:
         if da_active != self.state.da_active:
             self.state.da_active = da_active
 
-        self.state.update(dict(
-            da_x=None,
-            da_y=None,
-            da_z=None,
-            da_t=None,
-            da_t_index=0,
-            da_coordinates=[],
-            ui_expanded_coordinates=[],
-            ui_error_message=None,
-            ui_axis_drawer=False,
-            ui_current_time_string='',
-        ))
+        self.state.update(
+            dict(
+                da_x=None,
+                da_y=None,
+                da_z=None,
+                da_t=None,
+                da_t_index=0,
+                da_coordinates=[],
+                ui_expanded_coordinates=[],
+                ui_error_message=None,
+                ui_axis_drawer=False,
+                ui_current_time_string="",
+            )
+        )
         if self.dataset is None or da_active is None:
             return
 
@@ -244,17 +248,17 @@ class DatasetBuilder:
             array_max = current_coord.values[-1]
 
             # make content serializable by its type
-            if d.kind in ['m', 'M', 'O']:  # is timedelta or datetime
-                if not hasattr(array_min, 'strftime'):
+            if d.kind in ["m", "M", "O"]:  # is timedelta or datetime
+                if not hasattr(array_min, "strftime"):
                     array_min = pandas.to_datetime(array_min)
-                if not hasattr(array_max, 'strftime'):
+                if not hasattr(array_max, "strftime"):
                     array_max = pandas.to_datetime(array_max)
-                array_min = array_min.strftime('%b %d %Y %H:%M')
-                array_max = array_max.strftime('%b %d %Y %H:%M')
-            elif d.kind in ['i', 'u']:
+                array_min = array_min.strftime("%b %d %Y %H:%M")
+                array_max = array_max.strftime("%b %d %Y %H:%M")
+            elif d.kind in ["i", "u"]:
                 array_min = int(array_min)
                 array_max = int(array_max)
-            elif d.kind in ['f', 'c']:
+            elif d.kind in ["f", "c"]:
                 array_min = round(float(array_min), 2)
                 array_max = round(float(array_max), 2)
 
@@ -270,7 +274,7 @@ class DatasetBuilder:
                     "value": [array_min, array_max],
                 }
             )
-            if key not in [c['name'] for c in self.state.da_coordinates]:
+            if key not in [c["name"] for c in self.state.da_coordinates]:
                 self.state.da_coordinates.append(
                     {
                         "name": key,
@@ -308,16 +312,16 @@ class DatasetBuilder:
         if self.dataset and self.state.da_active and self.state.da_t:
             time_steps = self.dataset[self.state.da_active][self.state.da_t]
             current_time = time_steps.values[self.state.da_t_index]
-            if not hasattr(current_time, 'strftime'):
+            if not hasattr(current_time, "strftime"):
                 current_time = pandas.to_datetime(current_time)
-            self.state.ui_current_time_string = current_time.strftime('%b %d %Y %H:%M')
+            self.state.ui_current_time_string = current_time.strftime("%b %d %Y %H:%M")
 
     def set_data_array_coordinates(self, da_coordinates):
         if self.state.da_coordinates != da_coordinates:
             self.state.da_coordinates = da_coordinates
         slicing = {}
         for coord in da_coordinates:
-            if coord['name'] != self.state.da_t:
+            if coord["name"] != self.state.da_t:
                 slicing[coord["name"]] = [
                     coord["start"],
                     coord["stop"],
