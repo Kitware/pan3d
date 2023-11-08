@@ -188,9 +188,7 @@ class DatasetBuilder:
             self.dataset = xarray.tutorial.load_dataset(dataset_path)
         # reset algorithm
         self.algorithm = PyVistaXarraySource()
-        self.state.da_vars = [
-            {"name": k, "id": i} for i, k in enumerate(self.dataset.data_vars.keys())
-        ]
+
         self.state.da_attrs = [
             {"key": k, "value": v} for k, v in self.dataset.attrs.items()
         ]
@@ -201,6 +199,16 @@ class DatasetBuilder:
                 "value": str(dict(self.dataset.dims)),
             },
         )
+
+        self.state.da_vars = [
+            {"name": k, "id": i} for i, k in enumerate(self.dataset.data_vars.keys())
+        ]
+        self.state.da_vars_attrs = {
+            var['name']: [
+                {"key": k, "value": v} for k, v in self.dataset.data_vars[var['name']].attrs.items()
+            ] for var in self.state.da_vars
+        }
+
         self.state.dataset_ready = True
         if len(self.state.da_vars) > 0:
             self.set_data_array_active_name(self.state.da_vars[0]["name"])

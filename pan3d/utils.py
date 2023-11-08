@@ -85,7 +85,6 @@ initial_state = {
     "ui_action_message": None,
     "ui_selected_config_file": None,
     "ui_current_time_string": '',
-    "ui_show_dataset_attrs": False,
     "render_x_scale": 1,
     "render_y_scale": 1,
     "render_z_scale": 1,
