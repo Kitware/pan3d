@@ -200,30 +200,34 @@ class DatasetBuilder:
                 "value": str(dict(self.dataset.dims)),
             },
         )
-        self.state.da_coordinates = []
-        self.state.ui_expanded_coordinates = []
-        self.state.update(
-            dict(da_x=None, da_y=None, da_z=None, da_t=None, da_t_index=0, ui_current_time_string='')
-        )
         self.state.dataset_ready = True
         if len(self.state.da_vars) > 0:
             self.set_data_array_active_name(self.state.da_vars[0]["name"])
         else:
             self.state.no_da_vars = True
+            self.set_data_array_active_name(None)
         self.state.ui_loading = False
 
     def set_data_array_active_name(self, da_active):
         if da_active != self.state.da_active:
             self.state.da_active = da_active
 
+        self.state.update(dict(
+            da_x=None,
+            da_y=None,
+            da_z=None,
+            da_t=None,
+            da_t_index=0,
+            da_coords=[],
+            ui_expanded_coordinates=[],
+            ui_error_message=None,
+            ui_axis_drawer=False,
+            ui_current_time_string='',
+        ))
         if self.dataset is None or da_active is None:
             return
-        da = self.dataset[da_active]
 
-        self.state.ui_axis_drawer = True
-        self.state.ui_error_message = None
-        self.state.ui_expanded_coordinates = []
-        self.state.da_coordinates = []
+        da = self.dataset[da_active]
         for key in da.dims:
             current_coord = da.coords[key]
             d = current_coord.dtype
@@ -253,20 +257,24 @@ class DatasetBuilder:
                     "value": [array_min, array_max],
                 }
             )
-            self.state.da_coordinates.append(
-                {
-                    "name": key,
-                    "attrs": coord_attrs,
-                    "size": da.coords[key].size,
-                    "range": [array_min, array_max],
-                    "start": array_min,
-                    "stop": array_max,
-                    "step": 1,
-                }
-            )
-            self.state.ui_expanded_coordinates.append(key),
+            if key not in [c['name'] for c in self.state.da_coordinates]:
+                self.state.da_coordinates.append(
+                    {
+                        "name": key,
+                        "attrs": coord_attrs,
+                        "size": da.coords[key].size,
+                        "range": [array_min, array_max],
+                        "start": array_min,
+                        "stop": array_max,
+                        "step": 1,
+                    }
+                )
+            if key not in self.state.ui_expanded_coordinates:
+                self.state.ui_expanded_coordinates.append(key),
         self.state.dirty("da_coordinates", "ui_expanded_coordinates")
         self.auto_select_coordinates()
+        if len(self.state.da_coordinates) > 0:
+            self.state.ui_axis_drawer = True
 
         self.plotter.clear()
         self.plotter.view_isometric()
@@ -294,11 +302,12 @@ class DatasetBuilder:
             self.state.da_coordinates = da_coordinates
         slicing = {}
         for coord in da_coordinates:
-            slicing[coord["name"]] = [
-                coord["start"],
-                coord["stop"],
-                coord["step"],
-            ]
+            if coord['name'] != self.state.da_t:
+                slicing[coord["name"]] = [
+                    coord["start"],
+                    coord["stop"],
+                    coord["step"],
+                ]
         self.state.slicing = slicing
 
     def set_render_scales(self, **kwargs):
