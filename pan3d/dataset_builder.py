@@ -159,6 +159,7 @@ class DatasetBuilder:
         if dataset_path != self.state.dataset_path:
             self.state.dataset_path = dataset_path
 
+        self.dataset = None
         if dataset_path is None:
             return
 
@@ -218,7 +219,7 @@ class DatasetBuilder:
             da_z=None,
             da_t=None,
             da_t_index=0,
-            da_coords=[],
+            da_coordinates=[],
             ui_expanded_coordinates=[],
             ui_error_message=None,
             ui_axis_drawer=False,
@@ -235,9 +236,13 @@ class DatasetBuilder:
             array_max = current_coord.values[-1]
 
             # make content serializable by its type
-            if d.kind in ['m', 'M']:  # is timedelta or datetime
-                array_min = pandas.to_datetime(array_min).strftime('%b %d %Y %H:%M')
-                array_max = pandas.to_datetime(array_max).strftime('%b %d %Y %H:%M')
+            if d.kind in ['m', 'M', 'O']:  # is timedelta or datetime
+                if not hasattr(array_min, 'strftime'):
+                    array_min = pandas.to_datetime(array_min)
+                if not hasattr(array_max, 'strftime'):
+                    array_max = pandas.to_datetime(array_max)
+                array_min = array_min.strftime('%b %d %Y %H:%M')
+                array_max = array_max.strftime('%b %d %Y %H:%M')
             elif d.kind in ['i', 'u']:
                 array_min = int(array_min)
                 array_max = int(array_max)
@@ -295,7 +300,9 @@ class DatasetBuilder:
         if self.dataset and self.state.da_active and self.state.da_t:
             time_steps = self.dataset[self.state.da_active][self.state.da_t]
             current_time = time_steps.values[self.state.da_t_index]
-            self.state.ui_current_time_string = pandas.to_datetime(current_time).strftime('%b %d %Y %H:%M')
+            if not hasattr(current_time, 'strftime'):
+                current_time = pandas.to_datetime(current_time)
+            self.state.ui_current_time_string = current_time.strftime('%b %d %Y %H:%M')
 
     def set_data_array_coordinates(self, da_coordinates):
         if self.state.da_coordinates != da_coordinates:
