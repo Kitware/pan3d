@@ -12,6 +12,7 @@ class MainDrawer(vuetify.VNavigationDrawer):
         available_datasets="available_datasets",
         ui_main_drawer="ui_main_drawer",
         ui_more_info_link="ui_more_info_link",
+        ui_show_dataset_attrs="ui_show_dataset_attrs",
         da_active="da_active",
         da_x="da_x",
         da_y="da_y",
@@ -32,12 +33,23 @@ class MainDrawer(vuetify.VNavigationDrawer):
                 density="compact",
             )
 
+            vuetify.VBtn(
+                "Show Dataset Attributes",
+                block="true",
+                size="small",
+                v_show=(dataset_ready,),
+                click=f"{ui_show_dataset_attrs} = true",
+            )
+
             html.A(
                 "More information about this dataset",
                 href=(ui_more_info_link,),
                 v_show=(ui_more_info_link,),
                 target="_blank",
+                classes="mx-3"
             )
+
+            vuetify.VDivider(v_show=(dataset_ready,), classes="my-2")
 
             vuetify.VCardText(
                 "Available Arrays",
@@ -63,18 +75,21 @@ class MainDrawer(vuetify.VNavigationDrawer):
                     {da_t_index} = 0;
                 """,
             )
-            vuetify.VCardText(
-                "Data Attributes",
-                v_show=f"{da_attrs}.length",
-                classes="font-weight-bold",
-            )
-            with vuetify.VTable(
-                v_show=f"{dataset_ready} && {da_attrs}.length",
-                density="compact",
-            ):
-                with html.Tbody():
-                    with html.Tr(
-                        v_for=f"data_attr in {da_attrs}",
+
+            with vuetify.VDialog(v_model=ui_show_dataset_attrs, max_width=800):
+                with vuetify.VCard():
+                    vuetify.VCardText(
+                        "Dataset Attributes",
+                        v_show=f"{da_attrs}.length",
+                        classes="font-weight-bold",
+                    )
+                    with vuetify.VTable(
+                        v_show=f"{dataset_ready} && {da_attrs}.length",
+                        density="compact",
                     ):
-                        html.Td("{{ data_attr.key }}")
-                        html.Td("{{ data_attr.value }}")
+                        with html.Tbody():
+                            with html.Tr(
+                                v_for=f"data_attr in {da_attrs}",
+                            ):
+                                html.Td("{{ data_attr.key }}")
+                                html.Td("{{ data_attr.value }}")
