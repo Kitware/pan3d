@@ -40,7 +40,10 @@ class CoordinateConfigure(vuetify.VCard):
                                     html.Td("{{ data_attr.value }}")
 
                         if axis_info and axis_info["index_var"] != "undefined":
-                            vuetify.VCardSubtitle("Current: {{ %s }}" % ui_current_time_string, classes="mt-3")
+                            vuetify.VCardSubtitle(
+                                "Current: {{ %s }}" % ui_current_time_string,
+                                classes="mt-3",
+                            )
                             with vuetify.VSlider(
                                 v_model=axis_info["index_var"],
                                 min=0,
