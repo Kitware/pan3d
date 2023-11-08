@@ -1,5 +1,6 @@
 import json
 import os
+import pandas
 import pyvista
 import xarray
 from pathlib import Path
@@ -46,7 +47,8 @@ class DatasetBuilder:
         self.ctrl.reset = self.reset
 
         if pangeo:
-            self.state.available_datasets += get_catalog()
+            with open('examples/pangeo_catalog.json') as f:
+                self.state.available_datasets += json.load(f)
 
         if dataset_path:
             self.state.dataset_path = dataset_path
@@ -69,6 +71,12 @@ class DatasetBuilder:
     @property
     def data_array(self):
         return self.algorithm.sliced_data_array
+
+    @property
+    def pv_mesh(self):
+        if self.mesh is None:
+            self.mesh = self.algorithm.mesh
+        return self.mesh
 
     @property
     def viewer(self):
@@ -195,7 +203,7 @@ class DatasetBuilder:
         self.state.da_coordinates = []
         self.state.ui_expanded_coordinates = []
         self.state.update(
-            dict(da_x=None, da_y=None, da_z=None, da_t=None, da_t_index=0)
+            dict(da_x=None, da_y=None, da_z=None, da_t=None, da_t_index=0, ui_current_time_string='')
         )
         self.state.dataset_ready = True
         if len(self.state.da_vars) > 0:
@@ -217,13 +225,22 @@ class DatasetBuilder:
         self.state.ui_expanded_coordinates = []
         self.state.da_coordinates = []
         for key in da.dims:
-            try:
-                array_min = float(da.coords[key].min())
-                array_max = float(da.coords[key].max())
-            except TypeError:
-                # Use index min and max when type is not numeric
-                array_min = 0
-                array_max = int(da.coords[key].size)
+            current_coord = da.coords[key]
+            d = current_coord.dtype
+            array_min = current_coord.values[0]
+            array_max = current_coord.values[-1]
+
+            # make content serializable by its type
+            if d.kind in ['m', 'M']:  # is timedelta or datetime
+                array_min = pandas.to_datetime(array_min).strftime('%b %d %Y %H:%M')
+                array_max = pandas.to_datetime(array_max).strftime('%b %d %Y %H:%M')
+            elif d.kind in ['i', 'u']:
+                array_min = int(array_min)
+                array_max = int(array_max)
+            elif d.kind in ['f', 'c']:
+                array_min = round(float(array_min), 2)
+                array_max = round(float(array_max), 2)
+
             coord_attrs = [
                 {"key": str(k), "value": str(v)}
                 for k, v in da.coords[key].attrs.items()
@@ -263,14 +280,14 @@ class DatasetBuilder:
             self.state.da_z = kwargs["z"]
         if "t" in kwargs and kwargs["t"] != self.state.da_t:
             self.state.da_t = kwargs["t"]
-            if self.dataset and self.state.da_active and self.state.da_t:
-                time_steps = self.dataset[self.state.da_active][self.state.da_t]
-                # Set the time_max in the state for the slider
-                self.state.da_t_max = len(time_steps) - 1
 
     def set_data_array_time_index(self, index):
-        if index != self.state.da_t_index:
+        if int(index) != self.state.da_t_index:
             self.state.da_t_index = int(index)
+        if self.dataset and self.state.da_active and self.state.da_t:
+            time_steps = self.dataset[self.state.da_active][self.state.da_t]
+            current_time = time_steps.values[self.state.da_t_index]
+            self.state.ui_current_time_string = pandas.to_datetime(current_time).strftime('%b %d %Y %H:%M')
 
     def set_data_array_coordinates(self, da_coordinates):
         if self.state.da_coordinates != da_coordinates:
