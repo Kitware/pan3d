@@ -13,7 +13,6 @@ from trame.app import get_server
 from trame.widgets import html, client
 from trame.widgets import vuetify3 as vuetify
 
-from pan3d.pangeo_forge import get_catalog
 from pan3d.ui import AxisDrawer, MainDrawer, Toolbar, RenderOptions
 from pan3d.utils import initial_state, run_singleton_task, coordinate_auto_selection
 
