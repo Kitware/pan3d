@@ -37,9 +37,8 @@ class DatasetBuilder:
         self.algorithm = PyVistaXarraySource()
         self.plotter = pyvista.Plotter(off_screen=True, notebook=False)
         self.plotter.set_background("lightgrey")
-        self.dataset_path = None
         self.dataset = None
-        self.da_active = None
+        self.da = None
         self.mesh = None
         self.actor = None
 
@@ -66,6 +65,10 @@ class DatasetBuilder:
     @property
     def ctrl(self):
         return self.server.controller
+
+    @property
+    def data_array(self):
+        return self.algorithm.sliced_data_array
 
     @property
     def viewer(self):
@@ -99,50 +102,6 @@ class DatasetBuilder:
                             self.ctrl.reset_camera = plot_view.reset_camera
         return self._layout
 
-    @property
-    def data_array(self):
-        da = None
-        if self.algorithm.time is not None and self.algorithm.time_index is not None:
-            da = self.dataset[self.state.da_active][
-                {self.algorithm.time: self.algorithm.time_index}
-            ]
-        else:
-            da = self.dataset[self.state.da_active]
-
-        step_slices = {}
-        array_condition = None
-        for axis in ["da_x", "da_y", "da_z"][: da.ndim]:
-            coordinate_matches = [
-                (index, coordinate)
-                for index, coordinate in enumerate(self.state.da_coordinates)
-                if coordinate["name"] == self.state[axis]
-            ]
-            if len(coordinate_matches) > 0:
-                coord_i, coordinate = coordinate_matches[0]
-                step_slices[coordinate["name"]] = slice(0, -1, int(coordinate["step"]))
-                coordinate_condition = (
-                    da[coordinate["name"]] >= coordinate["start"]
-                ) & (da[coordinate["name"]] <= coordinate["stop"])
-                if array_condition is None:
-                    array_condition = coordinate_condition
-                else:
-                    array_condition = (array_condition) & (coordinate_condition)
-
-        if array_condition is not None:
-            da = da.where((array_condition), drop=True)
-
-        if len(step_slices) > 0:
-            da = da[step_slices]
-
-        return da
-
-    @property
-    def data_range(self):
-        da = self.data_array
-        if da is None:
-            return 0, 0
-        return da.min(), da.max()
-
     # -----------------------------------------------------
     # UI bound methods
     # -----------------------------------------------------
@@ -152,7 +111,6 @@ class DatasetBuilder:
             self.state[current_axis] = None
         if new_axis and new_axis != "undefined":
             self.state[new_axis] = coordinate_name
-        self.mesh_changed()
 
     def coordinate_change_slice(self, coordinate_name, slice_attribute_name, value):
         if value.isnumeric():
@@ -163,6 +121,7 @@ class DatasetBuilder:
             ]
             if len(coordinate_matches) > 0:
                 coord_i, coordinate = coordinate_matches[0]
+                value = float(value)
                 if slice_attribute_name == "step":
                     if value > 0 and value < coordinate["size"]:
                         coordinate[slice_attribute_name] = value
@@ -174,7 +133,6 @@ class DatasetBuilder:
                         coordinate[slice_attribute_name] = value
 
                 self.state.da_coordinates[coord_i] = coordinate
-                self.mesh_changed()
                 self.state.dirty("da_coordinates")
 
     def coordinate_toggle_expansion(self, coordinate_name):
@@ -189,37 +147,12 @@ class DatasetBuilder:
     # -----------------------------------------------------
 
     def set_dataset_path(self, dataset_path):
-        self.state.dataset_path = dataset_path
-        # immediate callback because order matters for this side-effect
-        self._on_change_dataset_path(dataset_path)
+        if dataset_path != self.state.dataset_path:
+            self.state.dataset_path = dataset_path
 
-    def set_data_array_active_name(self, da_active):
-        self.state.da_active = da_active
-        # immediate callback because order matters for this side-effect
-        self._on_change_da_active(da_active)
-
-    def set_data_array_axis_names(self, **kwargs):
-        if "x" in kwargs:
-            self.state.da_x = kwargs["x"]
-        if "y" in kwargs:
-            self.state.da_y = kwargs["y"]
-        if "z" in kwargs:
-            self.state.da_z = kwargs["z"]
-        if "t" in kwargs:
-            self.state.da_t = kwargs["t"]
-
-    def set_data_array_time_index(self, index):
-        self.state.da_t_index = index
-
-    # -----------------------------------------------------
-    # State change callbacks
-    # -----------------------------------------------------
-
-    @change("dataset_path")
-    def _on_change_dataset_path(self, dataset_path, **kwargs):
-        if dataset_path is None or dataset_path == self.dataset_path:
+        if dataset_path is None:
             return
-        self.dataset_path = dataset_path
+
         self.state.ui_loading = True
         for available_dataset in self.state.available_datasets:
             if (
@@ -270,26 +203,32 @@ class DatasetBuilder:
             self.state.no_da_vars = True
         self.state.ui_loading = False
 
-    @change("da_active")
-    def _on_change_da_active(self, da_active, **kwargs):
-        if (
-            da_active is None
-            or not self.state.dataset_ready
-            or da_active == self.da_active
-        ):
+    def set_data_array_active_name(self, da_active):
+        if da_active != self.state.da_active:
+            self.state.da_active = da_active
+
+        if self.dataset is None or da_active is None:
             return
-        self.da_active = da_active
-        da = self.data_array
+        da = self.dataset[da_active]
+
         self.state.ui_axis_drawer = True
+        self.state.ui_error_message = None
         self.state.ui_expanded_coordinates = []
-        for key in da.coords.keys():
-            array_min = float(da.coords[key].min())
-            array_max = float(da.coords[key].max())
+        self.state.da_coordinates = []
+        for key in da.dims:
+            try:
+                array_min = float(da.coords[key].min())
+                array_max = float(da.coords[key].max())
+            except TypeError:
+                # Use index min and max when type is not numeric
+                array_min = 0
+                array_max = int(da.coords[key].size)
             coord_attrs = [
-                {"key": k, "value": v} for k, v in da.coords[key].attrs.items()
+                {"key": str(k), "value": str(v)}
+                for k, v in da.coords[key].attrs.items()
             ]
             coord_attrs.append({"key": "dtype", "value": str(da.coords[key].dtype)})
-            coord_attrs.append({"key": "length", "value": da.coords[key].size})
+            coord_attrs.append({"key": "length", "value": int(da.coords[key].size)})
             coord_attrs.append(
                 {
                     "key": "range",
@@ -308,30 +247,62 @@ class DatasetBuilder:
                 }
             )
             self.state.ui_expanded_coordinates.append(key),
-        self.auto_select_coordinates()
         self.state.dirty("da_coordinates", "ui_expanded_coordinates")
+        self.auto_select_coordinates()
+
         self.plotter.clear()
         self.plotter.view_isometric()
 
-    @change("da_x", "da_y", "da_z")
-    def _on_change_da_axis_names(self, da_x, da_y, da_z, **kwargs):
-        self.algorithm.x = da_x
-        self.algorithm.y = da_y
-        self.algorithm.z = da_z
-        self.mesh_changed()
+    def set_data_array_axis_names(self, **kwargs):
+        if "x" in kwargs and kwargs["x"] != self.state.da_x:
+            self.state.da_x = kwargs["x"]
+        if "y" in kwargs and kwargs["y"] != self.state.da_y:
+            self.state.da_y = kwargs["y"]
+        if "z" in kwargs and kwargs["z"] != self.state.da_z:
+            self.state.da_z = kwargs["z"]
+        if "t" in kwargs and kwargs["t"] != self.state.da_t:
+            self.state.da_t = kwargs["t"]
+            if self.dataset and self.state.da_active and self.state.da_t:
+                time_steps = self.dataset[self.state.da_active][self.state.da_t]
+                # Set the time_max in the state for the slider
+                self.state.da_t_max = len(time_steps) - 1
 
-    @change("da_t")
-    def _on_change_da_t_name(self, da_t, **kwargs):
-        self.algorithm.time = da_t
-        if self.dataset and self.state.da_active and da_t:
-            time_steps = self.dataset[self.state.da_active][da_t]
-            # Set the time_max in the state for the slider
-            self.state.da_t_max = len(time_steps) - 1
-            self.mesh_changed()
+    def set_data_array_time_index(self, index):
+        if index != self.state.da_t_index:
+            self.state.da_t_index = int(index)
 
-    @change("da_t_index")
-    def _on_change_da_t_index(self, da_t_index, **kwargs):
-        self.algorithm.time_index = int(da_t_index)
+    def set_data_array_coordinates(self, da_coordinates):
+        if self.state.da_coordinates != da_coordinates:
+            self.state.da_coordinates = da_coordinates
+        slicing = {}
+        for coord in da_coordinates:
+            slicing[coord["name"]] = [
+                coord["start"],
+                coord["stop"],
+                coord["step"],
+            ]
+        self.state.slicing = slicing
+
+    # -----------------------------------------------------
+    # State change callbacks
+    # -----------------------------------------------------
+
+    @change("dataset_path")
+    def _on_change_dataset_path(self, dataset_path, **kwargs):
+        self.set_dataset_path(dataset_path)
+
+    @change("da_active")
+    def _on_change_da_active(self, da_active, **kwargs):
+        self.set_data_array_active_name(da_active)
+        self.auto_select_coordinates()
+
+    @change("da_active", "da_x", "da_y", "da_z", "da_t", "da_t_index", "da_coordinates")
+    def _on_change_da_inputs(
+        self, da_active, da_x, da_y, da_z, da_t, da_t_index, da_coordinates, **kwargs
+    ):
+        self.set_data_array_axis_names(x=da_x, y=da_y, z=da_z, t=da_t)
+        self.set_data_array_time_index(da_t_index)
+        self.set_data_array_coordinates(da_coordinates)
         self.mesh_changed()
 
     @change("ui_action_name")
@@ -345,6 +316,9 @@ class DatasetBuilder:
     # -----------------------------------------------------
 
     def auto_select_coordinates(self):
+        if self.state.da_x or self.state.da_y or self.state.da_z or self.state.da_t:
+            # Some coordinates already assigned, don't auto-assign
+            return
         state_update = {}
         for coordinate in self.state.da_coordinates:
             name = coordinate["name"].lower()
@@ -364,24 +338,39 @@ class DatasetBuilder:
             self.state.update(state_update)
 
     def mesh_changed(self):
-        if self.state.da_active:
-            da = self.data_array
-            total_bytes = da.size * da.dtype.itemsize
-            exponents_map = {0: "bytes", 1: "KB", 2: "MB", 3: "GB"}
-            for exponent in sorted(exponents_map.keys(), reverse=True):
-                divisor = 1024**exponent
-                suffix = exponents_map[exponent]
-                if total_bytes > divisor:
-                    self.state.da_size = f"{round(total_bytes / divisor)} {suffix}"
-                    break
+        if self.dataset is None:
+            return
 
-            self.state.ui_unapplied_changes = True
+        # Update algorithm all at once
+        self.algorithm.data_array = self.dataset[self.state.da_active]
+        self.algorithm.slicing = self.state.slicing
+        self.algorithm.x = self.state.da_x
+        self.algorithm.y = self.state.da_y
+        self.algorithm.z = self.state.da_z
+        self.algorithm.time = self.state.da_t
+        self.algorithm.time_index = self.state.da_t_index
+
+        da = self.data_array
+        if self.state.da_active and da is not None:
+            total_bytes = da.size * da.dtype.itemsize
+        else:
+            total_bytes = 0
+        exponents_map = {0: "bytes", 1: "KB", 2: "MB", 3: "GB"}
+        for exponent in sorted(exponents_map.keys(), reverse=True):
+            divisor = 1024**exponent
+            suffix = exponents_map[exponent]
+            if total_bytes > divisor:
+                self.state.da_size = f"{round(total_bytes / divisor)} {suffix}"
+                break
+
+        self.state.ui_unapplied_changes = True
+        self.state.ui_loading = False
 
     def plot_mesh(self):
         self.plotter.clear()
         self.actor = self.plotter.add_mesh(
             self.mesh,
-            clim=self.data_range,
+            clim=self.algorithm.data_range,
         )
         self.plotter.view_isometric()
 
@@ -393,13 +382,7 @@ class DatasetBuilder:
         self.state.ui_unapplied_changes = False
 
         async def update_mesh():
-            self.mesh = self.data_array.pyvista.mesh(
-                self.algorithm.x,
-                self.algorithm.y,
-                self.algorithm.z,
-                self.algorithm.order,
-                self.algorithm.component,
-            )
+            self.mesh = self.algorithm.mesh
             self.plot_mesh()
 
         def mesh_updated(exception=None):
@@ -441,26 +424,27 @@ class DatasetBuilder:
         self.set_dataset_path(dataset_path=origin_config)
         if "active" in array_config:
             self.set_data_array_active_name(array_config["active"])
-        for axis in ["x", "y", "z", "t"]:
-            if axis in array_config:
-                self.state[f"da_{axis}"] = array_config[axis]
+        self.set_data_array_axis_names(**array_config)
         if "da_t_index" in array_config:
-            self.state.da_t_index = array_config["t_index"]
+            self.set_t_index(array_config["t_index"])
 
         if slices_config:
-            da_coordinates = self.state.da_coordinates
-            for coordinate in da_coordinates:
-                if coordinate["name"] in slices_config:
-                    start, stop, step = slices_config[coordinate["name"]]
-                    coordinate["start"] = start
-                    coordinate["stop"] = stop
-                    coordinate["step"] = step
-            self.state.dirty("da_coordinates")
+            new_coordinates = []
+            for coordinate in self.state.da_coordinates:
+                new_coordinate = coordinate.copy()
+                if new_coordinate["name"] in slices_config:
+                    start, stop, step = slices_config[new_coordinate["name"]]
+                    new_coordinate["start"] = start
+                    new_coordinate["stop"] = stop
+                    new_coordinate["step"] = step
+                new_coordinates.append(new_coordinate)
+            self.set_data_array_coordinates(new_coordinates)
 
         if ui_config:
             for key, value in ui_config.items():
                 self.state[f"ui_{key}"] = value
 
+        self.mesh_changed()
         self.state.update({"ui_action_name": None, "ui_selected_config_file": None})
 
     def export_config(self, config_file=None):
