@@ -1,5 +1,6 @@
 import json
 import os
+import pandas
 import pyvista
 import xarray
 from pathlib import Path
@@ -12,7 +13,6 @@ from trame.app import get_server
 from trame.widgets import html, client
 from trame.widgets import vuetify3 as vuetify
 
-from pan3d.pangeo_forge import get_catalog
 from pan3d.ui import AxisDrawer, MainDrawer, Toolbar, RenderOptions
 from pan3d.utils import initial_state, run_singleton_task, coordinate_auto_selection
 
@@ -39,14 +39,15 @@ class DatasetBuilder:
         self.plotter.set_background("lightgrey")
         self.dataset = None
         self.da = None
-        self.mesh = None
+        self._mesh = None
         self.actor = None
 
         self.ctrl.get_plotter = lambda: self.plotter
         self.ctrl.reset = self.reset
 
         if pangeo:
-            self.state.available_datasets += get_catalog()
+            with open("examples/pangeo_catalog.json") as f:
+                self.state.available_datasets += json.load(f)
 
         if dataset_path:
             self.state.dataset_path = dataset_path
@@ -69,6 +70,12 @@ class DatasetBuilder:
     @property
     def data_array(self):
         return self.algorithm.sliced_data_array
+
+    @property
+    def mesh(self):
+        if self._mesh is None:
+            self._mesh = self.algorithm.mesh
+        return self._mesh
 
     @property
     def viewer(self):
@@ -151,6 +158,7 @@ class DatasetBuilder:
         if dataset_path != self.state.dataset_path:
             self.state.dataset_path = dataset_path
 
+        self.dataset = None
         if dataset_path is None:
             return
 
@@ -179,9 +187,7 @@ class DatasetBuilder:
             self.dataset = xarray.tutorial.load_dataset(dataset_path)
         # reset algorithm
         self.algorithm = PyVistaXarraySource()
-        self.state.da_vars = [
-            {"name": k, "id": i} for i, k in enumerate(self.dataset.data_vars.keys())
-        ]
+
         self.state.da_attrs = [
             {"key": k, "value": v} for k, v in self.dataset.attrs.items()
         ]
@@ -192,38 +198,69 @@ class DatasetBuilder:
                 "value": str(dict(self.dataset.dims)),
             },
         )
-        self.state.da_coordinates = []
-        self.state.ui_expanded_coordinates = []
-        self.state.update(
-            dict(da_x=None, da_y=None, da_z=None, da_t=None, da_t_index=0)
-        )
+
+        self.state.da_vars = [
+            {"name": k, "id": i} for i, k in enumerate(self.dataset.data_vars.keys())
+        ]
+        self.state.da_vars_attrs = {
+            var["name"]: [
+                {"key": k, "value": v}
+                for k, v in self.dataset.data_vars[var["name"]].attrs.items()
+            ]
+            for var in self.state.da_vars
+        }
+
         self.state.dataset_ready = True
         if len(self.state.da_vars) > 0:
             self.set_data_array_active_name(self.state.da_vars[0]["name"])
         else:
             self.state.no_da_vars = True
+            self.set_data_array_active_name(None)
         self.state.ui_loading = False
 
     def set_data_array_active_name(self, da_active):
         if da_active != self.state.da_active:
             self.state.da_active = da_active
 
+        self.state.update(
+            dict(
+                da_x=None,
+                da_y=None,
+                da_z=None,
+                da_t=None,
+                da_t_index=0,
+                da_coordinates=[],
+                ui_expanded_coordinates=[],
+                ui_error_message=None,
+                ui_axis_drawer=False,
+                ui_current_time_string="",
+            )
+        )
         if self.dataset is None or da_active is None:
             return
-        da = self.dataset[da_active]
 
-        self.state.ui_axis_drawer = True
-        self.state.ui_error_message = None
-        self.state.ui_expanded_coordinates = []
-        self.state.da_coordinates = []
+        da = self.dataset[da_active]
         for key in da.dims:
-            try:
-                array_min = float(da.coords[key].min())
-                array_max = float(da.coords[key].max())
-            except TypeError:
-                # Use index min and max when type is not numeric
-                array_min = 0
-                array_max = int(da.coords[key].size)
+            current_coord = da.coords[key]
+            d = current_coord.dtype
+            array_min = current_coord.values[0]
+            array_max = current_coord.values[-1]
+
+            # make content serializable by its type
+            if d.kind in ["m", "M", "O"]:  # is timedelta or datetime
+                if not hasattr(array_min, "strftime"):
+                    array_min = pandas.to_datetime(array_min)
+                if not hasattr(array_max, "strftime"):
+                    array_max = pandas.to_datetime(array_max)
+                array_min = array_min.strftime("%b %d %Y %H:%M")
+                array_max = array_max.strftime("%b %d %Y %H:%M")
+            elif d.kind in ["i", "u"]:
+                array_min = int(array_min)
+                array_max = int(array_max)
+            elif d.kind in ["f", "c"]:
+                array_min = round(float(array_min), 2)
+                array_max = round(float(array_max), 2)
+
             coord_attrs = [
                 {"key": str(k), "value": str(v)}
                 for k, v in da.coords[key].attrs.items()
@@ -236,20 +273,24 @@ class DatasetBuilder:
                     "value": [array_min, array_max],
                 }
             )
-            self.state.da_coordinates.append(
-                {
-                    "name": key,
-                    "attrs": coord_attrs,
-                    "size": da.coords[key].size,
-                    "range": [array_min, array_max],
-                    "start": array_min,
-                    "stop": array_max,
-                    "step": 1,
-                }
-            )
-            self.state.ui_expanded_coordinates.append(key),
+            if key not in [c["name"] for c in self.state.da_coordinates]:
+                self.state.da_coordinates.append(
+                    {
+                        "name": key,
+                        "attrs": coord_attrs,
+                        "size": da.coords[key].size,
+                        "range": [array_min, array_max],
+                        "start": array_min,
+                        "stop": array_max,
+                        "step": 1,
+                    }
+                )
+            if key not in self.state.ui_expanded_coordinates:
+                self.state.ui_expanded_coordinates.append(key),
         self.state.dirty("da_coordinates", "ui_expanded_coordinates")
         self.auto_select_coordinates()
+        if len(self.state.da_coordinates) > 0:
+            self.state.ui_axis_drawer = True
 
         self.plotter.clear()
         self.plotter.view_isometric()
@@ -263,25 +304,28 @@ class DatasetBuilder:
             self.state.da_z = kwargs["z"]
         if "t" in kwargs and kwargs["t"] != self.state.da_t:
             self.state.da_t = kwargs["t"]
-            if self.dataset and self.state.da_active and self.state.da_t:
-                time_steps = self.dataset[self.state.da_active][self.state.da_t]
-                # Set the time_max in the state for the slider
-                self.state.da_t_max = len(time_steps) - 1
 
     def set_data_array_time_index(self, index):
-        if index != self.state.da_t_index:
+        if int(index) != self.state.da_t_index:
             self.state.da_t_index = int(index)
+        if self.dataset and self.state.da_active and self.state.da_t:
+            time_steps = self.dataset[self.state.da_active][self.state.da_t]
+            current_time = time_steps.values[self.state.da_t_index]
+            if not hasattr(current_time, "strftime"):
+                current_time = pandas.to_datetime(current_time)
+            self.state.ui_current_time_string = current_time.strftime("%b %d %Y %H:%M")
 
     def set_data_array_coordinates(self, da_coordinates):
         if self.state.da_coordinates != da_coordinates:
             self.state.da_coordinates = da_coordinates
         slicing = {}
         for coord in da_coordinates:
-            slicing[coord["name"]] = [
-                coord["start"],
-                coord["stop"],
-                coord["step"],
-            ]
+            if coord["name"] != self.state.da_t:
+                slicing[coord["name"]] = [
+                    coord["start"],
+                    coord["stop"],
+                    coord["step"],
+                ]
         self.state.slicing = slicing
 
     def set_render_scales(self, **kwargs):
@@ -313,7 +357,7 @@ class DatasetBuilder:
         if self.state.render_scalar_warp != scalar_warp:
             self.state.render_scalar_warp = scalar_warp
 
-        if self.mesh:
+        if self._mesh:
             self.plot_mesh()
 
     # -----------------------------------------------------
@@ -438,7 +482,7 @@ class DatasetBuilder:
         if self.state.render_transparency:
             args["opacity"] = self.state.render_transparency_function
 
-        mesh = self.mesh
+        mesh = self._mesh
         if self.state.render_scalar_warp:
             mesh = mesh.warp_by_scalar()
         self.actor = self.plotter.add_mesh(
@@ -457,7 +501,7 @@ class DatasetBuilder:
         self.state.ui_unapplied_changes = False
 
         async def update_mesh():
-            self.mesh = self.algorithm.mesh
+            self._mesh = self.algorithm.mesh
             self.plot_mesh()
 
         def mesh_updated(exception=None):

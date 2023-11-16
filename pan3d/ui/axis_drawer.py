@@ -11,6 +11,7 @@ class AxisDrawer(vuetify.VNavigationDrawer):
         coordinate_toggle_expansion_function,
         ui_axis_drawer="ui_axis_drawer",
         ui_expanded_coordinates="ui_expanded_coordinates",
+        ui_current_time_string="ui_current_time_string",
         da_active="da_active",
         da_coordinates="da_coordinates",
         da_x="da_x",
@@ -18,7 +19,6 @@ class AxisDrawer(vuetify.VNavigationDrawer):
         da_z="da_z",
         da_t="da_t",
         da_t_index="da_t_index",
-        da_t_max="da_t_max",
     ):
         super().__init__(
             v_model=ui_axis_drawer,
@@ -70,6 +70,7 @@ class AxisDrawer(vuetify.VNavigationDrawer):
                                         da_coordinates,
                                         f"{da_coordinates}.find((c) => c.name === {axis['name_var']})",
                                         ui_expanded_coordinates,
+                                        ui_current_time_string,
                                         coordinate_select_axis_function,
                                         coordinate_change_slice_function,
                                         coordinate_toggle_expansion_function,
@@ -97,6 +98,7 @@ class AxisDrawer(vuetify.VNavigationDrawer):
                                 da_coordinates,
                                 "coord",
                                 ui_expanded_coordinates,
+                                ui_current_time_string,
                                 coordinate_select_axis_function,
                                 coordinate_change_slice_function,
                                 coordinate_toggle_expansion_function,
