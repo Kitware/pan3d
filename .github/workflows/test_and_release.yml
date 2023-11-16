@@ -81,10 +81,20 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      # https://docs.pypi.org/trusted-publishers/using-a-publisher/
-      - name: Publish to PyPI
+  # https://docs.pypi.org/trusted-publishers/using-a-publisher/
+  publish:
+    needs: [
+      release,
+    ]
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        if: steps.release.outputs.released == 'true'
-        environment: release
-        permissions:
-          id-token: write
