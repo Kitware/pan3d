@@ -39,7 +39,7 @@ class DatasetBuilder:
         self.plotter.set_background("lightgrey")
         self.dataset = None
         self.da = None
-        self.mesh = None
+        self._mesh = None
         self.actor = None
 
         self.ctrl.get_plotter = lambda: self.plotter
@@ -72,10 +72,10 @@ class DatasetBuilder:
         return self.algorithm.sliced_data_array
 
     @property
-    def pv_mesh(self):
-        if self.mesh is None:
-            self.mesh = self.algorithm.mesh
-        return self.mesh
+    def mesh(self):
+        if self._mesh is None:
+            self._mesh = self.algorithm.mesh
+        return self._mesh
 
     @property
     def viewer(self):
@@ -357,7 +357,7 @@ class DatasetBuilder:
         if self.state.render_scalar_warp != scalar_warp:
             self.state.render_scalar_warp = scalar_warp
 
-        if self.mesh:
+        if self._mesh:
             self.plot_mesh()
 
     # -----------------------------------------------------
@@ -482,7 +482,7 @@ class DatasetBuilder:
         if self.state.render_transparency:
             args["opacity"] = self.state.render_transparency_function
 
-        mesh = self.mesh
+        mesh = self._mesh
         if self.state.render_scalar_warp:
             mesh = mesh.warp_by_scalar()
         self.actor = self.plotter.add_mesh(
@@ -501,7 +501,7 @@ class DatasetBuilder:
         self.state.ui_unapplied_changes = False
 
         async def update_mesh():
-            self.mesh = self.algorithm.mesh
+            self._mesh = self.algorithm.mesh
             self.plot_mesh()
 
         def mesh_updated(exception=None):
