@@ -19,7 +19,7 @@ dependencies = [
     "xarray",
     "zarr",
 ]
-requires-python = ">=3"
+requires-python = ">=3.7"
 readme = "README.rst"
 license = {text = "Apache Software License"}
 keywords = ["Python", "Interactive", "Web", "Application", "Framework"]
