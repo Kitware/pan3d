@@ -47,5 +47,5 @@ build-backend = "setuptools.build_meta"
 
 [tool.semantic_release]
 version_pattern = [
-    "setup.cfg:version = (\d+\.\d+\.\d+)",
+    "setup.cfg:version = (\\d+\\.\\d+\\.\\d+)",
 ]
