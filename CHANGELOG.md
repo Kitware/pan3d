@@ -316,7 +316,7 @@ Incorporate Pangeo Forge data ([`c589f69`](https://github.com/Kitware/pan3d/comm
 
 * Clear plotter on reset ([`da773c7`](https://github.com/Kitware/pan3d/commit/da773c776929e1e63dea3e4558efde4f39715e76))
 
-* Add dataset dimensions to data atrributes table ([`31c7136`](https://github.com/Kitware/pan3d/commit/31c713608dcd2400d6fa7ec7e4e3089acfed1245))
+* Add dataset dimensions to data attributes table ([`31c7136`](https://github.com/Kitware/pan3d/commit/31c713608dcd2400d6fa7ec7e4e3089acfed1245))
 
 * Correct label on Xarray examples ([`a5896fc`](https://github.com/Kitware/pan3d/commit/a5896fc634940e2468b6caab668e65da52aef9a2))
 

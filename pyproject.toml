@@ -1,0 +1,53 @@
+[project]
+name = "pan3d"
+version = "1.0.0"
+description = "Utility package for processing and visualizing 3D datasets"
+authors = [
+    {name = "Kitware Inc."},
+]
+dependencies = [
+    "dask",
+    "fsspec",
+    "matplotlib",
+    "netCDF4",
+    "pyvista",
+    "pyvista-xarray",
+    "trame",
+    "trame-vtk",
+    "trame-vuetify",
+    "vtk",
+    "xarray",
+    "zarr",
+]
+requires-python = ">=3.7"
+readme = "README.rst"
+license = {text = "Apache Software License"}
+keywords = ["Python", "Interactive", "Web", "Application", "Framework"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "License :: OSI Approved :: Apache Software License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.scripts]
+pan3d-viewer = "pan3d.__main__:main"
+
+[project.entry-points.jupyter_serverproxy_servers]
+pan3d-viewer = "pan3d.jupyter:jupyter_proxy_info"
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["pan3d", "pan3d.ui"]
+
+[tool.semantic_release]
+version_pattern = [
+    "setup.cfg:version = (\\d+\\.\\d+\\.\\d+)",
+]
