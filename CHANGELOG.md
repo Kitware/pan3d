@@ -2,7 +2,36 @@
 
 
 
-## v0.0.0 (2023-11-16)
+## v0.0.1 (2023-11-17)
+
+### Ci
+
+* ci(pyproject.toml): bump python requirement to 3.7 ([`bffff73`](https://github.com/Kitware/pan3d/commit/bffff73681a051707ed5a100e8e86bebec4a030b))
+
+### Fix
+
+* fix(setup): specify packages list to override automatic packages discovery ([`b6c3c73`](https://github.com/Kitware/pan3d/commit/b6c3c73fed0b6844946aa6882c7d54e2ebb2e724))
+
+* fix(pyproject.toml): escape backslash characters in version pattern ([`8ab1963`](https://github.com/Kitware/pan3d/commit/8ab1963197968eb5d90a154c5ff66adb2bdeb6a1))
+
+* fix(release): add a job to build dist folder ([`f3c1e1d`](https://github.com/Kitware/pan3d/commit/f3c1e1d878402cdcd85a49407c1c12f8e1303b82))
+
+* fix(pyproject.toml): semantic-release v8 does not support setup.cfg ([`67c121b`](https://github.com/Kitware/pan3d/commit/67c121ba049b9e02f668ac51becd24c7fb60a60f))
+
+* fix(changelog): change misspelled word ([`bc772a0`](https://github.com/Kitware/pan3d/commit/bc772a0d14feb5d7690eefccd6b94e3d0670e6cf))
+
+### Refactor
+
+* refactor(setup): delete setup.cfg ([`a59ef67`](https://github.com/Kitware/pan3d/commit/a59ef6764bde3426dae90feee312d18fc22c6927))
+
+### Unknown
+
+* Merge pull request #39 from Kitware/fix-release-job
+
+Fix release job ([`b082319`](https://github.com/Kitware/pan3d/commit/b082319dc6acfaae57f3155c3f33283482dd42cc))
+
+
+## v0.0.0 (2023-11-17)
 
 ### Unknown
 
@@ -316,7 +345,7 @@ Incorporate Pangeo Forge data ([`c589f69`](https://github.com/Kitware/pan3d/comm
 
 * Clear plotter on reset ([`da773c7`](https://github.com/Kitware/pan3d/commit/da773c776929e1e63dea3e4558efde4f39715e76))
 
-* Add dataset dimensions to data attributes table ([`31c7136`](https://github.com/Kitware/pan3d/commit/31c713608dcd2400d6fa7ec7e4e3089acfed1245))
+* Add dataset dimensions to data atrributes table ([`31c7136`](https://github.com/Kitware/pan3d/commit/31c713608dcd2400d6fa7ec7e4e3089acfed1245))
 
 * Correct label on Xarray examples ([`a5896fc`](https://github.com/Kitware/pan3d/commit/a5896fc634940e2468b6caab668e65da52aef9a2))
 
