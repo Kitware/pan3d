@@ -1,2 +1,2 @@
 [codespell]
-skip = **/package-lock.json
+skip = CHANGELOG.md
