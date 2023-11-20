@@ -579,11 +579,10 @@ class DatasetBuilder:
 
         da_coordinates = self.state.da_coordinates
         for coordinate in da_coordinates:
-            if (
-                coordinate.get('name') != self.state.da_t and
-                (coordinate.get("start")
+            if coordinate.get("name") != self.state.da_t and (
+                coordinate.get("start")
                 or coordinate.get("stop")
-                or coordinate.get("step"))
+                or coordinate.get("step")
             ):
                 if "data_slices" not in config:
                     config["data_slices"] = {}
