@@ -446,6 +446,7 @@ class DatasetBuilder:
     def mesh_changed(self):
         if self.dataset is None:
             return
+        self._mesh = None
 
         # Update algorithm all at once
         self.algorithm.data_array = self.dataset[self.state.da_active]
@@ -574,15 +575,15 @@ class DatasetBuilder:
         for axis in ["x", "y", "z", "t"]:
             if self.state[f"da_{axis}"]:
                 config["data_array"][axis] = self.state[f"da_{axis}"]
-        if self.state.da_t_index:
-            config["data_array"]["t_index"] = self.state.da_t_index
+        config["data_array"]["t_index"] = self.state.da_t_index
 
         da_coordinates = self.state.da_coordinates
         for coordinate in da_coordinates:
             if (
-                coordinate.get("start")
+                coordinate.get('name') != self.state.da_t and
+                (coordinate.get("start")
                 or coordinate.get("stop")
-                or coordinate.get("step")
+                or coordinate.get("step"))
             ):
                 if "data_slices" not in config:
                     config["data_slices"] = {}
