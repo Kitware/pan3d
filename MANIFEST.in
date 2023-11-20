@@ -1,0 +1,3 @@
+include README.rst
+include LICENSE
+include pan3d/ui/custom.css
