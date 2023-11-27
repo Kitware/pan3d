@@ -5,9 +5,15 @@
         "x": "longitude",
         "y": "latitude",
         "z": "level",
-        "t": "month"
+        "t": "month",
+        "t_index": 0
     },
     "data_slices": {
+        "level": [
+            200,
+            850,
+            1
+        ],
         "latitude": [
             -90,
             0,
@@ -17,26 +23,11 @@
             -180,
             0,
             10
-        ],
-        "level": [
-            200,
-            850,
-            1
-        ],
-        "month": [
-            0,
-            7,
-            1
         ]
     },
     "ui": {
-        "expanded_coordinates": [
-            "longitude",
-            "latitude",
-            "level",
-            "month"
-        ],
         "main_drawer": true,
-        "axis_drawer": true
+        "axis_drawer": true,
+        "expanded_coordinates": []
     }
 }

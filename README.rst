@@ -22,7 +22,7 @@ Run the application
 
 .. code-block:: console
 
-    pan3d-viewer --data /path/to/directory.zarr
+    pan3d-viewer --dataset=/path/to/directory.zarr
 
 
 Requires

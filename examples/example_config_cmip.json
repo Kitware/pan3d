@@ -1,42 +1,27 @@
 {
-    "data_origin": "https://ncsa.osn.xsede.org/Pangeo/pangeo-forge/cmip6-feedstock/test_full_depth.zarr",
+    "data_origin": "https://ncsa.osn.xsede.org/Pangeo/pangeo-forge/cmip6-feedstock/test_surface.zarr",
     "data_array": {
-        "active": "so",
+        "active": "zos",
         "x": "i",
         "y": "j",
-        "z": "lev",
-        "t": "time"
+        "t": "time",
+        "t_index": 0
     },
     "data_slices": {
-        "time": [
-            0,
-            1980,
-            1
-        ],
-        "lev": [
-            3.0467727184295654,
-            10,
-            5
-        ],
         "j": [
             0,
-            10,
+            290,
             1
         ],
         "i": [
             0,
-            10,
+            359,
             1
         ]
     },
     "ui": {
         "main_drawer": true,
         "axis_drawer": true,
-        "expanded_coordinates": [
-            "i",
-            "j",
-            "lev",
-            "time"
-        ]
+        "expanded_coordinates": []
     }
 }
