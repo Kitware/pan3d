@@ -2,6 +2,43 @@
 
 
 
+## v0.1.0 (2023-11-27)
+
+### Build
+
+* build(setup): add MANIFEST.in and include package data ([`ab1bcea`](https://github.com/Kitware/pan3d/commit/ab1bcea571fe23c862b6ad8e045277cc22d6930f))
+
+### Documentation
+
+* docs(cli): Rename `dataset_path` arg to `dataset` ([`35fb509`](https://github.com/Kitware/pan3d/commit/35fb509cd7b63a1bec54927c85597eca20727410))
+
+### Feature
+
+* feat(examples): add notebook demonstrating use of `builder.mesh` with pyvista rendering ([`e7d6d74`](https://github.com/Kitware/pan3d/commit/e7d6d7427fd60c91e8ea69be04e15cbcfa7608a8))
+
+### Fix
+
+* fix(lint): run black ([`9fd1b99`](https://github.com/Kitware/pan3d/commit/9fd1b99510f16b27fd2aacb2268a7e62665453a8))
+
+* fix(examples): update notebooks and add requirements.txt ([`1469cb6`](https://github.com/Kitware/pan3d/commit/1469cb60ced0f2ab7849d7b95c22048195647a79))
+
+* fix(dataset_builder): update export_config and mesh_changed functions ([`340a55f`](https://github.com/Kitware/pan3d/commit/340a55f1ac788e52c0fc67234c71014d55b794fb))
+
+### Test
+
+* test(export): re-export `example_config_xarray.json` ([`3c76898`](https://github.com/Kitware/pan3d/commit/3c76898afb56019c7d81c7e97dde8976377f3c45))
+
+* test(pre-commit): omit changelog from codespell ([`b1e79f8`](https://github.com/Kitware/pan3d/commit/b1e79f87e5598ff6d426a3305d498732bffd7f45))
+
+* test(export): remove time slicing to match exported config ([`84bc6a3`](https://github.com/Kitware/pan3d/commit/84bc6a387b50e4eb0978fdf1001490ceb9425de9))
+
+### Unknown
+
+* Merge pull request #40 from Kitware/packaging
+
+Examples &amp; Packaging ([`762748e`](https://github.com/Kitware/pan3d/commit/762748e0350c883671ab6a26bf26724b14a2218b))
+
+
 ## v0.0.1 (2023-11-17)
 
 ### Ci
