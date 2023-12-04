@@ -2,6 +2,31 @@
 
 
 
+## v0.1.1 (2023-12-04)
+
+### Documentation
+
+* docs(version): use dynamic version in pyproject.toml ([`3a64c19`](https://github.com/Kitware/pan3d/commit/3a64c198f9d2b075bd0beff22b81065545566902))
+
+### Fix
+
+* fix(requirements): add trame-jupyter-extension to requirements.txt ([`52a38b4`](https://github.com/Kitware/pan3d/commit/52a38b44f95d6cc523eb5cf856e5cad5fa9c7fe6))
+
+* fix(setup): use Dockerfile to specify uninstall of default vtk before install of vtk-osmesa ([`0577cf4`](https://github.com/Kitware/pan3d/commit/0577cf4c5f14dd73bec25bd9162cc09e857d1ffb))
+
+* fix(setup): add vtk-osmesa to examples requirements for binder ([`6cfe167`](https://github.com/Kitware/pan3d/commit/6cfe167d01fedf842bff5b1207d9bd584e8e69fb))
+
+### Unknown
+
+* Merge pull request #42 from Kitware/vtk-osmesa
+
+Add `vtk-osmesa` to requirements for binder ([`7fd6657`](https://github.com/Kitware/pan3d/commit/7fd6657c55ad65d3d12fc03b6593b24ad1894833))
+
+* Merge pull request #41 from Kitware/dynamic-version
+
+Use dynamic version in pyproject.toml ([`8e2be28`](https://github.com/Kitware/pan3d/commit/8e2be28a40a76da1a1c032341e18042d9bcfbe0d))
+
+
 ## v0.1.0 (2023-11-27)
 
 ### Build
