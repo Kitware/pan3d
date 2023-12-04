@@ -1,2 +1,4 @@
 pan3d
 imageio
+--extra-index-url https://wheels.vtk.org
+vtk-osmesa
