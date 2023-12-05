@@ -76,13 +76,10 @@ jobs:
         build
         --user
     - run: python3 -m build
-    - uses: actions/upload-artifact@v3
-      with:
-        name: python-package-distributions
-        path: dist/
 
   release:
     needs: [
+      build,
       pre-commit,
       pytest,
     ]
@@ -102,7 +99,6 @@ jobs:
   # https://docs.pypi.org/trusted-publishers/using-a-publisher/
   publish:
     needs: [
-      build,
       release,
     ]
     name: Publish to PyPI
@@ -114,10 +110,7 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - uses: actions/download-artifact@v3
-        with:
-          name: python-package-distributions
-          path: dist/
-
+      - name: Build dist
+        run: python3 -m build
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
