@@ -10,3 +10,5 @@ COPY . ${HOME}
 WORKDIR ${HOME}
 RUN pip install -r requirements.txt
 RUN pip install --extra-index-url https://wheels.vtk.org vtk-osmesa
+
+USER ${NB_USER}
