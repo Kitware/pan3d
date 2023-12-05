@@ -2,6 +2,39 @@
 
 
 
+## v0.1.2 (2023-12-05)
+
+### Build
+
+* build: remove setuptools-scm, use __version__ in setup.py ([`5da2edf`](https://github.com/Kitware/pan3d/commit/5da2edf0a6a6411359b73c78e84b8c6b17cf034f))
+
+### Ci
+
+* ci: add `contents:write` to permissions in release job ([`a1b2a11`](https://github.com/Kitware/pan3d/commit/a1b2a118e65f87e2f2e386f0dca08545cd4c9046))
+
+* ci: combine build, release, publish jobs into one release job with 3 steps ([`43bfff8`](https://github.com/Kitware/pan3d/commit/43bfff81ca595b69aaadc2e287ba2bdda9041cb6))
+
+* ci: rebuild before PyPI publish ([`4ef460e`](https://github.com/Kitware/pan3d/commit/4ef460e296187d668893b6749a18c56598a7c960))
+
+### Fix
+
+* fix(setup): Add setuptools_scm to pyproject.toml; use git tag for version in build step ([`1cb09a4`](https://github.com/Kitware/pan3d/commit/1cb09a48e9e0ad817f998b658e8681182674ba62))
+
+### Style
+
+* style: prefer double-quotes ([`9dcb236`](https://github.com/Kitware/pan3d/commit/9dcb23601323d2bca4df841978b39ea2d08294d5))
+
+### Unknown
+
+* Merge pull request #44 from Kitware/publish-permissions
+
+Release job permissions ([`132ddb9`](https://github.com/Kitware/pan3d/commit/132ddb98a3b87f78b659e3e3102de15ad430802f))
+
+* Merge pull request #43 from Kitware/build-version
+
+Fix build versioning ([`7429fb3`](https://github.com/Kitware/pan3d/commit/7429fb33568932a164164e5925aa24038bc1b92d))
+
+
 ## v0.1.1 (2023-12-04)
 
 ### Documentation
