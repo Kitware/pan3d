@@ -41,15 +41,14 @@ pan3d-viewer = "pan3d.__main__:main"
 pan3d-viewer = "pan3d.jupyter:jupyter_proxy_info"
 
 [build-system]
-requires = ["setuptools>=61", "wheel", "setuptools_scm>=8"]
+requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["pan3d", "pan3d.ui"]
 
-[tool.setuptools_scm]
-
 [tool.semantic_release]
+version_variables = ["setup.py:__version__"]
 version_pattern = [
     "setup.cfg:version = (\\d+\\.\\d+\\.\\d+)",
 ]
