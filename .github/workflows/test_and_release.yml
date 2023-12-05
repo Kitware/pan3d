@@ -63,32 +63,21 @@ jobs:
         pytest -s ./tests
       working-directory: .
 
-  build:
-    name: Build distribution
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v4
-    - run: >-
-        python3 -m
-        pip install
-        build
-        --user
-    - run: python3 -m build
-
   release:
     needs: [
-      build,
       pre-commit,
       pytest,
     ]
     runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
 
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      - uses: actions/setup-python@v4
 
       # https://python-semantic-release.readthedocs.io/en/latest/migrating_from_v7.html#repurposing-of-version-and-publish-commands
       - name: Python Semantic Release
@@ -96,21 +85,10 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
-  # https://docs.pypi.org/trusted-publishers/using-a-publisher/
-  publish:
-    needs: [
-      release,
-    ]
-    name: Publish to PyPI
-    runs-on: ubuntu-latest
-    environment: release
-    permissions:
-      id-token: write
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+      - run: python3 -m pip install build --user
       - name: Build dist
         run: python3 -m build
+
+      # https://docs.pypi.org/trusted-publishers/using-a-publisher/
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
