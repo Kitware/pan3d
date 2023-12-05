@@ -48,6 +48,7 @@ build-backend = "setuptools.build_meta"
 packages = ["pan3d", "pan3d.ui"]
 
 [tool.semantic_release]
+version_variables = ["setup.py:__version__"]
 version_pattern = [
     "setup.cfg:version = (\\d+\\.\\d+\\.\\d+)",
 ]
