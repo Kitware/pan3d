@@ -2,4 +2,5 @@ libgl1
 libgl1-mesa-glx
 libosmesa6-dev
 gcc
+xvfb
 python3-opencv
