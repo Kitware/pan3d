@@ -1,9 +1,0 @@
-libgl1
-libgl1-mesa-glx
-mesa-libGL
-libosmesa6-dev
-mesa-libOSMesa-devel
-mesa-libOSMesa
-mesa-dri-drivers
-gcc
-python3-opencv
