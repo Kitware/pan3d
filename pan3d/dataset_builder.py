@@ -14,7 +14,12 @@ from trame.widgets import html, client
 from trame.widgets import vuetify3 as vuetify
 
 from pan3d.ui import AxisDrawer, MainDrawer, Toolbar, RenderOptions
-from pan3d.utils import initial_state, is_cloud_env, run_singleton_task, coordinate_auto_selection
+from pan3d.utils import (
+    initial_state,
+    is_cloud_env,
+    run_singleton_task,
+    coordinate_auto_selection,
+)
 
 BASE_DIR = Path(__file__).parent
 CSS_FILE = BASE_DIR / "ui" / "custom.css"
@@ -56,7 +61,7 @@ class DatasetBuilder:
             self.state.update(state)
 
         if is_cloud_env():
-            pyvista.global_theme.trame.default_mode = 'client'
+            pyvista.global_theme.trame.default_mode = "client"
 
     # -----------------------------------------------------
     # Properties
