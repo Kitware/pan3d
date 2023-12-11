@@ -1,4 +1,3 @@
-import json
 from trame.widgets import html, vuetify3 as vuetify
 
 
@@ -143,10 +142,10 @@ class CoordinateConfigure(vuetify.VCard):
 
                         vuetify.VCardSubtitle("Assign axis", classes="mt-3")
                         with vuetify.VSelect(
-                            items=(json.dumps(axes),),
+                            items=(str(axes),),
                             item_title="label",
                             item_value="name_var",
-                            model_value=(axis_info or "undefined",),
+                            model_value=(str(axis_info) or "undefined",),
                             clearable=True,
                             click_clear=(
                                 coordinate_select_axis_function,
