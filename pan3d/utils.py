@@ -1,4 +1,5 @@
 import asyncio
+import os
 import threading
 
 
@@ -48,6 +49,12 @@ def run_singleton_task(
         # TODO: Can the task be truly interrupted and cancelled?
         singleton_task.cancel()
     singleton_task = asyncio.run_coroutine_threadsafe(coroutine(), task_loop)
+
+
+def is_cloud_env():
+    cloud_env_keys = ['binder']
+    jupyterhub_base_url = os.environ.get('JUPYTERHUB_BASE_URL')
+    return jupyterhub_base_url and any(k in jupyterhub_base_url for k in cloud_env_keys)
 
 
 initial_state = {
