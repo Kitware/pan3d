@@ -1,3 +1,4 @@
+import json
 from trame.widgets import html, vuetify3 as vuetify
 
 
@@ -142,7 +143,7 @@ class CoordinateConfigure(vuetify.VCard):
 
                         vuetify.VCardSubtitle("Assign axis", classes="mt-3")
                         with vuetify.VSelect(
-                            items=(axes,),
+                            items=(json.dumps(axes),),
                             item_title="label",
                             item_value="name_var",
                             model_value=(axis_info or "undefined",),
@@ -163,9 +164,8 @@ class CoordinateConfigure(vuetify.VCard):
                                     $event
                                 ]""",
                             ),
-                        ) as select:
+                        ):
                             with vuetify.Template(
                                 v_slot_selection="{ props, item, parent }"
                             ):
                                 html.Span(axis_info["label"] if axis_info else "")
-                            print(select)
