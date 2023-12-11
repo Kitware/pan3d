@@ -163,8 +163,9 @@ class CoordinateConfigure(vuetify.VCard):
                                     $event
                                 ]""",
                             ),
-                        ):
+                        ) as select:
                             with vuetify.Template(
                                 v_slot_selection="{ props, item, parent }"
                             ):
                                 html.Span(axis_info["label"] if axis_info else "")
+                            print(select)
