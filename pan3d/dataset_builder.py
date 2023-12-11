@@ -232,7 +232,7 @@ class DatasetBuilder:
         ]
         self.state.da_vars_attrs = {
             var["name"]: [
-                {"key": k, "value": v}
+                {"key": str(k), "value": str(v)}
                 for k, v in self.dataset.data_vars[var["name"]].attrs.items()
             ]
             for var in self.state.da_vars
