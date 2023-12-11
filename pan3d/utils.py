@@ -52,8 +52,8 @@ def run_singleton_task(
 
 
 def is_cloud_env():
-    cloud_env_keys = ['binder']
-    jupyterhub_base_url = os.environ.get('JUPYTERHUB_BASE_URL')
+    cloud_env_keys = ["binder"]
+    jupyterhub_base_url = os.environ.get("JUPYTERHUB_BASE_URL")
     return jupyterhub_base_url and any(k in jupyterhub_base_url for k in cloud_env_keys)
 
 

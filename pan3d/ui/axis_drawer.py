@@ -52,7 +52,7 @@ class AxisDrawer(vuetify.VNavigationDrawer):
         ]
         with self:
             with vuetify.VExpansionPanels(
-                model_value=('[0, 1]',),
+                model_value=("[0, 1]",),
                 multiple=True,
                 accordion=True,
                 v_if=da_coordinates,
