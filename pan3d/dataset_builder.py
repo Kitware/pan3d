@@ -254,12 +254,11 @@ class DatasetBuilder:
             self.set_data_array_active_name(None)
         self.state.ui_loading = False
 
-    def set_data_array_active_name(self, da_active: str) -> None:
-        """Set the name of the current data array within the current dataset.
+    def set_data_array_active_name(self, da_active):
+        if da_active == self.da:
+            return
 
-        Parameters:
-            da_active: The name of a data array that exists in the current dataset.
-        """
+        self.da = da_active
         if da_active != self.state.da_active:
             self.state.da_active = da_active
 
@@ -449,7 +448,6 @@ class DatasetBuilder:
     @change("da_active")
     def _on_change_da_active(self, da_active, **kwargs):
         self.set_data_array_active_name(da_active)
-        self.auto_select_coordinates()
 
     @change("da_active", "da_x", "da_y", "da_z", "da_t", "da_t_index", "da_coordinates")
     def _on_change_da_inputs(
