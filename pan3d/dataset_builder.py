@@ -136,6 +136,7 @@ class DatasetBuilder:
                         with plotter_ui(
                             self.ctrl.get_plotter(),
                             interactive_ratio=1,
+                            collapse_menu=True,
                         ) as plot_view:
                             self.ctrl.view_update = plot_view.update
                             self.ctrl.reset_camera = plot_view.reset_camera
