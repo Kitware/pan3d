@@ -21,7 +21,7 @@ class AxisDrawer(vuetify.VNavigationDrawer):
         da_t_index="da_t_index",
     ):
         super().__init__(
-            v_model=ui_axis_drawer,
+            v_model=(ui_axis_drawer,),
             classes="pa-2",
             width="350",
             location="right",
@@ -55,7 +55,7 @@ class AxisDrawer(vuetify.VNavigationDrawer):
                 model_value=("[0, 1]",),
                 multiple=True,
                 accordion=True,
-                v_if=da_coordinates,
+                v_if=(da_coordinates,),
             ):
                 with vuetify.VExpansionPanel(title="Assigned Coordinates"):
                     with vuetify.VExpansionPanelText():
@@ -63,7 +63,7 @@ class AxisDrawer(vuetify.VNavigationDrawer):
                             with vuetify.VSheet(classes="d-flex"):
                                 html.Span(axis["label"], classes="pt-2")
                                 with html.Div(
-                                    v_show=f"{axis['name_var']}", style="width: 100%"
+                                    v_show=(f"{axis['name_var']}",), style="width: 100%"
                                 ):
                                     CoordinateConfigure(
                                         axes,
@@ -77,7 +77,7 @@ class AxisDrawer(vuetify.VNavigationDrawer):
                                         axis_info=axis,
                                     )
                                 with vuetify.VCard(
-                                    v_show=f"!{axis['name_var']}",
+                                    v_show=(f"!{axis['name_var']}",),
                                     height="45",
                                     classes="ml-3 mb-1",
                                     style="flex-grow: 1",
@@ -90,8 +90,10 @@ class AxisDrawer(vuetify.VNavigationDrawer):
                 with vuetify.VExpansionPanel(title="Available Coordinates"):
                     with vuetify.VExpansionPanelText():
                         with html.Div(
-                            v_for="coord in da_coordinates",
-                            v_show=f"![{da_x}, {da_y}, {da_z}, {da_t}].includes(coord.name)",
+                            v_for=("coord in da_coordinates",),
+                            v_show=(
+                                f"![{da_x}, {da_y}, {da_z}, {da_t}].includes(coord.name)",
+                            ),
                         ):
                             CoordinateConfigure(
                                 axes,
@@ -105,10 +107,12 @@ class AxisDrawer(vuetify.VNavigationDrawer):
                             )
                         html.Span(
                             "No coordinates remain.",
-                            v_show=f"""
+                            v_show=(
+                                f"""
                                 da_coordinates.every(
                                     (c) => [{da_x}, {da_y}, {da_z}, {da_t}].includes(c.name)
                                 )
                             """,
+                            ),
                             classes="mx-5",
                         )
