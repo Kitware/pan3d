@@ -126,7 +126,7 @@ class DatasetBuilder:
                     coordinate_change_slice_function=self._coordinate_change_slice,
                     coordinate_toggle_expansion_function=self._coordinate_toggle_expansion,
                 )
-                with vuetify.VMain(v_show="da_active"):
+                with vuetify.VMain(v_show=("da_active",)):
                     vuetify.VBanner(
                         "{{ ui_error_message }}",
                         v_show=("ui_error_message",),
