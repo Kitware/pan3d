@@ -14,7 +14,12 @@ from trame.widgets import html, client
 from trame.widgets import vuetify3 as vuetify
 
 from pan3d.ui import AxisDrawer, MainDrawer, Toolbar, RenderOptions
-from pan3d.utils import initial_state, run_singleton_task, coordinate_auto_selection
+from pan3d.utils import (
+    initial_state,
+    is_cloud_env,
+    run_singleton_task,
+    coordinate_auto_selection,
+)
 
 BASE_DIR = Path(__file__).parent
 CSS_FILE = BASE_DIR / "ui" / "custom.css"
@@ -54,6 +59,9 @@ class DatasetBuilder:
             self.set_dataset_path(dataset_path=dataset_path)
         if state:
             self.state.update(state)
+
+        if is_cloud_env():
+            pyvista.global_theme.trame.default_mode = "client"
 
     # -----------------------------------------------------
     # Properties
@@ -95,7 +103,7 @@ class DatasetBuilder:
                     coordinate_change_slice_function=self.coordinate_change_slice,
                     coordinate_toggle_expansion_function=self.coordinate_toggle_expansion,
                 )
-                with vuetify.VMain(v_show="da_active"):
+                with vuetify.VMain(v_show=("da_active",)):
                     vuetify.VBanner(
                         "{{ ui_error_message }}",
                         v_show=("ui_error_message",),
@@ -105,6 +113,7 @@ class DatasetBuilder:
                         with plotter_ui(
                             self.ctrl.get_plotter(),
                             interactive_ratio=1,
+                            collapse_menu=True,
                         ) as plot_view:
                             self.ctrl.view_update = plot_view.update
                             self.ctrl.reset_camera = plot_view.reset_camera
@@ -204,7 +213,7 @@ class DatasetBuilder:
         ]
         self.state.da_vars_attrs = {
             var["name"]: [
-                {"key": k, "value": v}
+                {"key": str(k), "value": str(v)}
                 for k, v in self.dataset.data_vars[var["name"]].attrs.items()
             ]
             for var in self.state.da_vars
@@ -219,6 +228,10 @@ class DatasetBuilder:
         self.state.ui_loading = False
 
     def set_data_array_active_name(self, da_active):
+        if da_active == self.da:
+            return
+
+        self.da = da_active
         if da_active != self.state.da_active:
             self.state.da_active = da_active
 
@@ -371,7 +384,6 @@ class DatasetBuilder:
     @change("da_active")
     def _on_change_da_active(self, da_active, **kwargs):
         self.set_data_array_active_name(da_active)
-        self.auto_select_coordinates()
 
     @change("da_active", "da_x", "da_y", "da_z", "da_t", "da_t_index", "da_coordinates")
     def _on_change_da_inputs(

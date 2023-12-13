@@ -27,7 +27,7 @@ class RenderOptions(vuetify.VMenu):
                 ],
             ):
                 vuetify.VBtn(
-                    v_bind="props",
+                    v_bind=("props",),
                     size="small",
                     icon="mdi-dots-vertical",
                     style="position: absolute; right: 20px; top: 20px; z-index:2",
@@ -35,26 +35,26 @@ class RenderOptions(vuetify.VMenu):
             with vuetify.VCard(classes="pa-3"):
                 vuetify.VSelect(
                     label="Colormap",
-                    v_model=colormap,
+                    v_model=(colormap,),
                     items=(colormap_options,),
                     density="compact",
                 )
                 vuetify.VCheckbox(
-                    label="Transparency", v_model=transparency, density="compact"
+                    label="Transparency", v_model=(transparency,), density="compact"
                 )
                 vuetify.VSelect(
                     label="Transparency Function",
                     v_show=(transparency,),
-                    v_model=transparency_function,
+                    v_model=(transparency_function,),
                     items=(transparency_function_options,),
                     density="compact",
                 )
                 vuetify.VCheckbox(
-                    label="Warp by Scalars", v_model=scalar_warp, density="compact"
+                    label="Warp by Scalars", v_model=(scalar_warp,), density="compact"
                 )
                 with vuetify.VContainer(classes="d-flex pa-0", style="column-gap: 3px"):
                     vuetify.VTextField(
-                        v_model=x_scale,
+                        v_model=(x_scale,),
                         label="X Scale",
                         min=1,
                         step=1,
@@ -65,7 +65,7 @@ class RenderOptions(vuetify.VMenu):
                         __properties=["min", "step"],
                     )
                     vuetify.VTextField(
-                        v_model=y_scale,
+                        v_model=(y_scale,),
                         label="Y Scale",
                         min=1,
                         step=1,
@@ -76,7 +76,7 @@ class RenderOptions(vuetify.VMenu):
                         __properties=["min", "step"],
                     )
                     vuetify.VTextField(
-                        v_model=z_scale,
+                        v_model=(z_scale,),
                         label="Z Scale",
                         min=1,
                         step=1,

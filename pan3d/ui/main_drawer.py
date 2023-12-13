@@ -21,12 +21,12 @@ class MainDrawer(vuetify.VNavigationDrawer):
         da_t_index="da_t_index",
     ):
         super().__init__(
-            v_model=ui_main_drawer, classes="pa-2", permanent=True, width=300
+            v_model=(ui_main_drawer,), classes="pa-2", permanent=True, width=300
         )
         with self:
             vuetify.VSelect(
                 label="Choose a dataset",
-                v_model=dataset_path,
+                v_model=(dataset_path,),
                 items=(available_datasets,),
                 item_title="name",
                 item_value="url",
@@ -40,29 +40,30 @@ class MainDrawer(vuetify.VNavigationDrawer):
                 ):
                     html.Span("Attributes")
                     with vuetify.VDialog(max_width=800):
-                        with vuetify.Template(v_slot_activator="{ props }"):
+                        with vuetify.Template(v_slot_activator=("{ props }",)):
                             vuetify.VBtn(
                                 icon="mdi-dots-horizontal",
                                 size="x-small",
                                 variant="plain",
-                                v_bind="props",
+                                v_bind=("props",),
                             )
                         with vuetify.VCard():
                             vuetify.VCardTitle(
                                 "Dataset Attributes",
-                                v_show=f"{da_attrs}.length",
+                                v_show=(f"{da_attrs}.length",),
                                 classes="font-weight-bold",
                             )
                             vuetify.VCardText(
-                                "No attributes.", v_show=f"{da_attrs}.length === 0"
+                                "No attributes.",
+                                v_show=(f"{da_attrs}.length === 0",),
                             )
                             with vuetify.VTable(
-                                v_show=f"{dataset_ready} && {da_attrs}.length",
+                                v_show=(f"{dataset_ready} && {da_attrs}.length",),
                                 density="compact",
                             ):
                                 with html.Tbody():
                                     with html.Tr(
-                                        v_for=f"data_attr in {da_attrs}",
+                                        v_for=(f"data_attr in {da_attrs}",),
                                     ):
                                         html.Td("{{ data_attr.key }}")
                                         html.Td("{{ data_attr.value }}")
@@ -79,7 +80,7 @@ class MainDrawer(vuetify.VNavigationDrawer):
 
             vuetify.VCardText(
                 "Available Arrays",
-                v_show=dataset_ready,
+                v_show=(dataset_ready,),
                 classes="font-weight-bold",
             )
             vuetify.VCardText(
@@ -87,7 +88,7 @@ class MainDrawer(vuetify.VNavigationDrawer):
                 v_show=(f"{dataset_ready} && {da_vars}.length === 0",),
             )
             with vuetify.VListItem(
-                v_for=f"array in {da_vars}",
+                v_for=(f"array in {da_vars}",),
                 active=(f"array.name === {da_active}",),
                 click=f"{da_active} = array.name",
             ):
@@ -96,12 +97,12 @@ class MainDrawer(vuetify.VNavigationDrawer):
                 ):
                     html.Span("{{ array.name }}")
                     with vuetify.VDialog(max_width=800):
-                        with vuetify.Template(v_slot_activator="{ props }"):
+                        with vuetify.Template(v_slot_activator=("{ props }",)):
                             vuetify.VBtn(
                                 icon="mdi-dots-horizontal",
                                 size="x-small",
                                 variant="plain",
-                                v_bind="props",
+                                v_bind=("props",),
                             )
                         with vuetify.VCard():
                             vuetify.VCardTitle(
@@ -110,15 +111,17 @@ class MainDrawer(vuetify.VNavigationDrawer):
                             )
                             vuetify.VCardText(
                                 "No attributes.",
-                                v_show=f"{da_vars_attrs}[array.name].length === 0",
+                                v_show=(f"{da_vars_attrs}[array.name].length === 0",),
                             )
                             with vuetify.VTable(
-                                v_show=f"{da_vars_attrs}[array.name].length",
+                                v_show=(f"{da_vars_attrs}[array.name].length",),
                                 density="compact",
                             ):
                                 with html.Tbody():
                                     with html.Tr(
-                                        v_for=f"data_attr in {da_vars_attrs}[array.name]",
+                                        v_for=(
+                                            f"data_attr in {da_vars_attrs}[array.name]",
+                                        ),
                                     ):
                                         html.Td("{{ data_attr.key }}")
                                         html.Td("{{ data_attr.value }}")

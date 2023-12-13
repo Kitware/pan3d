@@ -21,20 +21,22 @@ class CoordinateConfigure(vuetify.VCard):
                 model_value=(ui_expanded_coordinates, []),
                 accordion=True,
                 multiple=True,
-                v_show=coordinate_info,
+                v_show=(coordinate_info,),
                 update_modelValue=(
                     coordinate_toggle_expansion_function,
                     f"[{coordinate_info}.name]",
                 ),
             ):
-                with vuetify.VExpansionPanel(value=(f"{coordinate_info}?.name", 0)):
+                with vuetify.VExpansionPanel(value=(f"{coordinate_info}?.name",)):
                     vuetify.VExpansionPanelTitle("{{ %s?.name }}" % coordinate_info)
                     with vuetify.VExpansionPanelText():
                         vuetify.VCardSubtitle("Attributes")
-                        with vuetify.VTable(density="compact", v_show=coordinate_info):
+                        with vuetify.VTable(
+                            density="compact", v_show=(coordinate_info,)
+                        ):
                             with html.Tbody():
                                 with html.Tr(
-                                    v_for=f"data_attr in {coordinate_info}?.attrs",
+                                    v_for=(f"data_attr in {coordinate_info}?.attrs",),
                                 ):
                                     html.Td("{{ data_attr.key }}")
                                     html.Td("{{ data_attr.value }}")
@@ -45,26 +47,20 @@ class CoordinateConfigure(vuetify.VCard):
                                 classes="mt-3",
                             )
                             with vuetify.VSlider(
-                                v_model=axis_info["index_var"],
+                                v_model=(axis_info["index_var"],),
                                 min=0,
-                                max=(
-                                    f"{coordinate_info}?.size - 1",
-                                    0,
-                                ),
-                                step=(f"{coordinate_info}?.step", 1),
+                                max=(f"{coordinate_info}?.size - 1",),
+                                step=(f"{coordinate_info}?.step",),
                                 classes="mx-5",
                             ):
                                 with vuetify.Template(
-                                    v_slot_append="{ props, item, parent }"
+                                    v_slot_append=("{ props, item, parent }",)
                                 ):
                                     vuetify.VTextField(
-                                        v_model=axis_info["index_var"],
+                                        v_model=(axis_info["index_var"],),
                                         min=0,
-                                        max=(
-                                            f"{coordinate_info}?.size - 1",
-                                            0,
-                                        ),
-                                        step=(f"{coordinate_info}?.step", 1),
+                                        max=(f"{coordinate_info}?.size - 1",),
+                                        step=(f"{coordinate_info}?.step",),
                                         hide_details=True,
                                         density="compact",
                                         style="width: 80px",
@@ -78,19 +74,13 @@ class CoordinateConfigure(vuetify.VCard):
                                 classes="d-flex pa-0", style="column-gap: 3px"
                             ):
                                 vuetify.VTextField(
-                                    model_value=(f"{coordinate_info}?.start", 0),
+                                    model_value=(f"{coordinate_info}?.start",),
                                     label="Start",
                                     hide_details=True,
                                     density="compact",
                                     type="number",
-                                    min=(
-                                        f"{coordinate_info}?.range[0]",
-                                        0,
-                                    ),
-                                    max=(
-                                        f"{coordinate_info}?.range[1]",
-                                        0,
-                                    ),
+                                    min=(f"{coordinate_info}?.range[0]",),
+                                    max=(f"{coordinate_info}?.range[1]",),
                                     step="0.01",
                                     __properties=["min", "max", "step"],
                                     input=(
@@ -101,19 +91,13 @@ class CoordinateConfigure(vuetify.VCard):
                                     style="flex-grow: 1",
                                 )
                                 vuetify.VTextField(
-                                    model_value=(f"{coordinate_info}?.stop", 0),
+                                    model_value=(f"{coordinate_info}?.stop",),
                                     label="Stop",
                                     hide_details=True,
                                     density="compact",
                                     type="number",
-                                    min=(
-                                        f"{coordinate_info}?.range[0]",
-                                        0,
-                                    ),
-                                    max=(
-                                        f"{coordinate_info}?.range[1]",
-                                        0,
-                                    ),
+                                    min=(f"{coordinate_info}?.range[0]",),
+                                    max=(f"{coordinate_info}?.range[1]",),
                                     step="0.01",
                                     __properties=["min", "max", "step"],
                                     input=(
@@ -124,13 +108,13 @@ class CoordinateConfigure(vuetify.VCard):
                                     style="flex-grow: 1",
                                 )
                                 vuetify.VTextField(
-                                    model_value=(f"{coordinate_info}?.step", 1),
+                                    model_value=(f"{coordinate_info}?.step",),
                                     label="Step",
                                     hide_details=True,
                                     density="compact",
                                     type="number",
                                     min="1",
-                                    max=(f"{coordinate_info}?.size", 0),
+                                    max=(f"{coordinate_info}?.size",),
                                     __properties=["min", "max"],
                                     input=(
                                         coordinate_change_slice_function,
@@ -142,10 +126,10 @@ class CoordinateConfigure(vuetify.VCard):
 
                         vuetify.VCardSubtitle("Assign axis", classes="mt-3")
                         with vuetify.VSelect(
-                            items=(axes,),
+                            items=(str(axes),),
                             item_title="label",
                             item_value="name_var",
-                            model_value=(axis_info or "undefined",),
+                            model_value=(str(axis_info) or "undefined",),
                             clearable=True,
                             click_clear=(
                                 coordinate_select_axis_function,
@@ -165,6 +149,6 @@ class CoordinateConfigure(vuetify.VCard):
                             ),
                         ):
                             with vuetify.Template(
-                                v_slot_selection="{ props, item, parent }"
+                                v_slot_selection=("{ props, item, parent }",)
                             ):
                                 html.Span(axis_info["label"] if axis_info else "")

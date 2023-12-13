@@ -1,4 +1,5 @@
 import asyncio
+import os
 import threading
 
 
@@ -48,6 +49,11 @@ def run_singleton_task(
         # TODO: Can the task be truly interrupted and cancelled?
         singleton_task.cancel()
     singleton_task = asyncio.run_coroutine_threadsafe(coroutine(), task_loop)
+
+
+def is_cloud_env():
+    cloud_env_vars = ["BINDER_REQUEST"]
+    return any(os.environ.get(k) for k in cloud_env_vars)
 
 
 initial_state = {
