@@ -51,10 +51,10 @@ def run_singleton_task(
     singleton_task = asyncio.run_coroutine_threadsafe(coroutine(), task_loop)
 
 
-def force_local_rendering():
-    # Prevent server-side rendering in certain environments
+def has_gpu_rendering():
+    # Detect known environments without gpu rendering
     target_env_vars = ["BINDER_REQUEST"]
-    return any(os.environ.get(k) for k in target_env_vars)
+    return not any(os.environ.get(k) for k in target_env_vars)
 
 
 initial_state = {
