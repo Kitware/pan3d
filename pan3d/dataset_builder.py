@@ -579,10 +579,7 @@ class DatasetBuilder:
             **args,
         )
         self.plotter.view_isometric()
-        if self._cloud:
-            self.ctrl.push_camera()
-        else:
-            self.ctrl.reset_camera()
+        self.ctrl.push_camera()
         self.ctrl.view_update()
 
     def reset(self, **kwargs) -> None:
