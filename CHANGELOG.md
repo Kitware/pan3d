@@ -2,6 +2,31 @@
 
 
 
+## v0.2.1 (2023-12-14)
+
+### Build
+
+* build: require trame-vtk&gt;=2.6.3 ([`8a117b5`](https://github.com/Kitware/pan3d/commit/8a117b56d4866385f5f3f12e5ccb52556a73e861))
+
+### Fix
+
+* fix: always use `push_camera` instead of `reset_camera` ([`8f963ff`](https://github.com/Kitware/pan3d/commit/8f963ff9c11a68d51ffbf87a287ecb88eed754a6))
+
+* fix: use `push_camera` instead of `reset_camera` in cloud mode ([`780c9d5`](https://github.com/Kitware/pan3d/commit/780c9d547ab9e8cf09f98d6923948de781585ba9))
+
+### Refactor
+
+* refactor: rename `force_local_rendering` to `has_gpu_rendering` and negate result ([`094c3bc`](https://github.com/Kitware/pan3d/commit/094c3bc80ec74777fbd3ec35a92a6299f575a126))
+
+* refactor: rename `_cloud` to `_force_local_rendering` ([`033505b`](https://github.com/Kitware/pan3d/commit/033505bd41f1a3067cf3c42cc846c271ea3baaa5))
+
+### Unknown
+
+* Merge pull request #48 from Kitware/client-rendering-fixes
+
+Client rendering fixes ([`8f13280`](https://github.com/Kitware/pan3d/commit/8f13280c6f34229257b21fa2b847f42283599b76))
+
+
 ## v0.2.0 (2023-12-13)
 
 ### Build
