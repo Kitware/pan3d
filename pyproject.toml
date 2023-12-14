@@ -13,7 +13,7 @@ dependencies = [
     "pyvista",
     "pyvista-xarray",
     "trame",
-    "trame-vtk",
+    "trame-vtk>=2.6.3",
     "trame-vuetify",
     "vtk",
     "xarray",
