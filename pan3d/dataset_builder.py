@@ -37,6 +37,7 @@ class DatasetBuilder:
         server.client_type = "vue3"
         self.server = server
         self._layout = None
+        self._cloud = is_cloud_env()
 
         self.state.update(initial_state)
         self.algorithm = PyVistaXarraySource()
@@ -60,7 +61,7 @@ class DatasetBuilder:
         if state:
             self.state.update(state)
 
-        if is_cloud_env():
+        if self._cloud:
             pyvista.global_theme.trame.default_mode = "client"
 
     # -----------------------------------------------------
@@ -117,6 +118,7 @@ class DatasetBuilder:
                         ) as plot_view:
                             self.ctrl.view_update = plot_view.update
                             self.ctrl.reset_camera = plot_view.reset_camera
+                            self.ctrl.push_camera = plot_view.push_camera
         return self._layout
 
     # -----------------------------------------------------
@@ -370,7 +372,7 @@ class DatasetBuilder:
         if self.state.render_scalar_warp != scalar_warp:
             self.state.render_scalar_warp = scalar_warp
 
-        if self._mesh:
+        if self._mesh is not None and self.data_array is not None:
             self.plot_mesh()
 
     # -----------------------------------------------------
@@ -503,12 +505,17 @@ class DatasetBuilder:
             **args,
         )
         self.plotter.view_isometric()
-        self.ctrl.reset_camera()
+        if self._cloud:
+            self.ctrl.push_camera()
+        else:
+            self.ctrl.reset_camera()
         self.ctrl.view_update()
 
     def reset(self, **kwargs):
         if not self.state.da_active:
             return
+        if self.data_array is None:
+            self.mesh_changed()
         self.state.ui_error_message = None
         self.state.ui_loading = True
         self.state.ui_unapplied_changes = False
