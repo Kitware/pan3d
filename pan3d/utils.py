@@ -51,9 +51,10 @@ def run_singleton_task(
     singleton_task = asyncio.run_coroutine_threadsafe(coroutine(), task_loop)
 
 
-def is_cloud_env():
-    cloud_env_vars = ["BINDER_REQUEST"]
-    return any(os.environ.get(k) for k in cloud_env_vars)
+def has_gpu_rendering():
+    # Detect known environments without gpu rendering
+    target_env_vars = ["BINDER_REQUEST"]
+    return not any(os.environ.get(k) for k in target_env_vars)
 
 
 initial_state = {
