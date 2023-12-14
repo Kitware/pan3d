@@ -16,7 +16,7 @@ from trame.widgets import vuetify3 as vuetify
 from pan3d.ui import AxisDrawer, MainDrawer, Toolbar, RenderOptions
 from pan3d.utils import (
     initial_state,
-    is_cloud_env,
+    force_local_rendering,
     run_singleton_task,
     coordinate_auto_selection,
 )
@@ -37,7 +37,7 @@ class DatasetBuilder:
         server.client_type = "vue3"
         self.server = server
         self._layout = None
-        self._cloud = is_cloud_env()
+        self._force_local_rendering = force_local_rendering()
 
         self.state.update(initial_state)
         self.algorithm = PyVistaXarraySource()
@@ -61,7 +61,7 @@ class DatasetBuilder:
         if state:
             self.state.update(state)
 
-        if self._cloud:
+        if self._force_local_rendering:
             pyvista.global_theme.trame.default_mode = "client"
 
     # -----------------------------------------------------
