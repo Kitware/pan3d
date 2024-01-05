@@ -9,7 +9,7 @@
 
 Pan3D aims to be an utility package for viewing and processing a wide variety of multidimensional datasets. Any dataset that can be interpreted with [xarray][xarray-link] can be explored and rendered with Pan3D.
 
-![](images/4.png)
+![](images/8.png)
 
 <!-- TODO: add blog post link -->
 
