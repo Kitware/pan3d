@@ -1,6 +1,7 @@
 # Pan3D
 
 <img style="display: inline-block;" src="images/kitware.svg" alt="Kitware Logo" href="https://kitware.com" width="100">
+[![Documentation Status](https://readthedocs.org/projects/pan3d/badge/?version=latest)](https://pan3d.readthedocs.io/en/latest/?badge=latest)
 [![Binder][binder-image]][binder-link]
 [![Build Status][GHAction-image]][GHAction-link]
 [![PyPI Version][pypi-v-image]][pypi-v-link]
