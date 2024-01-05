@@ -8,10 +8,11 @@ from pvxarray.vtk_source import PyVistaXarraySource
 from pyvista.trame.ui import plotter_ui
 
 from trame.decorators import TrameApp, change
-from trame.ui.vuetify3 import VAppLayout
 from trame.app import get_server
 from trame.widgets import html, client
 from trame.widgets import vuetify3 as vuetify
+import trame_server
+import trame_vuetify
 
 from pan3d.ui import AxisDrawer, MainDrawer, Toolbar, RenderOptions
 from pan3d.utils import initial_state, run_singleton_task, coordinate_auto_selection
@@ -22,7 +23,24 @@ CSS_FILE = BASE_DIR / "ui" / "custom.css"
 
 @TrameApp()
 class DatasetBuilder:
-    def __init__(self, server=None, dataset_path=None, state=None, pangeo=False):
+    """Manage data slicing, mesh creation, and rendering for a target N-D dataset."""
+
+    def __init__(
+        self,
+        server: trame_server.core.Server=None,
+        dataset_path: str=None,
+        state: dict=None,
+        pangeo: bool=False
+    ) -> None:
+        """Create an instance of the DatasetBuilder class.
+
+        Parameters:
+            server: Trame server instance.
+            dataset_path: A path or URL referencing a dataset readable by xarray.open_dataset()
+            state:  A dictionary of initial state values.
+            pangeo: If true, use a list of example datasets from Pangeo Forge (examples/pangeo_catalog.json).
+        """
+
         if server is None:
             server = get_server()
 
@@ -60,28 +78,33 @@ class DatasetBuilder:
     # -----------------------------------------------------
 
     @property
-    def state(self):
+    def state(self) -> trame_server.state.State:
+        """Returns the current State of the Trame server."""
         return self.server.state
 
     @property
-    def ctrl(self):
+    def ctrl(self) -> trame_server.controller.Controller:
+        """Returns the Controller for the Trame server."""
         return self.server.controller
 
     @property
-    def data_array(self):
+    def data_array(self)-> xarray.core.dataarray.DataArray:
+        """Returns the current Xarray data array with current slicing applied."""
         return self.algorithm.sliced_data_array
 
     @property
-    def mesh(self):
+    def mesh(self) -> pyvista.core.grid.RectilinearGrid:
+        """Returns the PyVista Mesh derived from the current data array."""
         if self._mesh is None:
             self._mesh = self.algorithm.mesh
         return self._mesh
 
     @property
-    def viewer(self):
+    def viewer(self) -> trame_vuetify.ui.vuetify3.VAppLayout:
+        """Constructs and returns a Trame UI for managing and viewing the current data."""
         if self._layout is None:
             # Build UI
-            self._layout = VAppLayout(self.server)
+            self._layout = trame_vuetify.ui.vuetify3.VAppLayout(self.server)
             with self._layout:
                 client.Style(CSS_FILE.read_text())
                 Toolbar(
@@ -91,9 +114,9 @@ class DatasetBuilder:
                 )
                 MainDrawer()
                 AxisDrawer(
-                    coordinate_select_axis_function=self.coordinate_select_axis,
-                    coordinate_change_slice_function=self.coordinate_change_slice,
-                    coordinate_toggle_expansion_function=self.coordinate_toggle_expansion,
+                    coordinate_select_axis_function=self._coordinate_select_axis,
+                    coordinate_change_slice_function=self._coordinate_change_slice,
+                    coordinate_toggle_expansion_function=self._coordinate_toggle_expansion,
                 )
                 with vuetify.VMain(v_show="da_active"):
                     vuetify.VBanner(
@@ -114,13 +137,13 @@ class DatasetBuilder:
     # UI bound methods
     # -----------------------------------------------------
 
-    def coordinate_select_axis(self, coordinate_name, current_axis, new_axis, **kwargs):
+    def _coordinate_select_axis(self, coordinate_name, current_axis, new_axis, **kwargs):
         if self.state[current_axis]:
             self.state[current_axis] = None
         if new_axis and new_axis != "undefined":
             self.state[new_axis] = coordinate_name
 
-    def coordinate_change_slice(self, coordinate_name, slice_attribute_name, value):
+    def _coordinate_change_slice(self, coordinate_name, slice_attribute_name, value):
         if value.isnumeric():
             coordinate_matches = [
                 (index, coordinate)
@@ -143,7 +166,7 @@ class DatasetBuilder:
                 self.state.da_coordinates[coord_i] = coordinate
                 self.state.dirty("da_coordinates")
 
-    def coordinate_toggle_expansion(self, coordinate_name):
+    def _coordinate_toggle_expansion(self, coordinate_name):
         if coordinate_name in self.state.ui_expanded_coordinates:
             self.state.ui_expanded_coordinates.remove(coordinate_name)
         else:
@@ -154,7 +177,12 @@ class DatasetBuilder:
     # User-accessible state change functions
     # -----------------------------------------------------
 
-    def set_dataset_path(self, dataset_path):
+    def set_dataset_path(self, dataset_path: str) -> None:
+        """Set the path to the current target dataset.
+
+        Parameters:
+            dataset_path: A local path or remote URL referencing a dataset readable by xarray.open_dataset()
+        """
         if dataset_path != self.state.dataset_path:
             self.state.dataset_path = dataset_path
 
@@ -218,7 +246,12 @@ class DatasetBuilder:
             self.set_data_array_active_name(None)
         self.state.ui_loading = False
 
-    def set_data_array_active_name(self, da_active):
+    def set_data_array_active_name(self, da_active: str) -> None:
+        """Set the name of the current data array within the current dataset.
+
+        Parameters:
+            da_active: The name of a data array that exists in the current dataset.
+        """
         if da_active != self.state.da_active:
             self.state.da_active = da_active
 
@@ -295,7 +328,15 @@ class DatasetBuilder:
         self.plotter.clear()
         self.plotter.view_isometric()
 
-    def set_data_array_axis_names(self, **kwargs):
+    def set_data_array_axis_names(self, **kwargs: dict) -> None:
+        """Assign any number of coordinates in the current data array to axes x, y, z, and/or t.
+
+        Parameters:
+            kwargs: A dictionary mapping of axis names to coordinate names.\n
+                Keys must be 'x' | 'y' | 'z' | 't'.\n
+                Values must be coordinate names that exist in the current data array.\n
+                Example: {'x': 'longitude', 'y': 'latitude', 'z': 'depth', 't': 'hour'}
+        """
         if "x" in kwargs and kwargs["x"] != self.state.da_x:
             self.state.da_x = kwargs["x"]
         if "y" in kwargs and kwargs["y"] != self.state.da_y:
@@ -305,7 +346,12 @@ class DatasetBuilder:
         if "t" in kwargs and kwargs["t"] != self.state.da_t:
             self.state.da_t = kwargs["t"]
 
-    def set_data_array_time_index(self, index):
+    def set_data_array_time_index(self, index: int) -> None:
+        """Set the index of the current time slice.
+
+        Parameters:
+            index: Must be an integer >= 0 and < the length of the current time coordinate.
+        """
         if int(index) != self.state.da_t_index:
             self.state.da_t_index = int(index)
         if self.dataset and self.state.da_active and self.state.da_t:
@@ -315,7 +361,16 @@ class DatasetBuilder:
                 current_time = pandas.to_datetime(current_time)
             self.state.ui_current_time_string = current_time.strftime("%b %d %Y %H:%M")
 
-    def set_data_array_coordinates(self, da_coordinates):
+    def set_data_array_coordinates(self, da_coordinates: list[dict]):
+        """Set the info for coordinates in the current data array, including slicing.
+
+        Parameters:
+            da_coordinates: A list of dictionaries, where each dictionary contains the following mapping:\n
+                name: the name of a coordinate that exists in the current data array\n
+                start: the coordinate value at which the sliced data should start (inclusive)\n
+                stop: the coordinate value at which the sliced data should stop (exclusive)\n
+                step: an integer > 0 which represents the number of items to skip when slicing the data (e.g. step=2 represents 0.5 resolution)
+        """
         if self.state.da_coordinates != da_coordinates:
             self.state.da_coordinates = da_coordinates
         slicing = {}
@@ -328,7 +383,14 @@ class DatasetBuilder:
                 ]
         self.state.slicing = slicing
 
-    def set_render_scales(self, **kwargs):
+    def set_render_scales(self, **kwargs) -> None:
+        """Set the scales at which each axis (x, y, and/or z) should be rendered.
+
+        Parameters:
+            kwargs: A dictionary mapping of axis names to integer scales.\n
+                Keys must be 'x' | 'y' | 'z'.\n
+                Values must be integers > 0.
+        """
         if "x" in kwargs and kwargs["x"] != self.state.render_x_scale:
             self.state.render_x_scale = int(kwargs["x"])
         if "y" in kwargs and kwargs["y"] != self.state.render_y_scale:
@@ -343,11 +405,19 @@ class DatasetBuilder:
 
     def set_render_options(
         self,
-        colormap="viridis",
-        transparency=False,
-        transparency_function=None,
-        scalar_warp=False,
-    ):
+        colormap: str="viridis",
+        transparency: bool=False,
+        transparency_function: str=None,
+        scalar_warp: bool=False,
+    ) -> None:
+        """Set available options for rendering data.
+
+        Parameters:
+            colormap: A colormap name from Matplotlib (https://matplotlib.org/stable/users/explain/colors/colormaps.html)
+            transparency: If true, enable transparency and use transparency_function.
+            transparency_function: One of PyVista's opacity transfer functions (https://docs.pyvista.org/version/stable/examples/02-plot/opacity.html#transfer-functions)
+            scalar_warp: If true, warp the mesh proportional to its scalars.
+        """
         if self.state.render_colormap != colormap:
             self.state.render_colormap = colormap
         if self.state.render_transparency != transparency:
@@ -421,7 +491,14 @@ class DatasetBuilder:
     # Render Logic
     # -----------------------------------------------------
 
-    def auto_select_coordinates(self):
+    def auto_select_coordinates(self) -> None:
+        """Automatically assign available coordinates to available axes.
+            Automatic assignment is done according to the following expected coordinate names:\n
+            X: "x" | "i" | "lon" | "len"\n
+            Y: "y" | "j" | "lat" | "width"\n
+            Z: "z" | "k" | "depth" | "height"\n
+            T: "t" | "time"
+        """
         if self.state.da_x or self.state.da_y or self.state.da_z or self.state.da_t:
             # Some coordinates already assigned, don't auto-assign
             return
@@ -443,7 +520,8 @@ class DatasetBuilder:
         if len(state_update) > 0:
             self.state.update(state_update)
 
-    def mesh_changed(self):
+    def mesh_changed(self) -> None:
+        """Reset and update cached mesh according to current state."""
         if self.dataset is None:
             return
         self._mesh = None
@@ -473,7 +551,8 @@ class DatasetBuilder:
         self.state.ui_unapplied_changes = True
         self.state.ui_loading = False
 
-    def plot_mesh(self):
+    def plot_mesh(self) -> None:
+        """Render current cached mesh in viewer's plotter."""
         self.plotter.clear()
         args = dict(
             cmap=self.state.render_colormap,
@@ -494,7 +573,8 @@ class DatasetBuilder:
         self.ctrl.reset_camera()
         self.ctrl.view_update()
 
-    def reset(self, **kwargs):
+    def reset(self, **kwargs) -> None:
+        """Asynchronously reset and update cached mesh and render to viewer's plotter."""
         if not self.state.da_active:
             return
         self.state.ui_error_message = None
@@ -523,7 +603,14 @@ class DatasetBuilder:
     # Config logic
     # -----------------------------------------------------
 
-    def import_config(self, config_file):
+    def import_config(self, config_file: dict | str | Path) -> None:
+        """Import state from a JSON configuration file.
+
+        Parameters:
+            config_file: Can be a dictionary containing state information,
+                or a string or Path referring to a JSON file which contains state information.
+                For details, see Configuration Files documentation.
+        """
         if isinstance(config_file, dict):
             config = config_file
         elif isinstance(config_file, str):
@@ -567,7 +654,14 @@ class DatasetBuilder:
         self.mesh_changed()
         self.state.update({"ui_action_name": None, "ui_selected_config_file": None})
 
-    def export_config(self, config_file=None):
+    def export_config(self, config_file: str | Path | None=None) -> None:
+        """Export the current state to a JSON configuration file.
+
+        Parameters:
+            config_file: Can be a string or Path representing the destination of the JSON configuration file.
+                If None, a dictionary containing the current configuration will be returned.
+                For details, see Configuration Files documentation.
+        """
         config = {}
         config["data_origin"] = self.state.dataset_path
         config["data_array"] = {"active": self.state.da_active}
