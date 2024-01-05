@@ -2,6 +2,143 @@
 
 
 
+## v0.2.1 (2023-12-14)
+
+### Build
+
+* build: require trame-vtk&gt;=2.6.3 ([`8a117b5`](https://github.com/Kitware/pan3d/commit/8a117b56d4866385f5f3f12e5ccb52556a73e861))
+
+### Fix
+
+* fix: always use `push_camera` instead of `reset_camera` ([`8f963ff`](https://github.com/Kitware/pan3d/commit/8f963ff9c11a68d51ffbf87a287ecb88eed754a6))
+
+* fix: use `push_camera` instead of `reset_camera` in cloud mode ([`780c9d5`](https://github.com/Kitware/pan3d/commit/780c9d547ab9e8cf09f98d6923948de781585ba9))
+
+### Refactor
+
+* refactor: rename `force_local_rendering` to `has_gpu_rendering` and negate result ([`094c3bc`](https://github.com/Kitware/pan3d/commit/094c3bc80ec74777fbd3ec35a92a6299f575a126))
+
+* refactor: rename `_cloud` to `_force_local_rendering` ([`033505b`](https://github.com/Kitware/pan3d/commit/033505bd41f1a3067cf3c42cc846c271ea3baaa5))
+
+### Unknown
+
+* Merge pull request #48 from Kitware/client-rendering-fixes
+
+Client rendering fixes ([`8f13280`](https://github.com/Kitware/pan3d/commit/8f13280c6f34229257b21fa2b847f42283599b76))
+
+
+## v0.2.0 (2023-12-13)
+
+### Build
+
+* build: use BINDER_REQUEST instead of JUPYTERHUB_BASE_URL to determine whether env is in Binder ([`de5317c`](https://github.com/Kitware/pan3d/commit/de5317c91f5f5418709456678e4710f997ea7414))
+
+* build(binder): try local pan3d install ([`29e6af3`](https://github.com/Kitware/pan3d/commit/29e6af311e2561b2db77c83b841f6f550b873dea))
+
+* build: remove apt.txt ([`3fa4217`](https://github.com/Kitware/pan3d/commit/3fa4217d7520c311de66d1efdc1254a6828bbeeb))
+
+* build: move binder configuration to .binder, use postBuild script instead of start ([`efcfd2e`](https://github.com/Kitware/pan3d/commit/efcfd2ece7256bf303d9f555f93fccfbc3fae622))
+
+* build: try without xvfb, use vtk-osmesa ([`caead90`](https://github.com/Kitware/pan3d/commit/caead90d56072139987af5157e441fb73c0502d8))
+
+* build: remove vtk-osmesa installation, use xvfb ([`1b9c1b8`](https://github.com/Kitware/pan3d/commit/1b9c1b87583e9b2e3ac477a957daab02ffb8a336))
+
+* build: remove which Xvfb command
+
+Co-authored-by: Zach Mullen &lt;zach.mullen@kitware.com&gt; ([`99da410`](https://github.com/Kitware/pan3d/commit/99da4103640bbdc544705506e02dd3787cf9168a))
+
+* build: add binder start script from pyvista docs ([`ab51a64`](https://github.com/Kitware/pan3d/commit/ab51a64756c59ec92cf9d17e2ccb914eacbd4c65))
+
+* build: add xvfb to system requirements ([`e79653e`](https://github.com/Kitware/pan3d/commit/e79653e7a72c21a8622eb4df10ac142e37f06a18))
+
+* build: reformat requirements.txt ([`00a075f`](https://github.com/Kitware/pan3d/commit/00a075f032114a54ff21f96b985f191137e886a0))
+
+* build: move configuration files to top-level binder folder ([`52f2dfe`](https://github.com/Kitware/pan3d/commit/52f2dfe1dbcb3ad2d36b9001ec807be7de74558b))
+
+* build: try binder build without Dockerfile ([`299eb6b`](https://github.com/Kitware/pan3d/commit/299eb6b057aba4d1fc04cb5c2cd40153b96ce697))
+
+* build: add more dependencies to Dockerfile ([`af1ccb5`](https://github.com/Kitware/pan3d/commit/af1ccb504a564e6f862a0171ed14d0adff02f6fd))
+
+* build: switch user back to NB_USER after installation ([`da0a89d`](https://github.com/Kitware/pan3d/commit/da0a89dd09cf529dd41454a05f7a7edd7501407c))
+
+* build: update Dockerfile in examples/jupyter ([`5167759`](https://github.com/Kitware/pan3d/commit/5167759f8e0378a873da733d2f700771dd9391d5))
+
+### Documentation
+
+* docs: add comment to `.binder/requirements.txt` ([`7cff7b0`](https://github.com/Kitware/pan3d/commit/7cff7b0f7742679ac108e3ee91f1cc630d5c8d11))
+
+### Feature
+
+* feat: set rendering mode to client in known cloud jupyter environments ([`10dd413`](https://github.com/Kitware/pan3d/commit/10dd41387fbc830079c8131cf615693b011639e3))
+
+### Fix
+
+* fix: remove defaults on computed attribute values ([`05b0e44`](https://github.com/Kitware/pan3d/commit/05b0e44e9c716299b1b6d831c207f6716ee7e028))
+
+* fix: prevent `auto_select_coordinates` from overwriting `set_data_array_axis_names` results ([`8de4f4a`](https://github.com/Kitware/pan3d/commit/8de4f4a6a2ede0c34a27cf42269ac9f701cb3acf))
+
+* fix: convert more directive attributes to tuple syntax ([`035e229`](https://github.com/Kitware/pan3d/commit/035e229b46fd324cf0d40802d0f150d2442250b6))
+
+* fix: cast keys and values in `da_vars_attrs` to strings ([`a2c1c4b`](https://github.com/Kitware/pan3d/commit/a2c1c4bc6d3690c9bc56ab9f24cc34615b3e5622))
+
+* fix: cast objects to strings in template code ([`0ff5e0b`](https://github.com/Kitware/pan3d/commit/0ff5e0b930a7d56b220e369921365385259a0637))
+
+* fix: stringify axes list for VSelect component ([`615eaed`](https://github.com/Kitware/pan3d/commit/615eaed020e91403828c1348c52e5009eebd4d5e))
+
+### Style
+
+* style: apply changes from black ([`d80f10e`](https://github.com/Kitware/pan3d/commit/d80f10efaab0f1c58621b44368af03cda9bdd842))
+
+### Unknown
+
+* Merge pull request #46 from Kitware/binder-test
+
+More binder configuration improvements ([`f119ffb`](https://github.com/Kitware/pan3d/commit/f119ffb3017343b6935c23a02bcb543fafd7510f))
+
+* ui: collapse pyvista plotter toolbar by default; avoid looking cramped in notebook output ([`e8a6ea2`](https://github.com/Kitware/pan3d/commit/e8a6ea21d414eb481b502d05930a46c8bbef74f1))
+
+* launch: allow --debug argument passed through to server ([`7cf2282`](https://github.com/Kitware/pan3d/commit/7cf22829505d5010ab0f3669bbbeccf64f83b204))
+
+* debug: Add print statement for select component ([`5e8c309`](https://github.com/Kitware/pan3d/commit/5e8c309e151ee0215bc2a6656520983bb094b6f6))
+
+* Merge pull request #45 from Kitware/binder-dockerfile
+
+Binder configuration ([`d8cad54`](https://github.com/Kitware/pan3d/commit/d8cad54c95c85c63b70ae746147effaaf7e82f9f))
+
+
+## v0.1.2 (2023-12-05)
+
+### Build
+
+* build: remove setuptools-scm, use __version__ in setup.py ([`5da2edf`](https://github.com/Kitware/pan3d/commit/5da2edf0a6a6411359b73c78e84b8c6b17cf034f))
+
+### Ci
+
+* ci: add `contents:write` to permissions in release job ([`a1b2a11`](https://github.com/Kitware/pan3d/commit/a1b2a118e65f87e2f2e386f0dca08545cd4c9046))
+
+* ci: combine build, release, publish jobs into one release job with 3 steps ([`43bfff8`](https://github.com/Kitware/pan3d/commit/43bfff81ca595b69aaadc2e287ba2bdda9041cb6))
+
+* ci: rebuild before PyPI publish ([`4ef460e`](https://github.com/Kitware/pan3d/commit/4ef460e296187d668893b6749a18c56598a7c960))
+
+### Fix
+
+* fix(setup): Add setuptools_scm to pyproject.toml; use git tag for version in build step ([`1cb09a4`](https://github.com/Kitware/pan3d/commit/1cb09a48e9e0ad817f998b658e8681182674ba62))
+
+### Style
+
+* style: prefer double-quotes ([`9dcb236`](https://github.com/Kitware/pan3d/commit/9dcb23601323d2bca4df841978b39ea2d08294d5))
+
+### Unknown
+
+* Merge pull request #44 from Kitware/publish-permissions
+
+Release job permissions ([`132ddb9`](https://github.com/Kitware/pan3d/commit/132ddb98a3b87f78b659e3e3102de15ad430802f))
+
+* Merge pull request #43 from Kitware/build-version
+
+Fix build versioning ([`7429fb3`](https://github.com/Kitware/pan3d/commit/7429fb33568932a164164e5925aa24038bc1b92d))
+
+
 ## v0.1.1 (2023-12-04)
 
 ### Documentation

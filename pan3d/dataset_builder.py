@@ -15,7 +15,12 @@ import trame_server
 import trame_vuetify
 
 from pan3d.ui import AxisDrawer, MainDrawer, Toolbar, RenderOptions
-from pan3d.utils import initial_state, run_singleton_task, coordinate_auto_selection
+from pan3d.utils import (
+    initial_state,
+    has_gpu_rendering,
+    run_singleton_task,
+    coordinate_auto_selection,
+)
 
 BASE_DIR = Path(__file__).parent
 CSS_FILE = BASE_DIR / "ui" / "custom.css"
@@ -50,6 +55,7 @@ class DatasetBuilder:
         server.client_type = "vue3"
         self.server = server
         self._layout = None
+        self._force_local_rendering = not has_gpu_rendering()
 
         self.state.update(initial_state)
         self.algorithm = PyVistaXarraySource()
@@ -72,6 +78,9 @@ class DatasetBuilder:
             self.set_dataset_path(dataset_path=dataset_path)
         if state:
             self.state.update(state)
+
+        if self._force_local_rendering:
+            pyvista.global_theme.trame.default_mode = "client"
 
     # -----------------------------------------------------
     # Properties
@@ -118,7 +127,7 @@ class DatasetBuilder:
                     coordinate_change_slice_function=self._coordinate_change_slice,
                     coordinate_toggle_expansion_function=self._coordinate_toggle_expansion,
                 )
-                with vuetify.VMain(v_show="da_active"):
+                with vuetify.VMain(v_show=("da_active",)):
                     vuetify.VBanner(
                         "{{ ui_error_message }}",
                         v_show=("ui_error_message",),
@@ -128,9 +137,11 @@ class DatasetBuilder:
                         with plotter_ui(
                             self.ctrl.get_plotter(),
                             interactive_ratio=1,
+                            collapse_menu=True,
                         ) as plot_view:
                             self.ctrl.view_update = plot_view.update
                             self.ctrl.reset_camera = plot_view.reset_camera
+                            self.ctrl.push_camera = plot_view.push_camera
         return self._layout
 
     # -----------------------------------------------------
@@ -232,7 +243,7 @@ class DatasetBuilder:
         ]
         self.state.da_vars_attrs = {
             var["name"]: [
-                {"key": k, "value": v}
+                {"key": str(k), "value": str(v)}
                 for k, v in self.dataset.data_vars[var["name"]].attrs.items()
             ]
             for var in self.state.da_vars
@@ -252,6 +263,10 @@ class DatasetBuilder:
         Parameters:
             da_active: The name of a data array that exists in the current dataset.
         """
+        if da_active == self.da:
+            return
+
+        self.da = da_active
         if da_active != self.state.da_active:
             self.state.da_active = da_active
 
@@ -427,7 +442,7 @@ class DatasetBuilder:
         if self.state.render_scalar_warp != scalar_warp:
             self.state.render_scalar_warp = scalar_warp
 
-        if self._mesh:
+        if self._mesh is not None and self.data_array is not None:
             self.plot_mesh()
 
     # -----------------------------------------------------
@@ -441,7 +456,6 @@ class DatasetBuilder:
     @change("da_active")
     def _on_change_da_active(self, da_active, **kwargs):
         self.set_data_array_active_name(da_active)
-        self.auto_select_coordinates()
 
     @change("da_active", "da_x", "da_y", "da_z", "da_t", "da_t_index", "da_coordinates")
     def _on_change_da_inputs(
@@ -570,13 +584,15 @@ class DatasetBuilder:
             **args,
         )
         self.plotter.view_isometric()
-        self.ctrl.reset_camera()
+        self.ctrl.push_camera()
         self.ctrl.view_update()
 
     def reset(self, **kwargs) -> None:
         """Asynchronously reset and update cached mesh and render to viewer's plotter."""
         if not self.state.da_active:
             return
+        if self.data_array is None:
+            self.mesh_changed()
         self.state.ui_error_message = None
         self.state.ui_loading = True
         self.state.ui_unapplied_changes = False

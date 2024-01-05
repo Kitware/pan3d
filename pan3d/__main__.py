@@ -12,13 +12,14 @@ def main():
     parser.add_argument("-D", "--dataset")
     parser.add_argument("-P", "--pangeo", action=BooleanOptionalAction)
     parser.add_argument("-S", "--server", action=BooleanOptionalAction)
+    parser.add_argument("-d", "--debug", action=BooleanOptionalAction)
 
     args = parser.parse_args()
 
     builder = DatasetBuilder(dataset_path=args.dataset, pangeo=args.pangeo)
     if args.config_path:
         builder.import_config(args.config_path)
-    builder.viewer.server.start()
+    builder.viewer.server.start(debug=args.debug)
 
 
 if __name__ == "__main__":

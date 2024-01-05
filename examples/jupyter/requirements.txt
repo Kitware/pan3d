@@ -1,3 +1,0 @@
-pan3d
-imageio
-trame-jupyter-extension

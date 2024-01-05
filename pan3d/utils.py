@@ -1,4 +1,5 @@
 import asyncio
+import os
 import threading
 
 
@@ -48,6 +49,12 @@ def run_singleton_task(
         # TODO: Can the task be truly interrupted and cancelled?
         singleton_task.cancel()
     singleton_task = asyncio.run_coroutine_threadsafe(coroutine(), task_loop)
+
+
+def has_gpu_rendering():
+    # Detect known environments without gpu rendering
+    target_env_vars = ["BINDER_REQUEST"]
+    return not any(os.environ.get(k) for k in target_env_vars)
 
 
 initial_state = {
