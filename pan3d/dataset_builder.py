@@ -2,6 +2,7 @@ import json
 import os
 import pandas
 import pyvista
+import typing
 import xarray
 from pathlib import Path
 from pvxarray.vtk_source import PyVistaXarraySource
@@ -32,10 +33,10 @@ class DatasetBuilder:
 
     def __init__(
         self,
-        server: trame_server.core.Server=None,
-        dataset_path: str=None,
-        state: dict=None,
-        pangeo: bool=False
+        server: trame_server.core.Server = None,
+        dataset_path: str = None,
+        state: dict = None,
+        pangeo: bool = False,
     ) -> None:
         """Create an instance of the DatasetBuilder class.
 
@@ -97,7 +98,7 @@ class DatasetBuilder:
         return self.server.controller
 
     @property
-    def data_array(self)-> xarray.core.dataarray.DataArray:
+    def data_array(self) -> xarray.core.dataarray.DataArray:
         """Returns the current Xarray data array with current slicing applied."""
         return self.algorithm.sliced_data_array
 
@@ -148,7 +149,9 @@ class DatasetBuilder:
     # UI bound methods
     # -----------------------------------------------------
 
-    def _coordinate_select_axis(self, coordinate_name, current_axis, new_axis, **kwargs):
+    def _coordinate_select_axis(
+        self, coordinate_name, current_axis, new_axis, **kwargs
+    ):
         if self.state[current_axis]:
             self.state[current_axis] = None
         if new_axis and new_axis != "undefined":
@@ -415,10 +418,10 @@ class DatasetBuilder:
 
     def set_render_options(
         self,
-        colormap: str="viridis",
-        transparency: bool=False,
-        transparency_function: str=None,
-        scalar_warp: bool=False,
+        colormap: str = "viridis",
+        transparency: bool = False,
+        transparency_function: str = None,
+        scalar_warp: bool = False,
     ) -> None:
         """Set available options for rendering data.
 
@@ -502,11 +505,11 @@ class DatasetBuilder:
 
     def auto_select_coordinates(self) -> None:
         """Automatically assign available coordinates to available axes.
-            Automatic assignment is done according to the following expected coordinate names:\n
-            X: "x" | "i" | "lon" | "len"\n
-            Y: "y" | "j" | "lat" | "width"\n
-            Z: "z" | "k" | "depth" | "height"\n
-            T: "t" | "time"
+        Automatic assignment is done according to the following expected coordinate names:\n
+        X: "x" | "i" | "lon" | "len"\n
+        Y: "y" | "j" | "lat" | "width"\n
+        Z: "z" | "k" | "depth" | "height"\n
+        T: "t" | "time"
         """
         if self.state.da_x or self.state.da_y or self.state.da_z or self.state.da_t:
             # Some coordinates already assigned, don't auto-assign
@@ -614,7 +617,7 @@ class DatasetBuilder:
     # Config logic
     # -----------------------------------------------------
 
-    def import_config(self, config_file: dict | str | Path) -> None:
+    def import_config(self, config_file: typing.Union[str, Path, None]) -> None:
         """Import state from a JSON configuration file.
 
         Parameters:
@@ -665,7 +668,7 @@ class DatasetBuilder:
         self.mesh_changed()
         self.state.update({"ui_action_name": None, "ui_selected_config_file": None})
 
-    def export_config(self, config_file: str | Path | None=None) -> None:
+    def export_config(self, config_file: typing.Union[str, Path, None] = None) -> None:
         """Export the current state to a JSON configuration file.
 
         Parameters:
