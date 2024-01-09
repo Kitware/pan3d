@@ -33,7 +33,7 @@ class DatasetBuilder:
 
     def __init__(
         self,
-        server: trame_server.core.Server = None,
+        server: typing.Union[trame_server.core.Server, str] = None,
         dataset_path: str = None,
         state: dict = None,
         pangeo: bool = False,
@@ -47,13 +47,7 @@ class DatasetBuilder:
             pangeo: If true, use a list of example datasets from Pangeo Forge (examples/pangeo_catalog.json).
         """
 
-        if server is None:
-            server = get_server()
-
-        if isinstance(server, str):
-            server = get_server(server)
-
-        server.client_type = "vue3"
+        server = get_server(server, client_type="vue3")
         self.server = server
         self._layout = None
         self._force_local_rendering = not has_gpu_rendering()
@@ -103,7 +97,10 @@ class DatasetBuilder:
         return self.algorithm.sliced_data_array
 
     @property
-    def mesh(self) -> pyvista.core.grid.RectilinearGrid:
+    def mesh(self) -> typing.Union[
+        pyvista.core.grid.RectilinearGrid,
+        pyvista.core.grid.StructuredGrid,
+    ]:
         """Returns the PyVista Mesh derived from the current data array."""
         if self._mesh is None:
             self._mesh = self.algorithm.mesh
