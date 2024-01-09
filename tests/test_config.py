@@ -8,8 +8,8 @@ from pan3d import DatasetBuilder  # noqa: F401
 def test_import_config():
     viewer = DatasetBuilder()
     viewer.import_config("examples/example_config_noaa.json")
-    # With slicing, data_array has shape (18, 36)
-    assert viewer.data_array.size == 648
+    # With slicing, data_array has shape (180, 360)
+    assert viewer.data_array.size == 64800
 
 
 def test_export_config():
