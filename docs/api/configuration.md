@@ -49,11 +49,11 @@ The value for this key should be a mapping specifying how to interpret the infor
 
 | Key | Required? | Type | Value Description |
 |-----|-----------|------|-------------------|
-|`active`|YES     |`str` |This should be a name of an array that exists in the current dataset. This value will be passed to `DatasetBuilder.set_data_array_active_name`. |
-|`x`  |NO (default=None)  |`str`|This should be the name of a coordinate that exists in the active data array. This value will be passed to `DatasetBuilder.set_data_array_axis_names`.|
-|`y`  |NO (default=None)  |`str`|This should be the name of a coordinate that exists in the active data array. This value will be passed to `DatasetBuilder.set_data_array_axis_names`.|
-|`z`  |NO (default=None)  |`str`|This should be the name of a coordinate that exists in the active data array. This value will be passed to `DatasetBuilder.set_data_array_axis_names`.|
-|`t`  |NO (default=None)  |`str`|This should be the name of a coordinate that exists in the active data array. This value will be passed to `DatasetBuilder.set_data_array_axis_names`.|
+|`active`|YES     |`str` |The field that will be mapped onto a mesh for rendering. This should be a name of an array that exists in the current dataset. This value will be passed to `DatasetBuilder.set_data_array_active_name`. |
+|`x`  |NO (default=None)  |`str`|The world coordinate value along X describing the grid/mesh. This should be the name of a coordinate that exists in the active data array. This value will be passed to `DatasetBuilder.set_data_array_axis_names`.|
+|`y`  |NO (default=None)  |`str`|The world coordinate value along Y describing the grid/mesh. This should be the name of a coordinate that exists in the active data array. This value will be passed to `DatasetBuilder.set_data_array_axis_names`.|
+|`z`  |NO (default=None)  |`str`|The world coordinate value along Z describing the grid/mesh. This should be the name of a coordinate that exists in the active data array. This value will be passed to `DatasetBuilder.set_data_array_axis_names`.|
+|`t`  |NO (default=None)  |`str`|The coordinate name that represents slices of data, which may be time. Unlike other axes, this axis can only show one index at a time. This should be the name of a coordinate that exists in the active data array. This value will be passed to `DatasetBuilder.set_data_array_axis_names`.|
 |`t_index` |NO (default=0)|`int`|The index of the current time slice. Must be an integer >= 0 and < the length of the current time coordinate.This value will be passed to `DatasetBuilder.set_data_array_time_index`.|
 
 ## `data_slices` (Optional)
