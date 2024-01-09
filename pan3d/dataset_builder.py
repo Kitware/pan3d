@@ -99,10 +99,7 @@ class DatasetBuilder:
     @property
     def mesh(
         self,
-    ) -> typing.Union[
-        pyvista.core.grid.RectilinearGrid,
-        pyvista.StructuredGrid,
-    ]:
+    ) -> typing.Union[pyvista.core.grid.RectilinearGrid, pyvista.StructuredGrid]:
         """Returns the PyVista Mesh derived from the current data array."""
         if self._mesh is None:
             self._mesh = self.algorithm.mesh
