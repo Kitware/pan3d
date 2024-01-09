@@ -97,7 +97,9 @@ class DatasetBuilder:
         return self.algorithm.sliced_data_array
 
     @property
-    def mesh(self) -> typing.Union[
+    def mesh(
+        self,
+    ) -> typing.Union[
         pyvista.core.grid.RectilinearGrid,
         pyvista.core.grid.StructuredGrid,
     ]:
