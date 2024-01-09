@@ -18,7 +18,7 @@ Pan3D is intended to aid data scientists in exploring a given multidimensional d
 
     ![](../images/4.png)
 
-5. You can also adjust the time coordinate by selecting the index of the current time slice. When the time coordinate is expanded, you have a slider of all the available time steps in the active array. This data has over 7,000 time steps from September 01, 2002 to March 20, 2022. After changing the slider value, the date and time of the current step is shown and the “Apply & Render” button becomes enabled. To render the selected time step, the scene must be rerendered. The screenshot below shows the data on April 24, 2017.
+5. You can also adjust the time coordinate by selecting the index of the current time slice. When the time coordinate is expanded, you have a slider of all the available time steps in the active array. This data has over 7,000 time steps from September 01, 2002 to March 20, 2022. After changing the slider value, the date and time of the current step is shown and the “Apply & Render” button becomes enabled. To render the selected time step, the scene must be rerendered. The screenshot below shows the data on May 08, 2005.
 
     ![](../images/5.png)
 
