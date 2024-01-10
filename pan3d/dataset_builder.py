@@ -65,7 +65,7 @@ class DatasetBuilder:
         self.ctrl.reset = self.reset
 
         if pangeo:
-            with open("examples/pangeo_catalog.json") as f:
+            with open(Path(BASE_DIR, "../examples/pangeo_catalog.json")) as f:
                 self.state.available_datasets += json.load(f)
 
         if dataset_path:
