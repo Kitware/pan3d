@@ -285,8 +285,8 @@ class DatasetBuilder:
         for key in da.dims:
             current_coord = da.coords[key]
             d = current_coord.dtype
-            array_min = current_coord.values[0]
-            array_max = current_coord.values[-1]
+            array_min = current_coord.values.min()
+            array_max = current_coord.values.max()
 
             # make content serializable by its type
             if d.kind in ["m", "M", "O"]:  # is timedelta or datetime
