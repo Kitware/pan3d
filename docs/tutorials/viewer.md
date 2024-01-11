@@ -22,9 +22,16 @@ Pan3D is intended to aid data scientists in exploring a given multidimensional d
 
     ![](../images/5.png)
 
-6. You can adjust the rendering with some of the options available in the menus in the rendering area. The right menu, expanded by default, offers camera controls, options to toggle edge visibility, bounding box visibility, a ruler widget, and an axis legend widget. It also offers buttons to export the rendered scene as a static PNG or dynamic HTML render. The left menu, when expanded, offers options to change the rendered visual. You can change the color map, transparency, warping, and the scales of each axis. The screenshot below shows a different color map and scalar warping enabled. The scalar warping turns the rendered flat plane into a 3D mesh, where values are extruded in the Z axis according to their magnitudes. The screenshot below also shows that the color legend has been moved; the user can adjust the size and position of this legend as needed.
+6. You can adjust the rendering with some of the options available in the menus in the rendering area.
+
+    The right menu, when expanded, offers options to change the rendered visual. You can change the color map, transparency, warping, and the scales of each axis. The first screenshot below shows a different color map and scalar warping enabled. The scalar warping turns the rendered flat plane into a 3D mesh, where values are extruded in the Z axis according to their magnitudes.
+
+    The left menu, when expanded, offers camera controls, options to toggle edge visibility and bounding box visibility, a ruler widget, and an axis legend widget. It also offers buttons to export the rendered scene as a static PNG or dynamic HTML render. The second screenshot below shows enabled edge visibility. In this screenshot, the data has been sliced for a lower resolution rendering so that the edges may be seen better.
+
+    The screenshots below also show that the color legend has been moved; the user can adjust the size and position of this legend as needed.
 
     ![](../images/6.png)
+    ![](../images/9.png)
 
 7. Once you have used the Pan3D viewer to configure the data for a desired render, you can export the data configuration for faster reuse and easier collaboration. The import and export buttons are available in the top toolbar.
 
