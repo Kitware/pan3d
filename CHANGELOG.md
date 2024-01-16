@@ -2,6 +2,65 @@
 
 
 
+## v0.2.2 (2024-01-16)
+
+### Documentation
+
+* docs: Add mesh edges screenshot to viewer tutorial ([`88be0ce`](https://github.com/Kitware/pan3d/commit/88be0cedd4454909b6a58938288f5b21fb972c5f))
+
+* docs: improve Pangeo Forge examples ([`15d0c4e`](https://github.com/Kitware/pan3d/commit/15d0c4ec55a859b982d93151ba1cf503e3bf8f40))
+
+* docs: Update current time in description for updated screenshot ([`9b5814a`](https://github.com/Kitware/pan3d/commit/9b5814a546a7bf41b93e4898e02feed1502ebc65))
+
+* docs: Add descriptors for what each axis represents ([`61ee428`](https://github.com/Kitware/pan3d/commit/61ee4282f4b4d2f3c30216cdc2fd030236fb230f))
+
+* docs: Add configuration for readthedocs ([`c2c1e37`](https://github.com/Kitware/pan3d/commit/c2c1e379518c974b3bef2eb1144249f51b46942d))
+
+* docs: fill API documentation pages ([`b261649`](https://github.com/Kitware/pan3d/commit/b261649996cae25695d910dee915ff4cf3432055))
+
+* docs: Add typing and docstrings to dataset_builder.py ([`d6d8855`](https://github.com/Kitware/pan3d/commit/d6d88556e9272588e5f99cebf1c25b5e29347087))
+
+### Fix
+
+* fix: use true min and max for default slicing ([`8965827`](https://github.com/Kitware/pan3d/commit/8965827b591de491144617c41c78e66c48796c07))
+
+* fix: use relative path for pangeo datasets JSON ([`6d9d9e9`](https://github.com/Kitware/pan3d/commit/6d9d9e9bdd46bc03261784081cb5c5b7e5034679))
+
+* fix: update test expected size for updated example file ([`81d4601`](https://github.com/Kitware/pan3d/commit/81d460128cf7a5a79195cd5a817328eee3c581a4))
+
+* fix: change pyvista StructuredGrid reference ([`d917fd0`](https://github.com/Kitware/pan3d/commit/d917fd07754ab7480eec48ece58e001a7bd92d17))
+
+* fix(DatasetBuilder): typing adjustments ([`aa5dbc8`](https://github.com/Kitware/pan3d/commit/aa5dbc87edb31c90529218b433aa876d09299801))
+
+### Refactor
+
+* refactor: add lfs images ([`0256f52`](https://github.com/Kitware/pan3d/commit/0256f52e420412685cadba41e5fea280e07c8f5d))
+
+* refactor: store docs images with git-lfs ([`7d0d776`](https://github.com/Kitware/pan3d/commit/7d0d77676527b5131e2c81c325a3d378b297b33c))
+
+* refactor: remove docs images (to be stored with git-lfs) ([`b63799d`](https://github.com/Kitware/pan3d/commit/b63799d88d70fdc76ecdbe697d0a7a9d907c25f6))
+
+### Style
+
+* style: Use black to fix styling ([`fd4f265`](https://github.com/Kitware/pan3d/commit/fd4f265d4882d36f373de1b5932bcea3d2f64d31))
+
+* style: replace 2 tutorial images with rotated worlds ([`872d693`](https://github.com/Kitware/pan3d/commit/872d693130e9d795d7c185d38ebf7b818d8ccc32))
+
+* style: Use black to fix styling ([`07ce042`](https://github.com/Kitware/pan3d/commit/07ce042b86d55698aaf85b6f765f923f1db6edbe))
+
+* style: switch cover image in README ([`ef01699`](https://github.com/Kitware/pan3d/commit/ef01699b22b30885426ec3bf6f7a4eaf725e252a))
+
+* style: Use black to fix styling ([`965c11c`](https://github.com/Kitware/pan3d/commit/965c11c731021abcbf7f19f1acf73e5dd4980317))
+
+### Unknown
+
+* Merge pull request #47 from Kitware/docs-and-tutorials
+
+Docs and tutorials ([`b33ae78`](https://github.com/Kitware/pan3d/commit/b33ae784ad8abfeaa19ead97441239ce646669c5))
+
+* Merge branch &#39;main&#39; into docs-and-tutorials ([`4876d7c`](https://github.com/Kitware/pan3d/commit/4876d7c8ad0ba17b4bfe280eb78f6c99049dc8ec))
+
+
 ## v0.2.1 (2023-12-14)
 
 ### Build
@@ -119,6 +178,12 @@ Binder configuration ([`d8cad54`](https://github.com/Kitware/pan3d/commit/d8cad5
 * ci: combine build, release, publish jobs into one release job with 3 steps ([`43bfff8`](https://github.com/Kitware/pan3d/commit/43bfff81ca595b69aaadc2e287ba2bdda9041cb6))
 
 * ci: rebuild before PyPI publish ([`4ef460e`](https://github.com/Kitware/pan3d/commit/4ef460e296187d668893b6749a18c56598a7c960))
+
+### Documentation
+
+* docs(setup): update pyproject.toml and MANIFEST.in with README location ([`37deecc`](https://github.com/Kitware/pan3d/commit/37deecca74ba381cb6444fabe76efd30aab57976))
+
+* docs(tutorials): create basic docs navigation and add tutorials ([`e72fd03`](https://github.com/Kitware/pan3d/commit/e72fd03f78ca7bdf69293e8b1f64113909cfdaba))
 
 ### Fix
 
