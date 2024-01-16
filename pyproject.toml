@@ -20,7 +20,7 @@ dependencies = [
     "zarr",
 ]
 requires-python = ">=3.7"
-readme = "README.rst"
+readme = "docs/README.md"
 license = {text = "Apache Software License"}
 keywords = ["Python", "Interactive", "Web", "Application", "Framework"]
 classifiers = [
