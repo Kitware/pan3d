@@ -1,7 +1,8 @@
 # Pan3D
 
 <img style="display: inline-block;" src="images/kitware.svg" alt="Kitware Logo" href="https://kitware.com" width="100">
-[![Documentation Status](https://readthedocs.org/projects/pan3d/badge/?version=latest)](https://pan3d.readthedocs.io/en/latest/?badge=latest)
+
+[![Documentation Status][docs-image]][docs-link]
 [![Binder][binder-image]][binder-link]
 [![Build Status][GHAction-image]][GHAction-link]
 [![PyPI Version][pypi-v-image]][pypi-v-link]
@@ -61,6 +62,8 @@ Pan3D comes with a set of example configuration files and example Jupyter notebo
 
 
 <!-- Links -->
+[docs-image]: https://readthedocs.org/projects/pan3d/badge/?version=latest
+[docs-link]: https://pan3d.readthedocs.io/en/latest
 [binder-image]: https://mybinder.org/badge_logo.svg
 [binder-link]: https://mybinder.org/v2/gh/Kitware/pan3d/main?labpath=examples%2Fjupyter
 [GHAction-image]: https://github.com/Kitware/pan3d/workflows/Test/badge.svg
