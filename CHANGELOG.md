@@ -2,6 +2,13 @@
 
 
 
+## v0.2.3 (2024-01-17)
+
+### Fix
+
+* fix(docs): fix README badge rendering on GH ([`6a65a49`](https://github.com/Kitware/pan3d/commit/6a65a49e85e994a54e9fd2e026d9ff0ad9a04514))
+
+
 ## v0.2.2 (2024-01-16)
 
 ### Documentation
