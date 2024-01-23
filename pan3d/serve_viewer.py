@@ -2,10 +2,10 @@ from argparse import ArgumentParser, BooleanOptionalAction
 from pan3d.dataset_builder import DatasetBuilder
 
 
-def main():
+def serve():
     parser = ArgumentParser(
         prog="Pan3D",
-        description="Launch the Pan3D Dataset Builder",
+        description="Launch the Pan3D Dataset Viewer",
     )
 
     parser.add_argument("-C", "--config_path")
@@ -23,4 +23,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    serve()
