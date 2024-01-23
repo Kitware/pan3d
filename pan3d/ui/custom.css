@@ -9,3 +9,7 @@
 .v-col {
     padding: 0px !important
 }
+
+html {
+    overflow-y: hidden
+}
