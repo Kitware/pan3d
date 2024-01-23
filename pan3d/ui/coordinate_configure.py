@@ -63,15 +63,20 @@ class CoordinateConfigure(vuetify.VCard):
                                         step=(f"{coordinate_info}?.step",),
                                         hide_details=True,
                                         density="compact",
-                                        style="width: 80px",
+                                        style="width: 100px",
                                         type="number",
                                         __properties=["min", "max"],
                                     )
 
                         else:
-                            vuetify.VCardSubtitle("Select values", classes="mt-3")
+                            vuetify.VCardSubtitle(
+                                "Select values",
+                                v_if=(f"{coordinate_info}?.numeric",),
+                                classes="mt-3",
+                            )
                             with vuetify.VContainer(
-                                classes="d-flex pa-0", style="column-gap: 3px"
+                                classes="d-flex pa-0", style="column-gap: 3px",
+                                v_if=(f"{coordinate_info}?.numeric",),
                             ):
                                 vuetify.VTextField(
                                     model_value=(f"{coordinate_info}?.start",),
