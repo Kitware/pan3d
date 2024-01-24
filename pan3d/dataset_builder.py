@@ -5,7 +5,7 @@ import xarray
 from pan3d.utils import coordinate_auto_selection
 from pathlib import Path
 from pvxarray.vtk_source import PyVistaXarraySource
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, Tuple
 
 class DatasetBuilder():
     """Manage data structure, slicing, and mesh creation for a target N-D dataset."""
@@ -45,7 +45,16 @@ class DatasetBuilder():
             self._viewer = DatasetViewer(
                 builder=self,
                 server=self._server,
-                pangeo=self._pangeo
+                pangeo=self._pangeo,
+                state=dict(
+                    dataset_path=self.dataset_path,
+                    da_active=self.data_array_name,
+                    da_x=self.x,
+                    da_y=self.y,
+                    da_z=self.z,
+                    da_t=self.t,
+                    da_t_index=self.t_index
+                )
             )
         return self._viewer.layout
 
@@ -129,9 +138,7 @@ class DatasetBuilder():
         return self._algorithm.sliced_data_array
 
     @property
-    def data_range(self) -> Any:
-        # TODO check return type
-        print(self._algorithm.data_range)
+    def data_range(self) -> Tuple[Any]:
         return self._algorithm.data_range
 
     @property
@@ -182,17 +189,16 @@ class DatasetBuilder():
     def t_index(self, t_index: int) -> None:
         if self._algorithm.time_index != t_index:
             self._algorithm.time_index = int(t_index)
+            self._set_state_values(da_t_index=t_index)
             if self._viewer:
                 self._viewer._time_index_changed()
 
     @property
-    def slicing(self) -> List[Dict]:
-        print('algorithm slicing', self._algorithm.slicing)
+    def slicing(self) -> Dict[str, List]:
         return self._algorithm.slicing
 
     @slicing.setter
-    def slicing(self, slicing: List[Dict]) -> None:
-        # TODO: check typing here
+    def slicing(self, slicing: Dict[str, List]) -> None:
         self._algorithm.slicing = slicing
 
     @property
