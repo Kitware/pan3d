@@ -1,3 +1,5 @@
+import asyncio
+import concurrent.futures
 import pandas
 import pyvista
 from pathlib import Path
@@ -17,7 +19,6 @@ from pan3d.ui import AxisDrawer, MainDrawer, Toolbar, RenderOptions
 from pan3d.utils import (
     initial_state,
     has_gpu_rendering,
-    run_singleton_task,
 )
 
 BASE_DIR = Path(__file__).parent
@@ -42,6 +43,8 @@ class DatasetViewer():
         """
         self.builder = builder
         self.server = get_server(server, client_type="vue3")
+        self.current_event_loop = asyncio.get_event_loop()
+        self.pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         self.state.update(initial_state)
         self._layout = None
 
@@ -205,7 +208,7 @@ class DatasetViewer():
         if self.builder.mesh is not None and self.data_array is not None:
             self.plot_mesh()
 
-    async def plot_mesh(self) -> None:
+    def plot_mesh(self) -> None:
         """Render current cached mesh in viewer's plotter."""
         self.plotter.clear()
         args = dict(
@@ -216,38 +219,37 @@ class DatasetViewer():
         if self.state.render_transparency:
             args["opacity"] = self.state.render_transparency_function
 
-        mesh = self.builder.mesh
+        try:
+            mesh = self.builder.mesh
+        except Exception as exception:
+            with self.state:
+                self.state.ui_error_message = str(exception)
+                self.state.ui_loading = False
+                return
+
         if self.state.render_scalar_warp:
             mesh = mesh.warp_by_scalar()
         self.actor = self.plotter.add_mesh(
             mesh,
             **args,
         )
-        self.plotter.view_isometric()
+        if len(self.builder.data_array.shape) > 2:
+            self.plotter.view_isometric()
+        else:
+            self.plotter.view_xy()
         self.ctrl.push_camera()
         self.ctrl.view_update()
+        with self.state:
+            self.state.ui_loading = False
 
     def apply_and_render(self, **kwargs) -> None:
         """Asynchronously reset and update cached mesh and render to viewer's plotter."""
-        da = self.builder.data_array
         self.state.ui_error_message = None
         self.state.ui_loading = True
         self.state.ui_unapplied_changes = False
 
-        self.plot_mesh()
-
-        def mesh_updated(exception=None):
-            with self.state:
-                self.state.ui_error_message = (
-                    str(exception) if exception is not None else None
-                )
-                self.state.ui_loading = False
-
-        run_singleton_task(
-            self.plot_mesh,
-            mesh_updated,
-            timeout=100,
-            timeout_message="Failed to create mesh in under 100 seconds. Try reducing data size by slicing.",
+        self.current_event_loop.call_soon_threadsafe(
+            self.plot_mesh
         )
 
     # -----------------------------------------------------
@@ -389,10 +391,13 @@ class DatasetViewer():
             self.state.ui_current_time_string = current_time.strftime("%b %d %Y %H:%M")
 
     def _mesh_changed(self) -> None:
-        total_bytes = 0
         da = self.builder.data_array
-        if da is not None:
-            total_bytes = da.size * da.dtype.itemsize
+        if da is None:
+            self.state.da_size = 0
+            self.state.ui_unapplied_changes = False
+            self.state.ui_loading = False
+            return
+        total_bytes = da.size * da.dtype.itemsize
         exponents_map = {0: "bytes", 1: "KB", 2: "MB", 3: "GB"}
         for exponent in sorted(exponents_map.keys(), reverse=True):
             divisor = 1024**exponent
