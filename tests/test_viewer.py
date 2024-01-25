@@ -3,110 +3,114 @@ from pan3d import DatasetViewer
 
 
 def push_builder_state(builder):
-    builder.dataset_path = 'eraint_uvz'
-    builder.z = 'level'
-    builder.t = 'month'
+    builder.dataset_path = "eraint_uvz"
+    builder.z = "level"
+    builder.t = "month"
     builder.t_index = 1
-    builder.slicing = {
-        'longitude': [0, 90, 2]
-    }
+    builder.slicing = {"longitude": [0, 90, 2]}
 
 
 def push_viewer_state(viewer):
     # For state updates with callbacks,
     # Ensure the callbacks occur in the correct order
-    viewer.state.update(dict(
-        dataset_path='eraint_uvz',
-    ))
+    viewer.state.update(
+        dict(
+            dataset_path="eraint_uvz",
+        )
+    )
     viewer.state.flush()
-    viewer.state.update(dict(
-        da_active='z',
-    ))
+    viewer.state.update(
+        dict(
+            da_active="z",
+        )
+    )
     viewer.state.flush()
-    viewer.state.update(dict(
-        da_z='level',
-        da_t='month',
-        da_t_index=1,
-    ))
+    viewer.state.update(
+        dict(
+            da_z="level",
+            da_t="month",
+            da_t_index=1,
+        )
+    )
     viewer.state.flush()
 
 
 def assert_builder_state(builder):
-    assert builder.dataset_path == 'eraint_uvz'
+    assert builder.dataset_path == "eraint_uvz"
     assert builder.dataset is not None
-    assert builder.data_array_name == 'z'
-    assert builder.x == 'longitude'
-    assert builder.y == 'latitude'
-    assert builder.z == 'level'
-    assert builder.t == 'month'
+    assert builder.data_array_name == "z"
+    assert builder.x == "longitude"
+    assert builder.y == "latitude"
+    assert builder.z == "level"
+    assert builder.t == "month"
     assert builder.t_index == 1
 
 
 def assert_viewer_state(viewer):
-    assert viewer.state.dataset_path == 'eraint_uvz'
-    assert viewer.state.dataset_ready == True
-    assert viewer.state.da_active == 'z'
-    assert viewer.state.da_x == 'longitude'
-    assert viewer.state.da_y == 'latitude'
-    assert viewer.state.da_z == 'level'
-    assert viewer.state.da_t == 'month'
+    assert viewer.state.dataset_path == "eraint_uvz"
+    assert viewer.state.dataset_ready
+    assert viewer.state.da_active == "z"
+    assert viewer.state.da_x == "longitude"
+    assert viewer.state.da_y == "latitude"
+    assert viewer.state.da_z == "level"
+    assert viewer.state.da_t == "month"
     assert viewer.state.da_t_index == 1
-    assert viewer.state.da_size == '345 KB'
+    assert viewer.state.da_size == "345 KB"
     assert viewer.state.da_vars == [
-        {'name': 'z', 'id': 0},
-        {'name': 'u', 'id': 1},
-        {'name': 'v', 'id': 2}
+        {"name": "z", "id": 0},
+        {"name": "u", "id": 1},
+        {"name": "v", "id": 2},
     ]
 
 
 def test_ui_state():
-    viewer = DatasetViewer(server='ui')
+    viewer = DatasetViewer(server="ui")
     push_viewer_state(viewer)
 
-    viewer._coordinate_toggle_expansion('latitude')
-    viewer._coordinate_toggle_expansion('longitude')
+    viewer._coordinate_toggle_expansion("latitude")
+    viewer._coordinate_toggle_expansion("longitude")
 
-    assert viewer.state.ui_loading == False
-    assert viewer.state.ui_main_drawer == True
-    assert viewer.state.ui_axis_drawer == True
-    assert viewer.state.ui_unapplied_changes == True
+    assert not viewer.state.ui_loading
+    assert viewer.state.ui_main_drawer
+    assert viewer.state.ui_axis_drawer
+    assert viewer.state.ui_unapplied_changes
     assert viewer.state.ui_error_message is None
     assert viewer.state.ui_more_info_link is None
-    assert viewer.state.ui_current_time_string == 'Jan 01 1970 00:00'
-    assert viewer.state.ui_expanded_coordinates == ['month', 'level']
+    assert viewer.state.ui_current_time_string == "Jan 01 1970 00:00"
+    assert viewer.state.ui_expanded_coordinates == ["month", "level"]
 
 
 def test_render_options_state():
-    viewer = DatasetViewer(server='render_options')
+    viewer = DatasetViewer(server="render_options")
     push_viewer_state(viewer)
 
     viewer.set_render_scales(
-        x=2, y=3, z=4,
+        x=2,
+        y=3,
+        z=4,
     )
     viewer.set_render_options(
-        colormap='magma',
+        colormap="magma",
         transparency=True,
-        transparency_function='linear_r',
+        transparency_function="linear_r",
         scalar_warp=True,
     )
 
     assert viewer.state.render_x_scale == 2
     assert viewer.state.render_y_scale == 3
     assert viewer.state.render_z_scale == 4
-    assert viewer.state.render_colormap == 'magma'
-    assert viewer.state.render_transparency == True
-    assert viewer.state.render_transparency_function == 'linear_r'
-    assert viewer.state.render_scalar_warp == True
+    assert viewer.state.render_colormap == "magma"
+    assert viewer.state.render_transparency
+    assert viewer.state.render_transparency_function == "linear_r"
+    assert viewer.state.render_scalar_warp
 
 
 def test_viewer_export():
-    viewer = DatasetViewer(server='export')
+    viewer = DatasetViewer(server="export")
     print(viewer.server.name)
     push_viewer_state(viewer)
 
-    viewer.state.update(dict(
-        ui_action_name='Export'
-    ))
+    viewer.state.update(dict(ui_action_name="Export"))
     viewer.state.flush()
 
     print(viewer.state.state_export)
@@ -116,36 +120,41 @@ def test_viewer_export():
     assert viewer.state.ui_action_message is None
     assert viewer.state.ui_action_config_file is None
 
-    assert viewer.state.state_export['data_origin'] == 'eraint_uvz'
-    assert viewer.state.state_export['data_array']['name'] == 'z'
-    assert viewer.state.state_export['data_array']['x'] == 'longitude'
-    assert viewer.state.state_export['data_array']['y'] == 'latitude'
-    assert viewer.state.state_export['data_array']['z'] == 'level'
-    assert viewer.state.state_export['data_array']['t'] == 'month'
-    assert viewer.state.state_export['data_array']['t_index'] == 1
-    assert viewer.state.state_export['data_slices']['longitude'] == [-180.0, 179.25, 1]
-    assert viewer.state.state_export['data_slices']['latitude'] == [-90.0, 90.0, 1]
-    assert viewer.state.state_export['data_slices']['level'] == [200, 850, 1]
-    assert viewer.state.state_export['data_slices']['month'] == [1, 7, 1]
-    assert viewer.state.state_export['ui']['loading'] == False
-    assert viewer.state.state_export['ui']['main_drawer'] == True
-    assert viewer.state.state_export['ui']['axis_drawer'] == True
-    assert viewer.state.state_export['ui']['unapplied_changes'] == True
-    assert viewer.state.state_export['ui']['error_message'] == None
-    assert viewer.state.state_export['ui']['more_info_link'] == None
-    assert viewer.state.state_export['ui']['expanded_coordinates'] == ['month', 'level', 'latitude', 'longitude']
-    assert viewer.state.state_export['ui']['current_time_string'] == 'Jan 01 1970 00:00'
+    assert viewer.state.state_export["data_origin"] == "eraint_uvz"
+    assert viewer.state.state_export["data_array"]["name"] == "z"
+    assert viewer.state.state_export["data_array"]["x"] == "longitude"
+    assert viewer.state.state_export["data_array"]["y"] == "latitude"
+    assert viewer.state.state_export["data_array"]["z"] == "level"
+    assert viewer.state.state_export["data_array"]["t"] == "month"
+    assert viewer.state.state_export["data_array"]["t_index"] == 1
+    assert viewer.state.state_export["data_slices"]["longitude"] == [-180.0, 179.25, 1]
+    assert viewer.state.state_export["data_slices"]["latitude"] == [-90.0, 90.0, 1]
+    assert viewer.state.state_export["data_slices"]["level"] == [200, 850, 1]
+    assert viewer.state.state_export["data_slices"]["month"] == [1, 7, 1]
+    assert not viewer.state.state_export["ui"]["loading"]
+    assert viewer.state.state_export["ui"]["main_drawer"]
+    assert viewer.state.state_export["ui"]["axis_drawer"]
+    assert viewer.state.state_export["ui"]["unapplied_changes"]
+    assert viewer.state.state_export["ui"]["error_message"] is None
+    assert viewer.state.state_export["ui"]["more_info_link"] is None
+    assert viewer.state.state_export["ui"]["expanded_coordinates"] == [
+        "month",
+        "level",
+        "latitude",
+        "longitude",
+    ]
+    assert viewer.state.state_export["ui"]["current_time_string"] == "Jan 01 1970 00:00"
 
 
 def test_layout():
     from trame_vuetify.ui.vuetify3 import VAppLayout
 
-    builder = DatasetBuilder(server='layout')
+    builder = DatasetBuilder(server="layout")
     assert isinstance(builder.viewer.layout, VAppLayout)
 
 
 def test_sync_to_viewer_from_builder():
-    builder = DatasetBuilder(server='from_builder')
+    builder = DatasetBuilder(server="from_builder")
     viewer = builder.viewer
     push_builder_state(builder)
 
@@ -154,35 +163,25 @@ def test_sync_to_viewer_from_builder():
 
 
 def test_sync_during_viewer_creation():
-    builder = DatasetBuilder(server='from_creation')
+    builder = DatasetBuilder(server="from_creation")
     push_builder_state(builder)
     assert_builder_state(builder)
 
-    # Viewer created last, state should sync during initialzation
+    # Viewer created last, state should sync during initialization
     viewer = builder.viewer
     assert_viewer_state(viewer)
 
 
 def test_sync_from_viewer_ui_functions():
-    builder = DatasetBuilder(server='from_ui_funcs')
+    builder = DatasetBuilder(server="from_ui_funcs")
     viewer = builder.viewer
     push_viewer_state(viewer)
 
-    viewer._coordinate_select_axis(
-        'level', None, 'da_z'
-    )
-    viewer._coordinate_select_axis(
-        'month', None, 'da_t'
-    )
-    viewer._coordinate_change_slice(
-        'longitude', 'start', 0
-    )
-    viewer._coordinate_change_slice(
-        'longitude', 'stop', 90
-    )
-    viewer._coordinate_change_slice(
-        'longitude', 'step', 2
-    )
+    viewer._coordinate_select_axis("level", None, "da_z")
+    viewer._coordinate_select_axis("month", None, "da_t")
+    viewer._coordinate_change_slice("longitude", "start", 0)
+    viewer._coordinate_change_slice("longitude", "stop", 90)
+    viewer._coordinate_change_slice("longitude", "step", 2)
 
     viewer.state.flush()
     assert_builder_state(builder)

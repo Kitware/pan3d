@@ -5,6 +5,7 @@ import pytest
 
 from pan3d import DatasetBuilder
 
+
 def test_import_config():
     builder = DatasetBuilder()
     builder.import_config("examples/example_config_noaa.json")
@@ -25,33 +26,31 @@ def test_export_config():
             exported = json.load(f)
 
         # Disregard ui section
-        imported.pop('ui', None)
-        exported.pop('ui', None)
+        imported.pop("ui", None)
+        exported.pop("ui", None)
         assert imported == exported
 
 
 def test_setters():
     builder = DatasetBuilder()
 
-    builder.dataset_path = 'eraint_uvz'
+    builder.dataset_path = "eraint_uvz"
     # builder will auto select the following:
     # builder.data_array_name = 'z'
     # builder.x = 'longitude'
     # builder.y = 'latitude'
-    builder.z = 'level'
-    builder.t = 'month'
+    builder.z = "level"
+    builder.t = "month"
     builder.t_index = 1
-    builder.slicing = {
-        'longitude': [0, 90, 2]
-    }
+    builder.slicing = {"longitude": [0, 90, 2]}
 
-    assert builder.dataset_path == 'eraint_uvz'
+    assert builder.dataset_path == "eraint_uvz"
     assert builder.dataset is not None
-    assert builder.data_array_name == 'z'
-    assert builder.x == 'longitude'
-    assert builder.y == 'latitude'
-    assert builder.z == 'level'
-    assert builder.t == 'month'
+    assert builder.data_array_name == "z"
+    assert builder.x == "longitude"
+    assert builder.y == "latitude"
+    assert builder.z == "level"
+    assert builder.t == "month"
     assert builder.t_index == 1
 
 

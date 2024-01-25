@@ -75,7 +75,8 @@ class CoordinateConfigure(vuetify.VCard):
                                 classes="mt-3",
                             )
                             with vuetify.VContainer(
-                                classes="d-flex pa-0", style="column-gap: 3px",
+                                classes="d-flex pa-0",
+                                style="column-gap: 3px",
                                 v_if=(f"{coordinate_info}?.numeric",),
                             ):
                                 vuetify.VTextField(

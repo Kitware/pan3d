@@ -1,4 +1,3 @@
-import os
 import logging
 from .dataset_builder import DatasetBuilder
 
@@ -9,6 +8,6 @@ try:
     from .dataset_viewer import DatasetViewer
 
     __all__ = [DatasetBuilder, DatasetViewer]
-except:
+except Exception:
     # Trame is not installed, DatasetViewer will not be accessible
     __all__ = [DatasetBuilder]
