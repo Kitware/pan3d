@@ -6,16 +6,13 @@ authors = [
     {name = "Kitware Inc."},
 ]
 dependencies = [
+    "aiohttp",
     "dask",
     "fsspec",
-    "matplotlib",
     "netCDF4",
     "pyvista",
     "pyvista-xarray",
-    "trame",
-    "trame-vtk>=2.6.3",
-    "trame-vuetify",
-    "vtk",
+    "requests",
     "xarray",
     "zarr",
 ]
@@ -32,6 +29,13 @@ classifiers = [
     "Programming Language :: Python :: 3 :: Only",
     "Topic :: Software Development :: Libraries :: Application Frameworks",
     "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.optional-dependencies]
+viewer = [
+    "trame",
+    "trame-vtk>=2.6.3",
+    "trame-vuetify",
 ]
 
 [project.scripts]
