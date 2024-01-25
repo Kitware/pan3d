@@ -1,4 +1,5 @@
 import os
+import json
 import pyvista
 import xarray
 
@@ -56,7 +57,11 @@ class DatasetBuilder():
                     da_t_index=self.t_index
                 )
             )
-        return self._viewer.layout
+            self._viewer._dataset_changed()
+            self._viewer._data_array_changed()
+            self._viewer._time_index_changed()
+            self._viewer._mesh_changed()
+        return self._viewer
 
     @property
     def dataset_path(self) -> Optional[str]:
@@ -71,6 +76,7 @@ class DatasetBuilder():
         """
         if dataset_path != self._dataset_path:
             self._dataset_path = dataset_path
+            self._set_state_values(dataset_path=dataset_path)
             ds = None
             if dataset_path is not None:
                 self._set_state_values(ui_loading=True)
@@ -86,7 +92,10 @@ class DatasetBuilder():
                             dataset_path, engine=engine, chunks={}
                         )
                     except Exception as e:
-                        self._set_state_values(ui_error_message=str(e))
+                        if self._viewer:
+                            self._set_state_values(ui_error_message=str(e))
+                        else:
+                            raise e
                         return
                 else:
                     # Assume it is a named tutorial dataset
@@ -109,6 +118,7 @@ class DatasetBuilder():
             self.data_array_name = None
         if self._viewer:
             self._viewer._dataset_changed()
+            self._viewer._mesh_changed()
 
     @property
     def data_array_name(self) -> Optional[str]:
@@ -123,13 +133,19 @@ class DatasetBuilder():
         """
         if data_array_name != self._da_name:
             self._da_name = data_array_name
+            self._set_state_values(da_active=data_array_name)
             da = None
-            self._algorithm = PyVistaXarraySource()
+            self.x = None
+            self.y = None
+            self.z = None
+            self.t = None
+            self.t_index = 0
             if data_array_name is not None and self.dataset is not None:
                 da = self.dataset[data_array_name]
             self._algorithm.data_array = da
             if self._viewer:
                 self._viewer._data_array_changed()
+                self._viewer._mesh_changed()
             self._auto_select_coordinates()
 
     @property
@@ -139,6 +155,8 @@ class DatasetBuilder():
 
     @property
     def data_range(self) -> Tuple[Any]:
+        if self.dataset is None:
+            return None
         return self._algorithm.data_range
 
     @property
@@ -150,6 +168,8 @@ class DatasetBuilder():
         if self._algorithm.x != x:
             self._algorithm.x = x
             self._set_state_values(da_x=x)
+            if self._viewer:
+                self._viewer._mesh_changed()
 
     @property
     def y(self) -> Optional[str]:
@@ -160,6 +180,8 @@ class DatasetBuilder():
         if self._algorithm.y != y:
             self._algorithm.y = y
             self._set_state_values(da_y=y)
+            if self._viewer:
+                self._viewer._mesh_changed()
 
     @property
     def z(self) -> Optional[str]:
@@ -170,6 +192,8 @@ class DatasetBuilder():
         if self._algorithm.z != z:
             self._algorithm.z = z
             self._set_state_values(da_z=z)
+            if self._viewer:
+                self._viewer._mesh_changed()
 
     @property
     def t(self) -> Optional[str]:
@@ -180,6 +204,9 @@ class DatasetBuilder():
         if self._algorithm.time != t:
             self._algorithm.time = t
             self._set_state_values(da_t=t)
+            if self._viewer:
+                self._viewer._time_index_changed()
+                self._viewer._mesh_changed()
 
     @property
     def t_index(self) -> int:
@@ -192,6 +219,7 @@ class DatasetBuilder():
             self._set_state_values(da_t_index=t_index)
             if self._viewer:
                 self._viewer._time_index_changed()
+                self._viewer._mesh_changed()
 
     @property
     def slicing(self) -> Dict[str, List]:
@@ -200,6 +228,8 @@ class DatasetBuilder():
     @slicing.setter
     def slicing(self, slicing: Dict[str, List]) -> None:
         self._algorithm.slicing = slicing
+        if self._viewer:
+            self._viewer._mesh_changed()
 
     @property
     def mesh(
@@ -216,7 +246,9 @@ class DatasetBuilder():
 
     def _set_state_values(self, **kwargs):
         if self._viewer is not None:
-            self._viewer.state.update(kwargs)
+            for k, v in kwargs.items():
+                if self._viewer.state[k] != v:
+                    self._viewer.state[k] = v
 
     def _auto_select_coordinates(self) -> None:
         """Automatically assign available coordinates to available axes.
@@ -242,7 +274,7 @@ class DatasetBuilder():
                         or (len(accepted) > 1 and accepted in name)
                     ]
                     if len(name_match) > 0:
-                        self.__setattr__(axis, coord_name)
+                        setattr(self, axis, coord_name)
 
     # -----------------------------------------------------
     # Config logic
@@ -273,13 +305,11 @@ class DatasetBuilder():
 
         self.dataset_path = origin_config
         self.data_array_name = array_config.pop('name')
-        self.t_index = array_config.pop('t_index', 0)
         for key, value in array_config.items():
-            self.__setattr__(key, value)
+            setattr(self, key, value)
         self.slicing = config.get("data_slices")
 
         ui_config = {f'ui_{k}': v for k, v in config.get('ui', {}).items()}
-        ui_config.update({"ui_action_name": None, "ui_selected_config_file": None})
         self._set_state_values(**ui_config)
 
     def export_config(self, config_file: Union[str, Path, None] = None) -> None:
@@ -295,17 +325,18 @@ class DatasetBuilder():
             'data_array': {
                 'name': self.data_array_name,
                 **{
-                    key: self.__getattr__(key)
+                    key: getattr(self, key)
                     for key in ['x', 'y', 'z', 't', 't_index']
-                    if self.__getattr__(key)
+                    if getattr(self, key) is not None
                 }
             },
             'data_slices': self.slicing,
         }
         if self._viewer:
+            state_items = list(self._viewer.state.to_dict().items())
             config['ui'] = {
-                k.replace('ui_', ''): v for k, v in self._viewer.state.items()
-                if k.startswith('ui_')
+                k.replace('ui_', ''): v for k, v in state_items
+                if k.startswith('ui_') and 'action_' not in k
             }
 
         if config_file:

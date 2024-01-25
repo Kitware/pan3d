@@ -1,9 +1,14 @@
 import os
 import logging
 from .dataset_builder import DatasetBuilder
-from .dataset_viewer import DatasetViewer
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-__all__ = [DatasetBuilder, DatasetViewer]
+try:
+    from .dataset_viewer import DatasetViewer
+
+    __all__ = [DatasetBuilder, DatasetViewer]
+except:
+    # Trame is not installed, DatasetViewer will not be accessible
+    __all__ = [DatasetBuilder]

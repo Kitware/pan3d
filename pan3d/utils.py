@@ -9,7 +9,6 @@ def has_gpu_rendering():
 initial_state = {
     "trame__title": "Pan3D Viewer",
     "dataset_ready": False,
-    "mesh_timeout": 30,
     "state_export": None,
     "available_datasets": [
         {
@@ -39,7 +38,7 @@ initial_state = {
     "ui_expanded_coordinates": [],
     "ui_action_name": None,
     "ui_action_message": None,
-    "ui_selected_config_file": None,
+    "ui_action_config_file": None,
     "ui_current_time_string": "",
     "render_x_scale": 1,
     "render_y_scale": 1,

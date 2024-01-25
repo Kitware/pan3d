@@ -3,7 +3,7 @@ import concurrent.futures
 import pandas
 import pyvista
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 from trame.decorators import TrameApp, change
 from trame.app import get_server
@@ -29,7 +29,7 @@ class DatasetViewer():
     """Create a Trame GUI for a DatasetBuilder instance and manage rendering"""
     def __init__(
         self,
-        builder: DatasetBuilder,
+        builder: Optional[DatasetBuilder] = None,
         server: Union[Server, str] = None,
         state: dict = None,
         pangeo: bool = False,
@@ -37,30 +37,33 @@ class DatasetViewer():
         """Create an instance of the DatasetViewer class.
 
         Parameters:
+            builder: Pan3D DatasetBuilder instance.
             server: Trame server instance.
             state:  A dictionary of initial state values.
             pangeo: If true, use a list of example datasets from Pangeo Forge (examples/pangeo_catalog.json).
         """
+        if builder is None:
+            builder = DatasetBuilder()
+            builder._viewer = self
         self.builder = builder
         self.server = get_server(server, client_type="vue3")
         self.current_event_loop = asyncio.get_event_loop()
         self.pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-        self.state.update(initial_state)
         self._layout = None
 
         self.plotter = pyvista.Plotter(off_screen=True, notebook=False)
         self.plotter.set_background("lightgrey")
+        self.plot_view = None
         self.actor = None
-
         self.ctrl.get_plotter = lambda: self.plotter
-        self.ctrl.reset = self.apply_and_render
 
+        self.state.update(initial_state)
+        self.state.ready()
+        if state:
+            self.state.update(state)
         if pangeo:
             with open(Path(BASE_DIR, "../examples/pangeo_catalog.json")) as f:
                 self.state.available_datasets += json.load(f)
-
-        if state:
-            self.state.update(state)
 
         self._force_local_rendering = not has_gpu_rendering()
         if self._force_local_rendering:
@@ -88,7 +91,7 @@ class DatasetViewer():
             with self._layout:
                 client.Style(CSS_FILE.read_text())
                 Toolbar(
-                    self.ctrl.reset,
+                    self.apply_and_render,
                     self.builder.import_config,
                     self.builder.export_config,
                 )
@@ -113,6 +116,7 @@ class DatasetViewer():
                             self.ctrl.view_update = plot_view.update
                             self.ctrl.reset_camera = plot_view.reset_camera
                             self.ctrl.push_camera = plot_view.push_camera
+                            self.plot_view = plot_view
         return self._layout
 
     # -----------------------------------------------------
@@ -122,12 +126,13 @@ class DatasetViewer():
     def _coordinate_select_axis(
         self, coordinate_name, current_axis, new_axis, **kwargs
     ):
-        if self.state[current_axis]:
+        if current_axis and self.state[current_axis]:
             self.state[current_axis] = None
         if new_axis and new_axis != "undefined":
             self.state[new_axis] = coordinate_name
 
     def _coordinate_change_slice(self, coordinate_name, slice_attribute_name, value):
+        value = str(value)
         if value.isnumeric():
             coordinate_matches = [
                 (index, coordinate)
@@ -205,7 +210,7 @@ class DatasetViewer():
         if self.state.render_scalar_warp != scalar_warp:
             self.state.render_scalar_warp = scalar_warp
 
-        if self.builder.mesh is not None and self.data_array is not None:
+        if self.builder.mesh is not None and self.builder.data_array is not None:
             self.plot_mesh()
 
     def plot_mesh(self) -> None:
@@ -237,8 +242,11 @@ class DatasetViewer():
             self.plotter.view_isometric()
         else:
             self.plotter.view_xy()
-        self.ctrl.push_camera()
-        self.ctrl.view_update()
+
+        if self.plot_view:
+            self.plot_view.push_camera()
+            self.plot_view.view_update()
+
         with self.state:
             self.state.ui_loading = False
 
@@ -278,7 +286,7 @@ class DatasetViewer():
                 0,
                 {
                     "key": "dimensions",
-                    "value": str(dict(dataset.dims)),
+                    "value": str(dict(dataset.sizes)),
                 },
             )
             self.state.da_vars = [
@@ -294,26 +302,17 @@ class DatasetViewer():
             if len(self.state.da_vars) == 0:
                 self.state.no_da_vars = True
             self.state.dataset_ready = True
+        else:
+            self.state.dataset_ready = False
 
     def _data_array_changed(self) -> None:
         dataset = self.builder.dataset
         da_name = self.builder.data_array_name
+        if dataset is None or da_name is None:
+            return
         da = dataset[da_name]
-        self.state.update(
-            dict(
-                da_active=da_name,
-                da_x=None,
-                da_y=None,
-                da_z=None,
-                da_t=None,
-                da_t_index=0,
-                da_coordinates=[],
-                ui_expanded_coordinates=[],
-                ui_error_message=None,
-                ui_axis_drawer=False,
-                ui_current_time_string="",
-            )
-        )
+        if len(da.dims) > 0:
+            self.state.ui_axis_drawer = True
         for key in da.dims:
             current_coord = da.coords[key]
             d = current_coord.dtype
@@ -366,9 +365,6 @@ class DatasetViewer():
                 self.state.ui_expanded_coordinates.append(key)
 
             self.state.dirty("da_coordinates", "ui_expanded_coordinates")
-            if len(self.state.da_coordinates) > 0:
-                self.state.ui_axis_drawer = True
-
             self.plotter.clear()
             self.plotter.view_isometric()
 
@@ -414,25 +410,30 @@ class DatasetViewer():
     @change("dataset_path")
     def _on_change_dataset_path(self, dataset_path, **kwargs):
         self.builder.dataset_path = dataset_path
-        self._mesh_changed()
 
     @change("da_active")
     def _on_change_da_active(self, da_active, **kwargs):
         self.builder.data_array_name = da_active
-        self._mesh_changed()
 
-    @change("da_x", "da_y", "da_z", "da_t")
-    def _on_change_axis_assignment(self, da_x, da_y, da_z, da_t, **kwargs):
+    @change("da_x")
+    def _on_change_da_x(self, da_x, **kwargs):
         self.builder.x = da_x
+
+    @change("da_y")
+    def _on_change_da_y(self, da_y, **kwargs):
         self.builder.y = da_y
+
+    @change("da_z")
+    def _on_change_da_z(self, da_z, **kwargs):
         self.builder.z = da_z
+
+    @change("da_t")
+    def _on_change_da_t(self, da_t, **kwargs):
         self.builder.t = da_t
-        self._mesh_changed()
 
     @change("da_t_index")
     def _on_change_da_t_index(self, da_t_index, **kwargs):
         self.builder.t_index = da_t_index
-        self._mesh_changed()
 
     @change("da_coordinates")
     def _on_change_da_coordinates(self, da_coordinates, **kwargs):
@@ -443,12 +444,13 @@ class DatasetViewer():
                 coord['step'],
             ] for coord in da_coordinates
         }
-        self._mesh_changed()
 
     @change("ui_action_name")
     def _on_change_action_name(self, ui_action_name, **kwargs):
         self.state.ui_action_message = None
+        self.state.ui_action_config_file = None
         if ui_action_name == "Export":
+            self.state.ui_action_name = None
             self.state.state_export = self.builder.export_config(None)
 
     @change("render_x_scale", "render_y_scale", "render_z_scale")
