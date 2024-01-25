@@ -59,5 +59,7 @@ jobs:
       run: |
         pip install .
         pip install -r tests/requirements.txt
-        pytest -s ./tests
+        pytest -s ./tests/test_builder.py
+        pip install .[viewer]
+        pytest -s ./tests/test_viewer.py
       working-directory: .
