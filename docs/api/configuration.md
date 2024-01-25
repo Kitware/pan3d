@@ -12,7 +12,7 @@ There are four sections available in the configuration file format: `data_origin
 {
     "data_origin": "https://ncsa.osn.xsede.org/Pangeo/pangeo-forge/noaa-coastwatch-geopolar-sst-feedstock/noaa-coastwatch-geopolar-sst.zarr",
     "data_array": {
-        "active": "analysed_sst",
+        "name": "analysed_sst",
         "x": "lon",
         "y": "lat",
         "t": "time",
@@ -49,11 +49,11 @@ The value for this key should be a mapping specifying how to interpret the infor
 
 | Key | Required? | Type | Value Description |
 |-----|-----------|------|-------------------|
-|`active`|YES     |`str` |The field that will be mapped onto a mesh for rendering. This should be a name of an array that exists in the current dataset. This value will be passed to `DatasetBuilder.set_data_array_active_name`. |
-|`x`  |NO (default=None)  |`str`|The world coordinate value along X describing the grid/mesh. This should be the name of a coordinate that exists in the active data array. This value will be passed to `DatasetBuilder.set_data_array_axis_names`.|
-|`y`  |NO (default=None)  |`str`|The world coordinate value along Y describing the grid/mesh. This should be the name of a coordinate that exists in the active data array. This value will be passed to `DatasetBuilder.set_data_array_axis_names`.|
-|`z`  |NO (default=None)  |`str`|The world coordinate value along Z describing the grid/mesh. This should be the name of a coordinate that exists in the active data array. This value will be passed to `DatasetBuilder.set_data_array_axis_names`.|
-|`t`  |NO (default=None)  |`str`|The coordinate name that represents slices of data, which may be time. Unlike other axes, this axis can only show one index at a time. This should be the name of a coordinate that exists in the active data array. This value will be passed to `DatasetBuilder.set_data_array_axis_names`.|
+|`name`|YES     |`str` |The field that will be mapped onto a mesh for rendering. This should be a name of an array that exists in the current dataset. This value will be passed to `DatasetBuilder.data_array_name`. |
+|`x`  |NO (default=None)  |`str`|The world coordinate value along X describing the grid/mesh. This should be the name of a coordinate that exists in the data array. This value will be passed to `DatasetBuilder.set_data_array_axis_names`.|
+|`y`  |NO (default=None)  |`str`|The world coordinate value along Y describing the grid/mesh. This should be the name of a coordinate that exists in the data array. This value will be passed to `DatasetBuilder.set_data_array_axis_names`.|
+|`z`  |NO (default=None)  |`str`|The world coordinate value along Z describing the grid/mesh. This should be the name of a coordinate that exists in the data array. This value will be passed to `DatasetBuilder.set_data_array_axis_names`.|
+|`t`  |NO (default=None)  |`str`|The coordinate name that represents slices of data, which may be time. Unlike other axes, this axis can only show one index at a time. This should be the name of a coordinate that exists in the data array. This value will be passed to `DatasetBuilder.set_data_array_axis_names`.|
 |`t_index` |NO (default=0)|`int`|The index of the current time slice. Must be an integer >= 0 and < the length of the current time coordinate.This value will be passed to `DatasetBuilder.set_data_array_time_index`.|
 
 ## `data_slices` (Optional)
@@ -74,8 +74,8 @@ The value for this key should be a mapping of any number of UI state values. The
 | Key | Required? | Type | Value Description |
 |-----|-----------|------|-------------------|
 |`main_drawer`|NO (default=True)|`bool`|If true, open the lefthand drawer for dataset and data array browsing/selection.|
-|`axis_drawer`|NO (default=False)|`bool`|If true, open the righthand drawer for axis assignment/slicing. **Note:** By default, this becomes True when an active data array is selected.|
+|`axis_drawer`|NO (default=False)|`bool`|If true, open the righthand drawer for axis assignment/slicing. **Note:** By default, this becomes True when a data array is selected.|
 |`unapplied_changes`|NO (default=False)|`bool`|If true, show "Apply and Render" button, which when clicked will apply any unapplied changes and rerender.|
 |`error_message`|NO (default=None)|`str` | `None`|If not None, this string will show as the error message above the render area.|
 |`more_info_link`|NO (default=None)|`str` | `None`| If not None, this string should contain a link to more information about the current dataset. This link will appear below the dataset selection box.|
-|`expanded_coordinates`|NO (default=`[]`)|`list[str]`|This list should contain the names of all coordinates which should appear expanded in the righthand axis drawer. **Note:** By default, this list is populated with all available coordinate names once the active data array is selected.|
+|`expanded_coordinates`|NO (default=`[]`)|`list[str]`|This list should contain the names of all coordinates which should appear expanded in the righthand axis drawer. **Note:** By default, this list is populated with all available coordinate names once the data array is selected.|
