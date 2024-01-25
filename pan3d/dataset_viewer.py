@@ -1,5 +1,6 @@
 import asyncio
 import concurrent.futures
+import json
 import pandas
 import pyvista
 from pathlib import Path
@@ -24,9 +25,11 @@ from pan3d.utils import (
 BASE_DIR = Path(__file__).parent
 CSS_FILE = BASE_DIR / "ui" / "custom.css"
 
+
 @TrameApp()
-class DatasetViewer():
+class DatasetViewer:
     """Create a Trame GUI for a DatasetBuilder instance and manage rendering"""
+
     def __init__(
         self,
         builder: Optional[DatasetBuilder] = None,
@@ -256,9 +259,7 @@ class DatasetViewer():
         self.state.ui_loading = True
         self.state.ui_unapplied_changes = False
 
-        self.current_event_loop.call_soon_threadsafe(
-            self.plot_mesh
-        )
+        self.current_event_loop.call_soon_threadsafe(self.plot_mesh)
 
     # -----------------------------------------------------
     # State sync with Builder
@@ -374,11 +375,11 @@ class DatasetViewer():
         t = self.builder.t
         t_index = self.builder.t_index
         if (
-            dataset is not None and
-            da_name is not None and
-            t is not None and
-            dataset[da_name] is not None and
-            dataset[da_name][t] is not None
+            dataset is not None
+            and da_name is not None
+            and t is not None
+            and dataset[da_name] is not None
+            and dataset[da_name][t] is not None
         ):
             time_steps = dataset[da_name][t]
             current_time = time_steps.values[t_index]
@@ -438,11 +439,12 @@ class DatasetViewer():
     @change("da_coordinates")
     def _on_change_da_coordinates(self, da_coordinates, **kwargs):
         self.builder.slicing = {
-            coord['name']: [
-                coord['start'],
-                coord['stop'],
-                coord['step'],
-            ] for coord in da_coordinates
+            coord["name"]: [
+                coord["start"],
+                coord["stop"],
+                coord["step"],
+            ]
+            for coord in da_coordinates
         }
 
     @change("ui_action_name")

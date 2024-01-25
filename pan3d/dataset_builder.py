@@ -8,8 +8,10 @@ from pathlib import Path
 from pvxarray.vtk_source import PyVistaXarraySource
 from typing import Any, Dict, List, Optional, Union, Tuple
 
-class DatasetBuilder():
+
+class DatasetBuilder:
     """Manage data structure, slicing, and mesh creation for a target N-D dataset."""
+
     def __init__(
         self,
         dataset_path: str = None,
@@ -54,8 +56,8 @@ class DatasetBuilder():
                     da_y=self.y,
                     da_z=self.z,
                     da_t=self.t,
-                    da_t_index=self.t_index
-                )
+                    da_t_index=self.t_index,
+                ),
             )
             self._viewer._dataset_changed()
             self._viewer._data_array_changed()
@@ -88,9 +90,7 @@ class DatasetBuilder():
                     if ".nc" in dataset_path:
                         engine = "netcdf4"
                     try:
-                        ds = xarray.open_dataset(
-                            dataset_path, engine=engine, chunks={}
-                        )
+                        ds = xarray.open_dataset(dataset_path, engine=engine, chunks={})
                     except Exception as e:
                         if self._viewer:
                             self._set_state_values(ui_error_message=str(e))
@@ -258,7 +258,12 @@ class DatasetBuilder():
         Z: "z" | "k" | "depth" | "height"\n
         T: "t" | "time"
         """
-        if self._algorithm.x or self._algorithm.y or self._algorithm.z or self._algorithm.time:
+        if (
+            self._algorithm.x
+            or self._algorithm.y
+            or self._algorithm.z
+            or self._algorithm.time
+        ):
             # Some coordinates already assigned, don't auto-assign
             return
         if self.dataset is not None and self.data_array_name is not None:
@@ -304,12 +309,12 @@ class DatasetBuilder():
             return
 
         self.dataset_path = origin_config
-        self.data_array_name = array_config.pop('name')
+        self.data_array_name = array_config.pop("name")
         for key, value in array_config.items():
             setattr(self, key, value)
         self.slicing = config.get("data_slices")
 
-        ui_config = {f'ui_{k}': v for k, v in config.get('ui', {}).items()}
+        ui_config = {f"ui_{k}": v for k, v in config.get("ui", {}).items()}
         self._set_state_values(**ui_config)
 
     def export_config(self, config_file: Union[str, Path, None] = None) -> None:
@@ -321,22 +326,23 @@ class DatasetBuilder():
                 For details, see Configuration Files documentation.
         """
         config = {
-            'data_origin': self.dataset_path,
-            'data_array': {
-                'name': self.data_array_name,
+            "data_origin": self.dataset_path,
+            "data_array": {
+                "name": self.data_array_name,
                 **{
                     key: getattr(self, key)
-                    for key in ['x', 'y', 'z', 't', 't_index']
+                    for key in ["x", "y", "z", "t", "t_index"]
                     if getattr(self, key) is not None
-                }
+                },
             },
-            'data_slices': self.slicing,
+            "data_slices": self.slicing,
         }
         if self._viewer:
             state_items = list(self._viewer.state.to_dict().items())
-            config['ui'] = {
-                k.replace('ui_', ''): v for k, v in state_items
-                if k.startswith('ui_') and 'action_' not in k
+            config["ui"] = {
+                k.replace("ui_", ""): v
+                for k, v in state_items
+                if k.startswith("ui_") and "action_" not in k
             }
 
         if config_file:
