@@ -22,7 +22,7 @@ class DatasetBuilder:
 
         Parameters:
             dataset_path: A path or URL referencing a dataset readable by xarray.open_dataset()
-            server: Trame server instance.
+            server: Trame server name or instance.
             pangeo: If true, use a list of example datasets from Pangeo Forge (examples/pangeo_catalog.json).
         """
         self._algorithm = PyVistaXarraySource()
@@ -59,10 +59,6 @@ class DatasetBuilder:
                     da_t_index=self.t_index,
                 ),
             )
-            self._viewer._dataset_changed()
-            self._viewer._data_array_changed()
-            self._viewer._time_index_changed()
-            self._viewer._mesh_changed()
         return self._viewer
 
     @property
