@@ -41,7 +41,7 @@ class DatasetViewer:
 
         Parameters:
             builder: Pan3D DatasetBuilder instance.
-            server: Trame server instance.
+            server: Trame server name or instance.
             state:  A dictionary of initial state values.
             pangeo: If true, use a list of example datasets from Pangeo Forge (examples/pangeo_catalog.json).
         """
@@ -52,7 +52,7 @@ class DatasetViewer:
         self.server = get_server(server, client_type="vue3")
         self.current_event_loop = asyncio.get_event_loop()
         self.pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-        self._layout = None
+        self._ui = None
 
         self.plotter = pyvista.Plotter(off_screen=True, notebook=False)
         self.plotter.set_background("lightgrey")
@@ -72,8 +72,16 @@ class DatasetViewer:
         if self._force_local_rendering:
             pyvista.global_theme.trame.default_mode = "client"
 
+        self._dataset_changed()
+        self._data_array_changed()
+        self._time_index_changed()
+        self._mesh_changed()
+
     def __repr_html__(self):
-        return self.layout
+        return self.ui
+
+    def start(self, **kwargs):
+        self.ui.server.start(**kwargs)
 
     @property
     def state(self) -> State:
@@ -86,12 +94,12 @@ class DatasetViewer:
         return self.server.controller
 
     @property
-    def layout(self) -> VAppLayout:
+    def ui(self) -> VAppLayout:
         """Constructs and returns a Trame UI for managing and viewing the current data."""
-        if self._layout is None:
+        if self._ui is None:
             # Build UI
-            self._layout = VAppLayout(self.server)
-            with self._layout:
+            self._ui = VAppLayout(self.server)
+            with self._ui:
                 client.Style(CSS_FILE.read_text())
                 Toolbar(
                     self.apply_and_render,
@@ -120,7 +128,7 @@ class DatasetViewer:
                             self.ctrl.reset_camera = plot_view.reset_camera
                             self.ctrl.push_camera = plot_view.push_camera
                             self.plot_view = plot_view
-        return self._layout
+        return self._ui
 
     # -----------------------------------------------------
     # UI bound methods
@@ -218,39 +226,38 @@ class DatasetViewer:
 
     def plot_mesh(self) -> None:
         """Render current cached mesh in viewer's plotter."""
-        self.plotter.clear()
-        args = dict(
-            cmap=self.state.render_colormap,
-            clim=self.builder.data_range,
-            scalar_bar_args=dict(interactive=True),
-        )
-        if self.state.render_transparency:
-            args["opacity"] = self.state.render_transparency_function
+        with self.state:
+            self.plotter.clear()
+            args = dict(
+                cmap=self.state.render_colormap,
+                clim=self.builder.data_range,
+                scalar_bar_args=dict(interactive=True),
+            )
+            if self.state.render_transparency:
+                args["opacity"] = self.state.render_transparency_function
 
-        try:
-            mesh = self.builder.mesh
-        except Exception as exception:
-            with self.state:
+            try:
+                mesh = self.builder.mesh
+            except Exception as exception:
                 self.state.ui_error_message = str(exception)
                 self.state.ui_loading = False
                 return
 
-        if self.state.render_scalar_warp:
-            mesh = mesh.warp_by_scalar()
-        self.actor = self.plotter.add_mesh(
-            mesh,
-            **args,
-        )
-        if len(self.builder.data_array.shape) > 2:
-            self.plotter.view_isometric()
-        else:
-            self.plotter.view_xy()
+            if self.state.render_scalar_warp:
+                mesh = mesh.warp_by_scalar()
+            self.actor = self.plotter.add_mesh(
+                mesh,
+                **args,
+            )
+            if len(self.builder.data_array.shape) > 2:
+                self.plotter.view_isometric()
+            else:
+                self.plotter.view_xy()
 
-        if self.plot_view:
-            self.plot_view.push_camera()
-            self.plot_view.view_update()
+            if self.plot_view:
+                self.ctrl.push_camera()
+                self.ctrl.view_update()
 
-        with self.state:
             self.state.ui_loading = False
 
     def apply_and_render(self, **kwargs) -> None:
@@ -402,6 +409,7 @@ class DatasetViewer:
             if total_bytes > divisor:
                 self.state.da_size = f"{round(total_bytes / divisor)} {suffix}"
                 break
+        self.state.ui_error_message = None
         self.state.ui_unapplied_changes = True
         self.state.ui_loading = False
 

@@ -150,7 +150,7 @@ def test_layout():
     from trame_vuetify.ui.vuetify3 import VAppLayout
 
     builder = DatasetBuilder(server="layout")
-    assert isinstance(builder.viewer.layout, VAppLayout)
+    assert isinstance(builder.viewer.ui, VAppLayout)
 
 
 def test_sync_to_viewer_from_builder():

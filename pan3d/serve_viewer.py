@@ -19,7 +19,7 @@ def serve():
     builder = DatasetBuilder(dataset_path=args.dataset, pangeo=args.pangeo)
     if args.config_path:
         builder.import_config(args.config_path)
-    builder.viewer.layout.server.start(debug=args.debug)
+    builder.viewer.start(debug=args.debug)
 
 
 if __name__ == "__main__":
