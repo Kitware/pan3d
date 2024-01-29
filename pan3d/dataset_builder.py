@@ -254,17 +254,14 @@ class DatasetBuilder:
         Z: "z" | "k" | "depth" | "height"\n
         T: "t" | "time"
         """
-        if (
-            self._algorithm.x
-            or self._algorithm.y
-            or self._algorithm.z
-            or self._algorithm.time
-        ):
+        if self.x or self.y or self.z or self.t:
             # Some coordinates already assigned, don't auto-assign
             return
         if self.dataset is not None and self.data_array_name is not None:
             da = self.dataset[self.data_array_name]
-            for coord_name in da.coords.keys():
+            assigned_coords = []
+            # Prioritize assignment by known names
+            for coord_name in da.dims:
                 name = coord_name.lower()
                 for axis, accepted_names in coordinate_auto_selection.items():
                     # If accepted name is longer than one letter, look for contains match
@@ -276,6 +273,13 @@ class DatasetBuilder:
                     ]
                     if len(name_match) > 0:
                         setattr(self, axis, coord_name)
+                        assigned_coords.append(coord_name)
+            # Then assign any remaining by index
+            unassigned_axes = [a for a in ['x', 'y', 'z', 't'] if getattr(self, a) is None]
+            unassigned_coords = [d for d in da.dims if d not in assigned_coords]
+            for i, d in enumerate(unassigned_coords):
+                if i < len(unassigned_axes):
+                    setattr(self, unassigned_axes[i], d)
 
     # -----------------------------------------------------
     # Config logic
