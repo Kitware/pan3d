@@ -16,7 +16,7 @@ class Toolbar(vuetify.VAppBar):
         ui_unapplied_changes="ui_unapplied_changes",
         da_active="da_active",
         da_size="da_size",
-        render_auto="render_auto"
+        render_auto="render_auto",
     ):
         super().__init__()
         with self:
@@ -24,11 +24,12 @@ class Toolbar(vuetify.VAppBar):
                 size="x-large",
                 classes="pa-0 ma-0",
                 style="min-width: 60px",
-                click=f"{ui_main_drawer} = !{ui_main_drawer}"
+                click=f"{ui_main_drawer} = !{ui_main_drawer}",
             ):
                 vuetify.VIcon("mdi-database-cog-outline")
                 vuetify.VIcon(
-                    "{{ %s? 'mdi-chevron-left' : 'mdi-chevron-right' }}" % ui_main_drawer
+                    "{{ %s? 'mdi-chevron-left' : 'mdi-chevron-right' }}"
+                    % ui_main_drawer
                 )
 
             vuetify.VAppBarTitle("Pan3D Viewer")
@@ -40,11 +41,12 @@ class Toolbar(vuetify.VAppBar):
                     size="x-large",
                     classes="pa-0 ma-0",
                     style="min-width: 60px",
-                    click=f"{ui_axis_drawer} = !{ui_axis_drawer}"
+                    click=f"{ui_axis_drawer} = !{ui_axis_drawer}",
                 ):
                     vuetify.VIcon("mdi-axis-arrow-info")
                     vuetify.VIcon(
-                        "{{ %s? 'mdi-chevron-right' : 'mdi-chevron-left' }}" % ui_axis_drawer
+                        "{{ %s? 'mdi-chevron-right' : 'mdi-chevron-left' }}"
+                        % ui_axis_drawer
                     )
                 vuetify.VProgressCircular(
                     v_show=(ui_loading,),
