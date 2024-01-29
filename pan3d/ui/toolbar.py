@@ -20,13 +20,32 @@ class Toolbar(vuetify.VAppBar):
     ):
         super().__init__()
         with self:
-            vuetify.VAppBarNavIcon(click=f"{ui_main_drawer} = !{ui_main_drawer}")
+            with vuetify.VBtn(
+                size="x-large",
+                classes="pa-0 ma-0",
+                style="min-width: 60px",
+                click=f"{ui_main_drawer} = !{ui_main_drawer}"
+            ):
+                vuetify.VIcon("mdi-database-cog-outline")
+                vuetify.VIcon(
+                    "{{ %s? 'mdi-chevron-left' : 'mdi-chevron-right' }}" % ui_main_drawer
+                )
+
             vuetify.VAppBarTitle("Pan3D Viewer")
             with html.Div(
-                classes="d-flex flex-row-reverse pa-3 fill-height",
+                classes="d-flex flex-row-reverse fill-height",
                 style="column-gap: 10px; align-items: center",
             ):
-                vuetify.VAppBarNavIcon(click=f"{ui_axis_drawer} = !{ui_axis_drawer}")
+                with vuetify.VBtn(
+                    size="x-large",
+                    classes="pa-0 ma-0",
+                    style="min-width: 60px",
+                    click=f"{ui_axis_drawer} = !{ui_axis_drawer}"
+                ):
+                    vuetify.VIcon("mdi-axis-arrow-info")
+                    vuetify.VIcon(
+                        "{{ %s? 'mdi-chevron-right' : 'mdi-chevron-left' }}" % ui_axis_drawer
+                    )
                 vuetify.VProgressCircular(
                     v_show=(ui_loading,),
                     indeterminate=True,
