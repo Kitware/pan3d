@@ -64,6 +64,7 @@ initial_state = {
     "ui_action_message": None,
     "ui_action_config_file": None,
     "ui_current_time_string": "",
+    "render_auto": True,
     "render_x_scale": 1,
     "render_y_scale": 1,
     "render_z_scale": 1,

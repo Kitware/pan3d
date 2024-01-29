@@ -16,6 +16,7 @@ class Toolbar(vuetify.VAppBar):
         ui_unapplied_changes="ui_unapplied_changes",
         da_active="da_active",
         da_size="da_size",
+        render_auto="render_auto"
     ):
         super().__init__()
         with self:
@@ -31,9 +32,12 @@ class Toolbar(vuetify.VAppBar):
                     indeterminate=True,
                     classes="mx-10",
                 )
+                vuetify.VCheckbox(
+                    label="Auto Render", v_model=(render_auto,), hide_details=True
+                )
                 with vuetify.VBtn(
                     click=reset_function,
-                    v_show=(ui_unapplied_changes,),
+                    v_show=(f"{ui_unapplied_changes} && !{render_auto}",),
                     variant="tonal",
                 ):
                     html.Span("Apply & Render")
