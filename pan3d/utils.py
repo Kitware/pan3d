@@ -12,12 +12,35 @@ initial_state = {
     "dataset_ready": False,
     "state_export": None,
     "available_datasets": [
+        # from https://docs.xarray.dev/en/stable/generated/xarray.tutorial.open_dataset.html
         {
-            "name": "XArray Examples - air temperature",
+            "name": "XArray Examples - Air Temperature",
             "url": "air_temperature",
         },
-        {"name": "XArray Examples - basin mask", "url": "basin_mask"},
-        {"name": "XArray Examples - eraint uvz", "url": "eraint_uvz"},
+        {
+            "name": "XArray Examples - Ocean Basins",
+            "url": "basin_mask"
+        },
+        {
+            "name": "XArray Examples - Ice Velocity",
+            "url": "ASE_ice_velocity"
+        },
+        {
+            "name": "XArray Examples - Regional Arctic System Model",
+            "url": "rasm"
+        },
+        {
+            "name": "XArray Examples - Regional Ocean Model System",
+            "url": "ROMS_example"
+        },
+        {
+            "name": "XArray Examples - ERA-Interim analysis",
+            "url": "eraint_uvz"
+        },
+        {
+            "name": "XArray Examples - NOAA Sea Surface Temperatures",
+            "url": "ersstv5"
+        },
     ],
     "dataset_path": None,
     "da_active": None,
