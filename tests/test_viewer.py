@@ -64,7 +64,7 @@ def assert_viewer_state(viewer):
 
 
 def test_ui_state():
-    viewer = DatasetViewer(server="ui")
+    viewer = DatasetViewer(server="ui", state=dict(render_auto=False))
     push_viewer_state(viewer)
 
     viewer._coordinate_toggle_expansion("latitude")
@@ -81,7 +81,7 @@ def test_ui_state():
 
 
 def test_render_options_state():
-    viewer = DatasetViewer(server="render_options")
+    viewer = DatasetViewer(server="render_options", state=dict(render_auto=False))
     push_viewer_state(viewer)
 
     viewer.set_render_scales(
@@ -106,7 +106,7 @@ def test_render_options_state():
 
 
 def test_viewer_export():
-    viewer = DatasetViewer(server="export")
+    viewer = DatasetViewer(server="export", state=dict(render_auto=False))
     print(viewer.server.name)
     push_viewer_state(viewer)
 
@@ -156,6 +156,7 @@ def test_layout():
 def test_sync_to_viewer_from_builder():
     builder = DatasetBuilder(server="from_builder")
     viewer = builder.viewer
+    viewer.state.render_auto = False
     push_builder_state(builder)
 
     assert_builder_state(builder)
@@ -169,12 +170,14 @@ def test_sync_during_viewer_creation():
 
     # Viewer created last, state should sync during initialization
     viewer = builder.viewer
+    viewer.state.render_auto = False
     assert_viewer_state(viewer)
 
 
 def test_sync_from_viewer_ui_functions():
     builder = DatasetBuilder(server="from_ui_funcs")
     viewer = builder.viewer
+    viewer.state.render_auto = False
     push_viewer_state(viewer)
 
     viewer._coordinate_select_axis("level", None, "da_z")
