@@ -288,7 +288,7 @@ class DatasetViewer:
                 ):
                     self.state.ui_more_info_link = available_dataset["more_info"]
             self.state.da_attrs = [
-                {"key": k, "value": v} for k, v in dataset.attrs.items()
+                {"key": str(k), "value": str(v)} for k, v in dataset.attrs.items()
             ]
             self.state.da_attrs.insert(
                 0,
@@ -316,6 +316,9 @@ class DatasetViewer:
     def _data_array_changed(self) -> None:
         dataset = self.builder.dataset
         da_name = self.builder.data_array_name
+        self.state.da_coordinates = []
+        self.state.ui_expanded_coordinates = []
+
         if dataset is None or da_name is None:
             return
         da = dataset[da_name]
@@ -412,6 +415,9 @@ class DatasetViewer:
         self.state.ui_error_message = None
         self.state.ui_unapplied_changes = True
         self.state.ui_loading = False
+
+        if self.state.render_auto:
+            self.apply_and_render()
 
     # -----------------------------------------------------
     # State change callbacks
