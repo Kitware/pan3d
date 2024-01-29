@@ -29,7 +29,7 @@ class RenderOptions(vuetify.VMenu):
                 vuetify.VBtn(
                     v_bind=("props",),
                     size="small",
-                    icon="mdi-dots-vertical",
+                    icon="mdi-cog",
                     style="position: absolute; right: 20px; top: 20px; z-index:2",
                 )
             with vuetify.VCard(classes="pa-3"):
