@@ -100,8 +100,8 @@ initial_state = {
 }
 
 coordinate_auto_selection = {
-    "x": ["x", "i", "lon", "len"],
-    "y": ["y", "j", "lat", "width"],
-    "z": ["z", "k", "depth", "height"],
-    "t": ["t", "time"],
+    "x": ["x", "i", "lon", "len", "nx"],
+    "y": ["y", "j", "lat", "width", "ny"],
+    "z": ["z", "k", "depth", "height", "nz", "level"],
+    "t": ["t", "time", "year", "month", "date", "day", "hour", "minute", "second"],
 }
