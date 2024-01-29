@@ -17,30 +17,15 @@ initial_state = {
             "name": "XArray Examples - Air Temperature",
             "url": "air_temperature",
         },
-        {
-            "name": "XArray Examples - Ocean Basins",
-            "url": "basin_mask"
-        },
-        {
-            "name": "XArray Examples - Ice Velocity",
-            "url": "ASE_ice_velocity"
-        },
-        {
-            "name": "XArray Examples - Regional Arctic System Model",
-            "url": "rasm"
-        },
+        {"name": "XArray Examples - Ocean Basins", "url": "basin_mask"},
+        {"name": "XArray Examples - Ice Velocity", "url": "ASE_ice_velocity"},
+        {"name": "XArray Examples - Regional Arctic System Model", "url": "rasm"},
         {
             "name": "XArray Examples - Regional Ocean Model System",
-            "url": "ROMS_example"
+            "url": "ROMS_example",
         },
-        {
-            "name": "XArray Examples - ERA-Interim analysis",
-            "url": "eraint_uvz"
-        },
-        {
-            "name": "XArray Examples - NOAA Sea Surface Temperatures",
-            "url": "ersstv5"
-        },
+        {"name": "XArray Examples - ERA-Interim analysis", "url": "eraint_uvz"},
+        {"name": "XArray Examples - NOAA Sea Surface Temperatures", "url": "ersstv5"},
     ],
     "dataset_path": None,
     "da_active": None,

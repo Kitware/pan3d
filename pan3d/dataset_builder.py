@@ -275,7 +275,9 @@ class DatasetBuilder:
                         setattr(self, axis, coord_name)
                         assigned_coords.append(coord_name)
             # Then assign any remaining by index
-            unassigned_axes = [a for a in ['x', 'y', 'z', 't'] if getattr(self, a) is None]
+            unassigned_axes = [
+                a for a in ["x", "y", "z", "t"] if getattr(self, a) is None
+            ]
             unassigned_coords = [d for d in da.dims if d not in assigned_coords]
             for i, d in enumerate(unassigned_coords):
                 if i < len(unassigned_axes):
