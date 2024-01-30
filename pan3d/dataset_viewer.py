@@ -222,10 +222,20 @@ class DatasetViewer:
             self.state.render_scalar_warp = scalar_warp
 
         if self.builder.mesh is not None and self.builder.data_array is not None:
-            self.plot_mesh()
+            self.apply_and_render()
 
-    def plot_mesh(self) -> None:
+    async def plot_mesh(self) -> None:
         """Render current cached mesh in viewer's plotter."""
+        if self.state.ui_loading:
+            return
+
+        with self.state:
+            self.state.ui_error_message = None
+            self.state.ui_loading = True
+            self.state.ui_unapplied_changes = False
+
+        await asyncio.sleep(0)
+
         with self.state:
             self.plotter.clear()
             args = dict(
@@ -262,11 +272,8 @@ class DatasetViewer:
 
     def apply_and_render(self, **kwargs) -> None:
         """Asynchronously reset and update cached mesh and render to viewer's plotter."""
-        self.state.ui_error_message = None
-        self.state.ui_loading = True
-        self.state.ui_unapplied_changes = False
 
-        self.current_event_loop.call_soon_threadsafe(self.plot_mesh)
+        asyncio.run_coroutine_threadsafe(self.plot_mesh(), self.current_event_loop)
 
     # -----------------------------------------------------
     # State sync with Builder
