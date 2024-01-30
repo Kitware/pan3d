@@ -138,6 +138,8 @@ class DatasetBuilder:
             self.t_index = 0
             if data_array_name is not None and self.dataset is not None:
                 da = self.dataset[data_array_name]
+                if len(da.indexes.variables.mapping) == 0:
+                    da = da.assign_coords({d: range(s) for d, s in da.sizes.items()})
             self._algorithm.data_array = da
             if self._viewer:
                 self._viewer._data_array_changed()
