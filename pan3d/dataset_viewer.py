@@ -383,13 +383,10 @@ class DatasetViewer:
                     "step": 1,
                 }
                 if self.builder.slicing and self.builder.slicing.get(key):
-                    coord_slicing = dict(zip(
-                        ['start', 'stop', 'step'],
-                        self.builder.slicing.get(key)
-                    ))
-                self.state.da_coordinates.append(
-                   dict(**coord_info, **coord_slicing)
-                )
+                    coord_slicing = dict(
+                        zip(["start", "stop", "step"], self.builder.slicing.get(key))
+                    )
+                self.state.da_coordinates.append(dict(**coord_info, **coord_slicing))
             if key not in self.state.ui_expanded_coordinates:
                 self.state.ui_expanded_coordinates.append(key)
 
@@ -401,12 +398,9 @@ class DatasetViewer:
         if self.builder.slicing is None:
             return
         for coord in self.state.da_coordinates:
-            name = coord['name']
-            slicing =  self.builder.slicing.get(coord['name'])
+            slicing = self.builder.slicing.get(coord["name"])
             if slicing:
-                coord.update(dict(zip(
-                    ['start', 'stop', 'step'], slicing
-                )))
+                coord.update(dict(zip(["start", "stop", "step"], slicing)))
 
     def _time_index_changed(self) -> None:
         dataset = self.builder.dataset
