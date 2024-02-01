@@ -77,11 +77,12 @@ class DatasetViewer:
         self._time_index_changed()
         self._mesh_changed()
 
-    def __repr_html__(self):
-        return self.ui
-
     def start(self, **kwargs):
         self.ui.server.start(**kwargs)
+
+    @property
+    async def ready(self) -> None:
+        await self.ui.ready
 
     @property
     def state(self) -> State:
@@ -288,6 +289,8 @@ class DatasetViewer:
         dataset = self.builder.dataset
         if dataset:
             self.state.ui_loading = True
+            if self._ui is not None:
+                self.state.ui_main_drawer = True
             for available_dataset in self.state.available_datasets:
                 if (
                     available_dataset["url"] == dataset_path
@@ -329,7 +332,7 @@ class DatasetViewer:
         if dataset is None or da_name is None:
             return
         da = dataset[da_name]
-        if len(da.dims) > 0:
+        if len(da.dims) > 0 and self._ui is not None:
             self.state.ui_axis_drawer = True
         for key in da.dims:
             current_coord = da.coords[key]
@@ -367,17 +370,25 @@ class DatasetViewer:
                 }
             )
             if key not in [c["name"] for c in self.state.da_coordinates]:
+                coord_info = {
+                    "name": key,
+                    "numeric": numeric,
+                    "attrs": coord_attrs,
+                    "size": da.coords[key].size,
+                    "range": [array_min, array_max],
+                }
+                coord_slicing = {
+                    "start": array_min,
+                    "stop": array_max,
+                    "step": 1,
+                }
+                if self.builder.slicing and self.builder.slicing.get(key):
+                    coord_slicing = dict(zip(
+                        ['start', 'stop', 'step'],
+                        self.builder.slicing.get(key)
+                    ))
                 self.state.da_coordinates.append(
-                    {
-                        "name": key,
-                        "numeric": numeric,
-                        "attrs": coord_attrs,
-                        "size": da.coords[key].size,
-                        "range": [array_min, array_max],
-                        "start": array_min,
-                        "stop": array_max,
-                        "step": 1,
-                    }
+                   dict(**coord_info, **coord_slicing)
                 )
             if key not in self.state.ui_expanded_coordinates:
                 self.state.ui_expanded_coordinates.append(key)
@@ -385,6 +396,17 @@ class DatasetViewer:
             self.state.dirty("da_coordinates", "ui_expanded_coordinates")
             self.plotter.clear()
             self.plotter.view_isometric()
+
+    def _data_slicing_changed(self) -> None:
+        if self.builder.slicing is None:
+            return
+        for coord in self.state.da_coordinates:
+            name = coord['name']
+            slicing =  self.builder.slicing.get(coord['name'])
+            if slicing:
+                coord.update(dict(zip(
+                    ['start', 'stop', 'step'], slicing
+                )))
 
     def _time_index_changed(self) -> None:
         dataset = self.builder.dataset
