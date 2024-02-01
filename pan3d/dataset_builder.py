@@ -227,6 +227,7 @@ class DatasetBuilder:
     def slicing(self, slicing: Dict[str, List]) -> None:
         self._algorithm.slicing = slicing
         if self._viewer:
+            self._viewer._data_slicing_changed()
             self._viewer._mesh_changed()
 
     @property
