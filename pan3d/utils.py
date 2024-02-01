@@ -39,7 +39,7 @@ initial_state = {
     "da_t_index": 0,
     "da_size": None,
     "ui_loading": False,
-    "ui_main_drawer": True,
+    "ui_main_drawer": False,
     "ui_axis_drawer": False,
     "ui_unapplied_changes": False,
     "ui_error_message": None,
