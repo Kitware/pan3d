@@ -71,8 +71,8 @@ def test_ui_state():
     viewer._coordinate_toggle_expansion("longitude")
 
     assert not viewer.state.ui_loading
-    assert viewer.state.ui_main_drawer
-    assert viewer.state.ui_axis_drawer
+    assert not viewer.state.ui_main_drawer
+    assert not viewer.state.ui_axis_drawer
     assert viewer.state.ui_unapplied_changes
     assert viewer.state.ui_error_message is None
     assert viewer.state.ui_more_info_link is None
@@ -132,8 +132,8 @@ def test_viewer_export():
     assert viewer.state.state_export["data_slices"]["level"] == [200, 850, 1]
     assert viewer.state.state_export["data_slices"]["month"] == [1, 7, 1]
     assert not viewer.state.state_export["ui"]["loading"]
-    assert viewer.state.state_export["ui"]["main_drawer"]
-    assert viewer.state.state_export["ui"]["axis_drawer"]
+    assert not viewer.state.state_export["ui"]["main_drawer"]
+    assert not viewer.state.state_export["ui"]["axis_drawer"]
     assert viewer.state.state_export["ui"]["unapplied_changes"]
     assert viewer.state.state_export["ui"]["error_message"] is None
     assert viewer.state.state_export["ui"]["more_info_link"] is None
