@@ -41,7 +41,10 @@ class DatasetBuilder:
     # -----------------------------------------------------
 
     @property
-    def viewer(self):
+    def viewer(self) -> 'DatasetViewer':
+        """Return the Pan3D DatasetViewer instance for this DatasetBuilder.
+            If none exists, create a new one and synchronize state.
+        """
         from pan3d.dataset_viewer import DatasetViewer
 
         if self._viewer is None:
@@ -63,15 +66,13 @@ class DatasetBuilder:
 
     @property
     def dataset_path(self) -> Optional[str]:
+        """A string referencing the current dataset, which may be a local path or remote URL.
+            Value must be readable with xarray.open_dataset().
+        """
         return self._dataset_path
 
     @dataset_path.setter
     def dataset_path(self, dataset_path: Optional[str]) -> None:
-        """Set the path to the current target dataset.
-
-        Parameters:
-            dataset_path: A local path or remote URL referencing a dataset readable by xarray.open_dataset()
-        """
         if dataset_path != self._dataset_path:
             self._dataset_path = dataset_path
             self._set_state_values(dataset_path=dataset_path)
@@ -101,6 +102,7 @@ class DatasetBuilder:
 
     @property
     def dataset(self) -> Optional[xarray.Dataset]:
+        """Xarray.Dataset object read from the current dataset_path. """
         return self._dataset
 
     @dataset.setter
@@ -118,15 +120,11 @@ class DatasetBuilder:
 
     @property
     def data_array_name(self) -> Optional[str]:
+        """String name of an array that exists on the current dataset. """
         return self._da_name
 
     @data_array_name.setter
     def data_array_name(self, data_array_name: Optional[str]) -> None:
-        """Set the name of the current data array within the current dataset.
-
-        Parameters:
-            data_array_name: The name of a data array that exists in the current dataset.
-        """
         if data_array_name != self._da_name:
             self._da_name = data_array_name
             self._set_state_values(da_active=data_array_name)
@@ -148,17 +146,20 @@ class DatasetBuilder:
 
     @property
     def data_array(self) -> Optional[xarray.DataArray]:
-        """Returns the current Xarray data array with current slicing applied."""
+        """Return the current Xarray data array with current slicing applied."""
         return self._algorithm.sliced_data_array
 
     @property
     def data_range(self) -> Tuple[Any]:
+        """Return the minimum and maximum of the current Xarray data array with current slicing applied. """
         if self.dataset is None:
             return None
         return self._algorithm.data_range
 
     @property
     def x(self) -> Optional[str]:
+        """String name of a coordinate that should be rendered on the X axis.
+            Value must exist in coordinates of current data array. """
         return self._algorithm.x
 
     @x.setter
@@ -171,6 +172,8 @@ class DatasetBuilder:
 
     @property
     def y(self) -> Optional[str]:
+        """String name of a coordinate that should be rendered on the Y axis.
+            Value must exist in coordinates of current data array. """
         return self._algorithm.y
 
     @y.setter
@@ -183,6 +186,8 @@ class DatasetBuilder:
 
     @property
     def z(self) -> Optional[str]:
+        """String name of a coordinate that should be rendered on the Z axis.
+            Value must exist in coordinates of current data array. """
         return self._algorithm.z
 
     @z.setter
@@ -195,6 +200,9 @@ class DatasetBuilder:
 
     @property
     def t(self) -> Optional[str]:
+        """String name of a coordinate that represents time or some other fourth dimension.
+            Only one slice may be viewed at once.
+            Value must exist in coordinates of current data array. """
         return self._algorithm.time
 
     @t.setter
@@ -208,6 +216,7 @@ class DatasetBuilder:
 
     @property
     def t_index(self) -> int:
+        """Integer representing the index of the current time slice. """
         return self._algorithm.time_index
 
     @t_index.setter
@@ -221,6 +230,11 @@ class DatasetBuilder:
 
     @property
     def slicing(self) -> Dict[str, List]:
+        """Dictionary mapping of coordinate names to slice arrays.
+            Each key should exist in the coordinates of the current data array.
+            Each value should be an array consisting of three
+            integers or floats representing start value, stop value, and step.
+        """
         return self._algorithm.slicing
 
     @slicing.setter

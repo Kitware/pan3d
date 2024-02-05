@@ -59,7 +59,7 @@ class DatasetViewer:
         self.plot_view = None
         self.actor = None
         self.ctrl.get_plotter = lambda: self.plotter
-        self.ctrl.on_client_connected.add(self.on_ready)
+        self.ctrl.on_client_connected.add(self._on_ready)
 
         self.state.update(initial_state)
         self.state.ready()
@@ -78,15 +78,17 @@ class DatasetViewer:
         self._time_index_changed()
         self._mesh_changed()
 
-    def start(self, **kwargs):
-        self.ui.server.start(**kwargs)
-
-    def on_ready(self, **kwargs):
+    def _on_ready(self, **kwargs):
         self.state.render_auto = True
         self._mesh_changed()
 
+    def start(self, **kwargs):
+        """Initialize the UI and start the server for the Viewer."""
+        self.ui.server.start(**kwargs)
+
     @property
     async def ready(self) -> None:
+        """Coroutine to wait for the Viewer server to be ready."""
         await self.ui.ready
 
     @property
