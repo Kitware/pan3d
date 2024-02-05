@@ -33,6 +33,11 @@ class Toolbar(vuetify.VAppBar):
                 )
 
             vuetify.VAppBarTitle("Pan3D Viewer")
+            vuetify.VProgressLinear(
+                v_show=(ui_loading,),
+                indeterminate=True,
+                absolute=True,
+            )
             with html.Div(
                 classes="d-flex flex-row-reverse fill-height",
                 style="column-gap: 10px; align-items: center",
@@ -48,11 +53,6 @@ class Toolbar(vuetify.VAppBar):
                         "{{ %s? 'mdi-chevron-right' : 'mdi-chevron-left' }}"
                         % ui_axis_drawer
                     )
-                vuetify.VProgressCircular(
-                    v_show=(ui_loading,),
-                    indeterminate=True,
-                    classes="mx-10",
-                )
                 vuetify.VCheckbox(
                     label="Auto Render", v_model=(render_auto,), hide_details=True
                 )
