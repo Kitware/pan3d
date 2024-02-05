@@ -11,4 +11,5 @@ nav:
     - Jupyter Notebooks: tutorials/jupyter_notebook.md
   - API:
     - Dataset Builder: api/dataset_builder.md
+    - Dataset Viewer: api/dataset_viewer.md
     - Configuration Files: api/configuration.md
