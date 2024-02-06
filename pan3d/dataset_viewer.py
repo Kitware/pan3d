@@ -111,7 +111,7 @@ class DatasetViewer:
                 client.Style(CSS_FILE.read_text())
                 Toolbar(
                     self.apply_and_render,
-                    self.builder.import_config,
+                    self._submit_import,
                     self.builder.export_config,
                 )
                 MainDrawer()
@@ -151,8 +151,8 @@ class DatasetViewer:
             self.state[new_axis] = coordinate_name
 
     def _coordinate_change_slice(self, coordinate_name, slice_attribute_name, value):
-        value = str(value)
-        if value.isnumeric():
+        try:
+            value = float(value)
             coordinate_matches = [
                 (index, coordinate)
                 for index, coordinate in enumerate(self.state.da_coordinates)
@@ -160,7 +160,6 @@ class DatasetViewer:
             ]
             if len(coordinate_matches) > 0:
                 coord_i, coordinate = coordinate_matches[0]
-                value = float(value)
                 if slice_attribute_name == "step":
                     if value > 0 and value < coordinate["size"]:
                         coordinate[slice_attribute_name] = value
@@ -173,6 +172,8 @@ class DatasetViewer:
 
                 self.state.da_coordinates[coord_i] = coordinate
                 self.state.dirty("da_coordinates")
+        except:
+            pass
 
     def _coordinate_toggle_expansion(self, coordinate_name):
         if coordinate_name in self.state.ui_expanded_coordinates:
@@ -180,6 +181,24 @@ class DatasetViewer:
         else:
             self.state.ui_expanded_coordinates.append(coordinate_name)
         self.state.dirty("ui_expanded_coordinates")
+
+    def _submit_import(self):
+        async def submit():
+            files = self.state['ui_action_config_file']
+            if files and len(files) > 0:
+                file_content = files[0]["content"]
+                self.plotter.clear()
+                with self.state:
+                    self.state['ui_import_loading'] = True
+                await asyncio.sleep(1)
+
+                self.builder.import_config(
+                    json.loads(file_content.decode())
+                )
+                await asyncio.sleep(1)
+                self._mesh_changed()
+
+        asyncio.run_coroutine_threadsafe(submit(), self.current_event_loop)
 
     # -----------------------------------------------------
     # Rendering methods
@@ -298,12 +317,21 @@ class DatasetViewer:
             self.state.ui_loading = True
             if self._ui is not None:
                 self.state.ui_main_drawer = True
-            for available_dataset in self.state.available_datasets:
-                if (
-                    available_dataset["url"] == dataset_path
-                    and "more_info" in available_dataset
-                ):
-                    self.state.ui_more_info_link = available_dataset["more_info"]
+            if not any(d['url'] == dataset_path for d in self.state.available_datasets):
+                self.state.available_datasets = [
+                    {
+                        "url": dataset_path,
+                        "name": dataset_path,
+                    },
+                    *self.state.available_datasets
+                ]
+            else:
+                for available_dataset in self.state.available_datasets:
+                    if (
+                        available_dataset["url"] == dataset_path
+                        and "more_info" in available_dataset
+                    ):
+                        self.state.ui_more_info_link = available_dataset["more_info"]
             self.state.da_attrs = [
                 {"key": str(k), "value": str(v)} for k, v in dataset.attrs.items()
             ]
@@ -394,10 +422,8 @@ class DatasetViewer:
                         zip(["start", "stop", "step"], self.builder.slicing.get(key))
                     )
                 self.state.da_coordinates.append(dict(**coord_info, **coord_slicing))
-            if key not in self.state.ui_expanded_coordinates:
-                self.state.ui_expanded_coordinates.append(key)
 
-            self.state.dirty("da_coordinates", "ui_expanded_coordinates")
+            self.state.dirty("da_coordinates")
             self.plotter.clear()
             self.plotter.view_isometric()
 
@@ -496,7 +522,6 @@ class DatasetViewer:
         self.state.ui_action_message = None
         self.state.ui_action_config_file = None
         if ui_action_name == "Export":
-            self.state.ui_action_name = None
             self.state.state_export = self.builder.export_config(None)
 
     @change("render_x_scale", "render_y_scale", "render_z_scale")
