@@ -339,7 +339,9 @@ class DatasetBuilder:
 
         if self._viewer:
             ui_config = {f"ui_{k}": v for k, v in config.get("ui", {}).items()}
-            render_config = {f"render_{k}": v for k, v in config.get("render", {}).items()}
+            render_config = {
+                f"render_{k}": v for k, v in config.get("render", {}).items()
+            }
             self._set_state_values(
                 **ui_config,
                 **render_config,

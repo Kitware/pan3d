@@ -1,4 +1,3 @@
-import json
 from trame.widgets import html, vuetify3 as vuetify
 from trame.app import get_server
 

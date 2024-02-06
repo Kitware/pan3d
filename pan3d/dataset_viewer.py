@@ -172,7 +172,7 @@ class DatasetViewer:
 
                 self.state.da_coordinates[coord_i] = coordinate
                 self.state.dirty("da_coordinates")
-        except:
+        except Exception:
             pass
 
     def _coordinate_toggle_expansion(self, coordinate_name):
@@ -184,17 +184,15 @@ class DatasetViewer:
 
     def _submit_import(self):
         async def submit():
-            files = self.state['ui_action_config_file']
+            files = self.state["ui_action_config_file"]
             if files and len(files) > 0:
                 file_content = files[0]["content"]
                 self.plotter.clear()
                 with self.state:
-                    self.state['ui_import_loading'] = True
+                    self.state["ui_import_loading"] = True
                 await asyncio.sleep(1)
 
-                self.builder.import_config(
-                    json.loads(file_content.decode())
-                )
+                self.builder.import_config(json.loads(file_content.decode()))
                 await asyncio.sleep(1)
                 self._mesh_changed()
 
@@ -317,13 +315,13 @@ class DatasetViewer:
             self.state.ui_loading = True
             if self._ui is not None:
                 self.state.ui_main_drawer = True
-            if not any(d['url'] == dataset_path for d in self.state.available_datasets):
+            if not any(d["url"] == dataset_path for d in self.state.available_datasets):
                 self.state.available_datasets = [
                     {
                         "url": dataset_path,
                         "name": dataset_path,
                     },
-                    *self.state.available_datasets
+                    *self.state.available_datasets,
                 ]
             else:
                 for available_dataset in self.state.available_datasets:
