@@ -89,11 +89,11 @@ class CoordinateConfigure(vuetify.VCard):
                                     max=(f"{coordinate_info}?.range[1]",),
                                     step="0.01",
                                     __properties=["min", "max", "step"],
-                                    input=(
+                                    change_prevent=(
                                         coordinate_change_slice_function,
                                         f"[{coordinate_info}.name, 'start', $event.target.value]",
                                     ),
-                                    __events=[("input", "input.prevent")],
+                                    __events=[("change_prevent", "change.prevent")],
                                     style="flex-grow: 1",
                                 )
                                 vuetify.VTextField(
@@ -106,11 +106,11 @@ class CoordinateConfigure(vuetify.VCard):
                                     max=(f"{coordinate_info}?.range[1]",),
                                     step="0.01",
                                     __properties=["min", "max", "step"],
-                                    input=(
+                                    change_prevent=(
                                         coordinate_change_slice_function,
                                         f"[{coordinate_info}.name, 'stop', $event.target.value]",
                                     ),
-                                    __events=[("input", "input.prevent")],
+                                    __events=[("change_prevent", "change.prevent")],
                                     style="flex-grow: 1",
                                 )
                                 vuetify.VTextField(
@@ -122,11 +122,11 @@ class CoordinateConfigure(vuetify.VCard):
                                     min="1",
                                     max=(f"{coordinate_info}?.size",),
                                     __properties=["min", "max"],
-                                    input=(
+                                    change_prevent=(
                                         coordinate_change_slice_function,
                                         f"[{coordinate_info}.name, 'step', $event.target.value]",
                                     ),
-                                    __events=[("input", "input.prevent")],
+                                    __events=[("change_prevent", "change.prevent")],
                                     style="flex-grow: 1",
                                 )
 

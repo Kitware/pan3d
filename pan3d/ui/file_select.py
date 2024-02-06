@@ -14,13 +14,8 @@ class FileSelect(vuetify.VCard):
         ui_action_config_file="ui_action_config_file",
         state_export="state_export",
         ui_action_message="ui_action_message",
+        ui_import_loading="ui_import_loading",
     ):
-        def submit_import():
-            files = server.state[ui_action_config_file]
-            if files and len(files) > 0:
-                file_content = server.state[ui_action_config_file][0]["content"]
-                import_function(json.loads(file_content.decode()))
-
         super().__init__()
         with self:
             with vuetify.VCardText(v_show=(ui_action_name,)):
@@ -45,12 +40,20 @@ class FileSelect(vuetify.VCard):
                     )
                     vuetify.VBtn(
                         v_show=(
-                            f"{ui_action_name} === 'Import' && {ui_action_config_file}",
+                            f"{ui_action_name} === 'Import' && {ui_action_config_file} && !{ui_import_loading}",
                         ),
                         variant="tonal",
                         text=(ui_action_name,),
-                        click=submit_import,
+                        click=import_function,
                         style="width: 100%",
+                    )
+                    vuetify.VCardSubtitle(
+                        "Reading configuration file and applying changes...",
+                        v_show=(ui_import_loading,),
+                    )
+                    vuetify.VProgressLinear(
+                        v_show=(ui_import_loading,),
+                        indeterminate=True,
                     )
 
                     vuetify.VTextField(

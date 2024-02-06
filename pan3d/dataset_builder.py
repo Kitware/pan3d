@@ -324,7 +324,11 @@ class DatasetBuilder:
         array_config = config.get("data_array")
 
         if not origin_config or not array_config:
-            self._set_state_values(ui_action_message="Invalid format of import file.")
+            error_message = "Invalid format of import file."
+            if self._viewer is not None:
+                self._set_state_values(ui_action_message=error_message)
+            else:
+                raise ValueError(error_message)
             return
 
         self.dataset_path = origin_config
@@ -333,8 +337,15 @@ class DatasetBuilder:
             setattr(self, key, value)
         self.slicing = config.get("data_slices")
 
-        ui_config = {f"ui_{k}": v for k, v in config.get("ui", {}).items()}
-        self._set_state_values(**ui_config)
+        if self._viewer:
+            ui_config = {f"ui_{k}": v for k, v in config.get("ui", {}).items()}
+            render_config = {f"render_{k}": v for k, v in config.get("render", {}).items()}
+            self._set_state_values(
+                **ui_config,
+                **render_config,
+                ui_import_loading=False,
+                ui_action_name=None,
+            )
 
     def export_config(self, config_file: Union[str, Path, None] = None) -> None:
         """Export the current state to a JSON configuration file.
@@ -362,6 +373,11 @@ class DatasetBuilder:
                 k.replace("ui_", ""): v
                 for k, v in state_items
                 if k.startswith("ui_") and "action_" not in k
+            }
+            config["render"] = {
+                k.replace("render_", ""): v
+                for k, v in state_items
+                if k.startswith("render_") and "_options" not in k
             }
 
         if config_file:
