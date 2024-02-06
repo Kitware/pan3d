@@ -10,9 +10,9 @@
 
 Pan3D aims to be an utility package for viewing and processing a wide variety of multidimensional datasets. Any dataset that can be interpreted with [xarray][xarray-link] can be explored and rendered with Pan3D.
 
-![](images/8.png)
+![](images/0.png)
 
-<!-- TODO: add blog post link -->
+For an introduction to this project, check out our [blog post][blog-post-link].
 
 
 ## Installation
@@ -52,7 +52,7 @@ To launch Pan3D with a compatible configuration file (see [examples][examples-li
 
 ## Tutorials
 
-- [How to use the Pan3D viewer](tutorials/viewer.md)
+- [How to use the Pan3D viewer](tutorials/dataset_viewer.md)
 - [How to launch Pan3D as a local Python server](tutorials/local_server.md)
 - [How to use Pan3D in a Jupyter notebook](tutorials/jupyter_notebook.md)
 
@@ -73,4 +73,5 @@ Pan3D comes with a set of example configuration files and example Jupyter notebo
 [apache-license-image]: https://img.shields.io/badge/license-Apache%202-blue.svg
 [license-link]: https://raw.githubusercontent.com/Kitware/pan3d/main/LICENSE
 [xarray-link]: https://docs.xarray.dev/en/stable/user-guide/io.html
+[blog-post-link]: https://www.kitware.com/kitware-introduces-pan3d-a-collaborative-interoperable-visualization-tool/
 [examples-link]: https://github.com/Kitware/pan3d/tree/main/examples

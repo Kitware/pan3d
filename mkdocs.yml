@@ -6,7 +6,7 @@ plugins:
 nav:
   - Home: README.md
   - Tutorials:
-    - Pan3D Viewer: tutorials/viewer.md
+    - Pan3D Viewer: tutorials/dataset_viewer.md
     - Local Python Server: tutorials/local_server.md
     - Jupyter Notebooks: tutorials/jupyter_notebook.md
   - API:
