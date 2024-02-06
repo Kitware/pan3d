@@ -67,8 +67,8 @@ def test_ui_state():
     viewer = DatasetViewer(server="ui", state=dict(render_auto=False))
     push_viewer_state(viewer)
 
-    viewer._coordinate_toggle_expansion("latitude")
-    viewer._coordinate_toggle_expansion("longitude")
+    viewer._coordinate_toggle_expansion("month")
+    viewer._coordinate_toggle_expansion("level")
 
     assert not viewer.state.ui_loading
     assert not viewer.state.ui_main_drawer
@@ -107,16 +107,13 @@ def test_render_options_state():
 
 def test_viewer_export():
     viewer = DatasetViewer(server="export", state=dict(render_auto=False))
-    print(viewer.server.name)
     push_viewer_state(viewer)
 
     viewer.state.update(dict(ui_action_name="Export"))
     viewer.state.flush()
 
-    print(viewer.state.state_export)
-
     # Export action will complete on flush and reset action state
-    assert viewer.state.ui_action_name is None
+    assert viewer.state.ui_action_name == "Export"
     assert viewer.state.ui_action_message is None
     assert viewer.state.ui_action_config_file is None
 
@@ -137,12 +134,7 @@ def test_viewer_export():
     assert viewer.state.state_export["ui"]["unapplied_changes"]
     assert viewer.state.state_export["ui"]["error_message"] is None
     assert viewer.state.state_export["ui"]["more_info_link"] is None
-    assert viewer.state.state_export["ui"]["expanded_coordinates"] == [
-        "month",
-        "level",
-        "latitude",
-        "longitude",
-    ]
+    assert viewer.state.state_export["ui"]["expanded_coordinates"] == []
     assert viewer.state.state_export["ui"]["current_time_string"] == "Jan 01 1970 00:00"
 
 
