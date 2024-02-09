@@ -28,7 +28,7 @@ The Pan3D Viewer will open as a tab in your default browser. You can also visit 
 
 #### Data configuration
 
-After a moment to load the data from the remote URL, the Viewer will render the default configuration of the target dataset.
+After a moment to load the data from the remote URL, the Viewer will render the default configuration of the target dataset. This dataset contains daily weather data recorded over the European continent between years 1950 and 2020. When the dataset first loads, Pan3D displays the first array ("hu") at the first time step (01-January-1950).
 
 ![](../images/1.png)
 
@@ -44,7 +44,7 @@ Inside this panel, you will find the following information:
 
     ![](../images/3.png)
 
-- A list of arrays available in the dataset, each with a button to view its attributes. The arrays in this dataset are acronymns, so we can open the attributes tables to see the standard names. The first array is mean relative humidity, and we can see the unit is a percentage.
+- A list of arrays available in the dataset, each with a button to view its attributes. The arrays in this dataset are acronymns, so we can open the attributes tables to see the standard names. The first array ("hu") is mean relative humidity, and we can see the unit is percentage.
 
     ![](../images/4.png)
 
@@ -75,13 +75,13 @@ We can crop the rendered mesh and reduce its resolution by adjusting the slicing
 ![](../images/7.png)
 
 
-We'll put our slicing back to how it was so we can see the full image again. Then, we'll expand the time coordinate and see that the panel is slightly different.
+We'll put our slicing back to how it was so we can see the full image again. (Set Start to -24.95 and Step 1.) Next, we'll expand the time coordinate and see that the panel is slightly different.
 
-Instead of slicing options, the time coordinate has a slider. We can only look at one slice at a time. Take note that this time axis has 25933 slices. Pan3D will only load the data for the current slice, so we don't load data that we don't need to render. This means that each time we change the slice, Pan3D will need to fetch more data, but each fetch will be much faster than trying to load the whole dataset at once.
+Instead of slicing options, the time coordinate has a slider for selecting one time step to display. Note that the time axis for this dataset has 25933 slices. Pan3D will only load the data for the current time step, so we don't load data that we don't need to render. This means that for each time change, Pan3D will fetch more data, but each fetch will be much faster than trying to load the whole dataset at once.
 
-By default, we start on the first slice, with index 0, which corresponds to January 01, 1950 at midnight. We can see from the attributes table that the time coordinate range begins with this time and ends with December 31, 2020.
+As noted above, the viewer displays the first time step (index 0) by default, which corresponds to 01-January-1950. We can see from the attributes table that the time coordinate range begins with this time and ends with 31-December-2020.
 
-You can pick any index along this slider, and the label above will tell you what time that index corresponds to. Below, we have gone forward in time to June 25, 2004, and Europe appears much warmer.
+You can pick any index along this slider, and the label above will display the corresponding time step. Below, we have gone forward to 25-June-2004, and Europe appears much warmer.
 
 ![](../images/8.png)
 
@@ -89,9 +89,9 @@ You can pick any index along this slider, and the label above will tell you what
 
 Let's close the data configuration drawers and focus on the rendering area. There are many options to customize the appearance of the rendering within this space.
 
-1. We can move the camera around the rendered mesh by clicking and dragging. We can pan the camera by holding Shift while dragging, and we can rotate it by holding Ctrl while dragging. We can move the camera toward the mesh and away from it by scrolling. We can see this mesh is a plane. We'll look at a 3D dataset soon.
+1. We can move the camera around the rendered mesh by clicking and dragging. We can pan the camera by holding Shift while dragging, and we can rotate it (roll) by holding Ctrl while dragging. We can move the camera toward the mesh and away from it by scrolling. We can see this mesh is a plane. We'll look at a 3D dataset soon.
 
-2. The color legend is interactive. We can drag it to another edge of the scene, or we can resize it by using the white bounding bars that appear when we click on the legend.
+2. The color legend is also interactive. We can drag it to another edge of the scene, or we can resize it by using the white bounding bars that appear when we click on the legend.
 
     ![](../images/9.png)
 
