@@ -3,6 +3,7 @@ node_modules
 .venv
 
 examples/jupyter/*.gif
+site/*
 
 # local env files
 .env.local
