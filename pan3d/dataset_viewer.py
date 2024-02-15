@@ -4,7 +4,7 @@ import json
 import pandas
 import pyvista
 from pathlib import Path
-from typing import Optional, Union
+from typing import Dict, Optional, Union
 
 from trame.decorators import TrameApp, change
 from trame.app import get_server
@@ -202,7 +202,7 @@ class DatasetViewer:
     # Rendering methods
     # -----------------------------------------------------
 
-    def set_render_scales(self, **kwargs) -> None:
+    def set_render_scales(self, **kwargs: Dict[str, str]) -> None:
         """Set the scales at which each axis (x, y, and/or z) should be rendered.
 
         Parameters:

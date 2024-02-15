@@ -17,7 +17,7 @@ For an introduction to this project, check out our [blog post][blog-post-link].
 
 ## Installation
 
-    pip install pan3d
+    pip install pan3d[viewer]
 
 
 ## Quick Start
@@ -53,7 +53,7 @@ To launch Pan3D with a compatible configuration file (see [examples][examples-li
 ## Tutorials
 
 - [How to use the Pan3D viewer](tutorials/dataset_viewer.md)
-- [How to launch Pan3D as a local Python server](tutorials/local_server.md)
+- [Pan3D command line](tutorials/local_server.md)
 - [How to use Pan3D in a Jupyter notebook](tutorials/jupyter_notebook.md)
 
 ## Examples
