@@ -7,27 +7,52 @@ def has_gpu_rendering():
     return not any(os.environ.get(k) for k in target_env_vars)
 
 
+XARRAY_EXAMPLES = [
+    # from https://docs.xarray.dev/en/stable/generated/xarray.tutorial.open_dataset.html
+    {
+        "name": "XArray Examples - Air Temperature",
+        "value": {"source": "xarray", "id": "air_temperature"},
+    },
+    {
+        "name": "XArray Examples - Ocean Basins",
+        "value": {"source": "xarray", "id": "basin_mask"}
+    },
+    {
+        "name": "XArray Examples - Ice Velocity",
+        "value": {"source": "xarray", "id": "ASE_ice_velocity"}
+    },
+    {
+        "name": "XArray Examples - Regional Arctic System Model",
+        "value": {"source": "xarray", "id": "rasm"}
+    },
+    {
+        "name": "XArray Examples - Regional Ocean Model System",
+        "value": {"source": "xarray", "id": "ROMS_example"},
+    },
+    {
+        "name": "XArray Examples - ERA-Interim analysis",
+        "value": {"source": "xarray", "id": "eraint_uvz"}
+    },
+    {
+        "name": "XArray Examples - NOAA Sea Surface Temperatures",
+        "value": {"source": "xarray", "id": "ersstv5"}
+    },
+]
+
+
 initial_state = {
     "trame__title": "Pan3D Viewer",
     "dataset_ready": False,
     "state_export": None,
-    "available_datasets": [
-        # from https://docs.xarray.dev/en/stable/generated/xarray.tutorial.open_dataset.html
-        {
-            "name": "XArray Examples - Air Temperature",
-            "url": "air_temperature",
-        },
-        {"name": "XArray Examples - Ocean Basins", "url": "basin_mask"},
-        {"name": "XArray Examples - Ice Velocity", "url": "ASE_ice_velocity"},
-        {"name": "XArray Examples - Regional Arctic System Model", "url": "rasm"},
-        {
-            "name": "XArray Examples - Regional Ocean Model System",
-            "url": "ROMS_example",
-        },
-        {"name": "XArray Examples - ERA-Interim analysis", "url": "eraint_uvz"},
-        {"name": "XArray Examples - NOAA Sea Surface Temperatures", "url": "ersstv5"},
+    "available_data_groups": [
+        {"name": "Xarray", "value": "xarray"},
     ],
-    "dataset_path": None,
+    "data_group": "xarray",
+    "ui_group_loading": False,
+    "available_datasets": {
+        'xarray': XARRAY_EXAMPLES
+    },
+    "dataset_info": None,
     "da_active": None,
     "da_vars": [],
     "da_attrs": [],
