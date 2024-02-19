@@ -5,14 +5,17 @@ from trame.widgets import vuetify3 as vuetify
 class MainDrawer(vuetify.VNavigationDrawer):
     def __init__(
         self,
+        available_data_groups="available_data_groups",
+        data_group="data_group",
         dataset_ready="dataset_ready",
-        dataset_path="dataset_path",
+        dataset_info="dataset_info",
         da_attrs="da_attrs",
         da_vars="da_vars",
         da_vars_attrs="da_vars_attrs",
         available_datasets="available_datasets",
         ui_main_drawer="ui_main_drawer",
         ui_more_info_link="ui_more_info_link",
+        ui_group_loading="ui_group_loading",
         da_active="da_active",
         da_x="da_x",
         da_y="da_y",
@@ -25,11 +28,26 @@ class MainDrawer(vuetify.VNavigationDrawer):
         )
         with self:
             vuetify.VSelect(
-                label="Choose a dataset",
-                v_model=(dataset_path,),
-                items=(available_datasets,),
+                label="Choose a group",
+                v_show=(available_data_groups,),
+                items=(available_data_groups, []),
+                v_model=(data_group,),
+                loading=(ui_group_loading,),
+                disabled=(ui_group_loading,),
                 item_title="name",
-                item_value="url",
+                item_value="value",
+                density="compact",
+                hide_details=True,
+            )
+            vuetify.VSelect(
+                label="Choose a dataset",
+                v_show=(data_group,),
+                v_model=(dataset_info,),
+                items=(f"{available_datasets}[{data_group}]", []),
+                loading=(ui_group_loading,),
+                disabled=(ui_group_loading,),
+                item_title="name",
+                item_value="value",
                 density="compact",
                 hide_details=True,
             )
