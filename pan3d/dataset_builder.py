@@ -14,27 +14,34 @@ class DatasetBuilder:
 
     def __init__(
         self,
-        dataset_path: str = None,
+        dataset: str = None,
         server: Any = None,
         pangeo: bool = False,
+        esgf: bool = False,
     ) -> None:
         """Create an instance of the DatasetBuilder class.
 
         Parameters:
-            dataset_path: A path or URL referencing a dataset readable by xarray.open_dataset()
+            dataset: A path or URL referencing a dataset readable by xarray.open_dataset()
             server: Trame server name or instance.
             pangeo: If true, use a list of example datasets from Pangeo Forge (examples/pangeo_catalog.json).
+            esgf: If true, use a list of example datasets from ESGF (examples/esgf_catalog.json).
         """
         self._algorithm = PyVistaXarraySource()
         self._viewer = None
         self._dataset = None
-        self._dataset_path = None
+        self._dataset_info = None
         self._da_name = None
 
         self._server = server
         self._pangeo = pangeo
+        self._esgf = esgf
 
-        self.dataset_path = dataset_path
+        if dataset:
+            self.dataset_info = {
+                'source': 'default',
+                'id': dataset,
+            }
 
     # -----------------------------------------------------
     # Properties
@@ -52,8 +59,9 @@ class DatasetBuilder:
                 builder=self,
                 server=self._server,
                 pangeo=self._pangeo,
+                esgf=self._esgf,
                 state=dict(
-                    dataset_path=self.dataset_path,
+                    dataset_info=self.dataset_info,
                     da_active=self.data_array_name,
                     da_x=self.x,
                     da_y=self.y,
@@ -65,51 +73,35 @@ class DatasetBuilder:
         return self._viewer
 
     @property
-    def dataset_path(self) -> Optional[str]:
+    def dataset_info(self) -> Optional[str]:
         """A string referencing the current dataset, which may be a local path or remote URL.
         Value must be readable with xarray.open_dataset().
         """
-        return self._dataset_path
+        return self._dataset_info
 
-    @dataset_path.setter
-    def dataset_path(self, dataset_path: Optional[str]) -> None:
-        if dataset_path != self._dataset_path:
-            self._dataset_path = dataset_path
-            self._set_state_values(dataset_path=dataset_path)
-            ds = None
-            if dataset_path is not None:
-                self._set_state_values(ui_loading=True)
-
-                if "https://" in dataset_path or os.path.exists(dataset_path):
-                    engine = None
-                    if ".zarr" in dataset_path:
-                        engine = "zarr"
-                    if ".nc" in dataset_path:
-                        engine = "netcdf4"
-                    try:
-                        ds = xarray.open_dataset(dataset_path, engine=engine, chunks={})
-                    except Exception as e:
-                        if self._viewer:
-                            self._set_state_values(ui_error_message=str(e))
-                        else:
-                            raise e
-                        return
+    @dataset_info.setter
+    def dataset_info(self, dataset_info: Optional[Dict]) -> None:
+        if dataset_info != self._dataset_info:
+            self._dataset_info = dataset_info
+            self._set_state_values(dataset_info=dataset_info)
+            try:
+                self._load_dataset(dataset_info)
+            except Exception as e:
+                if self._viewer:
+                    self._set_state_values(ui_error_message=str(e))
                 else:
-                    # Assume it is a named tutorial dataset
-                    ds = xarray.tutorial.load_dataset(dataset_path)
-            self.dataset = ds
-            self._set_state_values(ui_loading=False)
+                    raise e
 
     @property
     def dataset(self) -> Optional[xarray.Dataset]:
-        """Xarray.Dataset object read from the current dataset_path."""
+        """Xarray.Dataset object read from the current dataset_info."""
         return self._dataset
 
     @dataset.setter
     def dataset(self, dataset: Optional[xarray.Dataset]) -> None:
         self._dataset = dataset
         if dataset is not None:
-            vars = list(dataset.data_vars.keys())
+            vars = list(k for k in dataset.data_vars.keys() if not k.endswith('_bnds'))
             if len(vars) > 0:
                 self.data_array_name = vars[0]
         else:
@@ -257,6 +249,41 @@ class DatasetBuilder:
     # Internal methods
     # -----------------------------------------------------
 
+    def _load_dataset(self, dataset_info):
+        ds = None
+        if dataset_info is not None:
+            self._set_state_values(ui_loading=True)
+            source = dataset_info.get('source')
+            if source == 'pangeo':
+                if self._pangeo:
+                    from pan3d.pangeo_forge import load_dataset
+
+                    ds = load_dataset(dataset_info['id'])
+                else:
+                    raise ValueError('Pangeo module not enabled. Set pangeo=true to load this dataset.')
+            elif source == 'esgf':
+                if self._esgf:
+                    from pan3d.esgf import load_dataset
+
+                    ds = load_dataset(dataset_info['id'])
+                else:
+                    raise ValueError('ESGF module not enabled. Set esgf=true to load this dataset.')
+            elif source == 'xarray':
+                ds = xarray.tutorial.load_dataset(dataset_info['id'])
+            else:
+                if "https://" in dataset_info['id'] or os.path.exists(dataset_info['id']):
+                    engine = None
+                    if ".zarr" in dataset_info['id']:
+                        engine = "zarr"
+                    if ".nc" in dataset_info['id']:
+                        engine = "netcdf4"
+                    ds = xarray.open_dataset(dataset_info['id'], engine=engine, chunks={})
+                else:
+                    raise ValueError(f'Could not find dataset at {dataset_info["id"]}')
+
+        self.dataset = ds
+        self._set_state_values(ui_loading=False)
+
     def _set_state_values(self, **kwargs):
         if self._viewer is not None:
             for k, v in kwargs.items():
@@ -331,7 +358,12 @@ class DatasetBuilder:
                 raise ValueError(error_message)
             return
 
-        self.dataset_path = origin_config
+        if isinstance(origin_config, str):
+            origin_config = {
+                'source': 'default',
+                'id': origin_config,
+            }
+        self.dataset_info = origin_config
         self.data_array_name = array_config.pop("name")
         for key, value in array_config.items():
             setattr(self, key, value)
@@ -357,8 +389,11 @@ class DatasetBuilder:
                 If None, a dictionary containing the current configuration will be returned.
                 For details, see Configuration Files documentation.
         """
+        data_origin = self.dataset_info
+        if data_origin.get('source') == 'default':
+            data_origin = data_origin.get('id')
         config = {
-            "data_origin": self.dataset_path,
+            "data_origin": data_origin,
             "data_array": {
                 "name": self.data_array_name,
                 **{

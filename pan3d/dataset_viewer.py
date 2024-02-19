@@ -36,6 +36,7 @@ class DatasetViewer:
         server: Union[Server, str] = None,
         state: dict = None,
         pangeo: bool = False,
+        esgf: bool = False,
     ) -> None:
         """Create an instance of the DatasetViewer class.
 
@@ -53,6 +54,8 @@ class DatasetViewer:
         self.current_event_loop = asyncio.get_event_loop()
         self.pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         self._ui = None
+        self._pangeo = False
+        self._esgf = False
 
         self.plotter = pyvista.Plotter(off_screen=True, notebook=False)
         self.plotter.set_background("lightgrey")
@@ -65,9 +68,17 @@ class DatasetViewer:
         self.state.ready()
         if state:
             self.state.update(state)
+
         if pangeo:
-            with open(Path(BASE_DIR, "../examples/pangeo_catalog.json")) as f:
-                self.state.available_datasets += json.load(f)
+            from pan3d.pangeo_forge import GROUPS
+
+            self.state.available_data_groups += GROUPS
+            self._pangeo = True
+        if esgf:
+            from pan3d.esgf import GROUPS
+
+            self.state.available_data_groups += GROUPS
+            self._esgf = True
 
         self._force_local_rendering = not has_gpu_rendering()
         if self._force_local_rendering:
@@ -251,7 +262,7 @@ class DatasetViewer:
 
     async def plot_mesh(self) -> None:
         """Render current cached mesh in viewer's plotter."""
-        if self.state.ui_loading:
+        if self.builder.data_array is None or self.state.ui_loading:
             return
 
         with self.state:
@@ -309,27 +320,13 @@ class DatasetViewer:
         self.state.da_vars = {}
         self.state.da_vars_attrs = {}
 
-        dataset_path = self.builder.dataset_path
+        dataset_info = self.builder.dataset_info
         dataset = self.builder.dataset
         if dataset:
             self.state.ui_loading = True
             if self._ui is not None:
                 self.state.ui_main_drawer = True
-            if not any(d["url"] == dataset_path for d in self.state.available_datasets):
-                self.state.available_datasets = [
-                    {
-                        "url": dataset_path,
-                        "name": dataset_path,
-                    },
-                    *self.state.available_datasets,
-                ]
-            else:
-                for available_dataset in self.state.available_datasets:
-                    if (
-                        available_dataset["url"] == dataset_path
-                        and "more_info" in available_dataset
-                    ):
-                        self.state.ui_more_info_link = available_dataset["more_info"]
+
             self.state.da_attrs = [
                 {"key": str(k), "value": str(v)} for k, v in dataset.attrs.items()
             ]
@@ -476,9 +473,71 @@ class DatasetViewer:
     # -----------------------------------------------------
     # State change callbacks
     # -----------------------------------------------------
-    @change("dataset_path")
-    def _on_change_dataset_path(self, dataset_path, **kwargs):
-        self.builder.dataset_path = dataset_path
+    @change("data_group")
+    def _on_change_data_group(self, data_group, **kwargs):
+        existing_dataset_list = self.state.available_datasets.get(data_group)
+        if existing_dataset_list is not None:
+            if not any(d['value'] == self.state.dataset_info for d in existing_dataset_list):
+                self.state.dataset_info = None
+            return
+
+        self.state.dataset_info = None
+        load_datasets_function = None
+        if self._pangeo:
+            from pan3d.pangeo_forge import GROUPS, get_group_datasets
+
+            if any(group['value'] == data_group for group in GROUPS):
+                load_datasets_function = get_group_datasets
+        if self._esgf:
+            from pan3d.esgf import GROUPS, get_group_datasets
+
+            if any(group['value'] == data_group for group in GROUPS):
+                load_datasets_function = get_group_datasets
+
+        if load_datasets_function:
+            async def load_group():
+                with self.state:
+                    self.state.ui_group_loading = True
+
+                await asyncio.sleep(1)
+                with self.state:
+                    self.state.available_datasets[data_group] = load_datasets_function(data_group)
+                    self.state.dirty('available_datasets')
+                    self.state.ui_group_loading = False
+
+            asyncio.run_coroutine_threadsafe(load_group(), self.current_event_loop)
+
+    @change("dataset_info")
+    def _on_change_dataset_info(self, dataset_info, **kwargs):
+        if dataset_info is not None:
+            dataset_exists = False
+            for dataset_group in self.state.available_datasets.values():
+                for d in dataset_group:
+                    if d['value'] == dataset_info:
+                        dataset_exists = True
+                        self.state.ui_more_info_link = d.get('link')
+            if not dataset_exists:
+                self.state.available_data_groups = [
+                    'default',
+                    *self.state.available_data_groups
+                ]
+                self.state.data_group = "default"
+                self.state.available_datasets['default'] = [{
+                    "value": dataset_info,
+                    "name": dataset_info['id'],
+                }]
+                self.state.dirty('available_datasets')
+
+        async def load_dataset():
+            with self.state:
+                self.state.ui_loading = True
+
+            await asyncio.sleep(1)
+            with self.state:
+                self.builder.dataset_info = dataset_info
+                self.state.ui_loading = False
+
+        asyncio.run_coroutine_threadsafe(load_dataset(), self.current_event_loop)
 
     @change("da_active")
     def _on_change_da_active(self, da_active, **kwargs):

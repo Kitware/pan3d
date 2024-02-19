@@ -1,5 +1,8 @@
 {
-    "data_origin": "eraint_uvz",
+    "data_origin": {
+        "source": "xarray",
+        "id": "eraint_uvz"
+    },
     "data_array": {
         "name": "z",
         "x": "longitude",
