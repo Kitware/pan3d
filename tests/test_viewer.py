@@ -3,7 +3,10 @@ from pan3d import DatasetViewer
 
 
 def push_builder_state(builder):
-    builder.dataset_path = "eraint_uvz"
+    builder.dataset_info = {
+        "source": "xarray",
+        "id": "eraint_uvz"
+    }
     builder.z = "level"
     builder.t = "month"
     builder.t_index = 1
@@ -15,7 +18,10 @@ def push_viewer_state(viewer):
     # Ensure the callbacks occur in the correct order
     viewer.state.update(
         dict(
-            dataset_path="eraint_uvz",
+            dataset_info={
+                "source": "xarray",
+                "id": "eraint_uvz"
+            },
         )
     )
     viewer.state.flush()
@@ -36,7 +42,10 @@ def push_viewer_state(viewer):
 
 
 def assert_builder_state(builder):
-    assert builder.dataset_path == "eraint_uvz"
+    assert builder.dataset_info == {
+        "source": "xarray",
+        "id": "eraint_uvz"
+    }
     assert builder.dataset is not None
     assert builder.data_array_name == "z"
     assert builder.x == "longitude"
@@ -47,7 +56,10 @@ def assert_builder_state(builder):
 
 
 def assert_viewer_state(viewer):
-    assert viewer.state.dataset_path == "eraint_uvz"
+    assert viewer.state.dataset_info == {
+        "source": "xarray",
+        "id": "eraint_uvz"
+    }
     assert viewer.state.dataset_ready
     assert viewer.state.da_active == "z"
     assert viewer.state.da_x == "longitude"
@@ -117,7 +129,10 @@ def test_viewer_export():
     assert viewer.state.ui_action_message is None
     assert viewer.state.ui_action_config_file is None
 
-    assert viewer.state.state_export["data_origin"] == "eraint_uvz"
+    assert viewer.state.state_export["data_origin"] == {
+        "source": "xarray",
+        "id": "eraint_uvz"
+    }
     assert viewer.state.state_export["data_array"]["name"] == "z"
     assert viewer.state.state_export["data_array"]["x"] == "longitude"
     assert viewer.state.state_export["data_array"]["y"] == "latitude"
