@@ -1,0 +1,53 @@
+{
+    "data_origin": {
+        "source": "esgf",
+        "id": [
+            "CMIP6.PAMIP.MOHC.HadGEM3-GC31-MM.pdSST-futAntSIC.r102i1p1f2.day.sfcWind.gn.v20210311|eagle.alcf.anl.gov"
+        ]
+    },
+    "data_array": {
+        "name": "sfcWind",
+        "x": "lon",
+        "y": "lat",
+        "t": "time",
+        "t_index": 0
+    },
+    "data_slices": {
+        "time": [
+            "Apr 01 2000 12:00",
+            "May 30 2001 12:00",
+            1
+        ],
+        "lat": [
+            -89.72,
+            89.72,
+            1
+        ],
+        "lon": [
+            0.42,
+            359.58,
+            1
+        ]
+    },
+    "ui": {
+        "group_loading": false,
+        "loading": false,
+        "main_drawer": true,
+        "axis_drawer": true,
+        "unapplied_changes": false,
+        "error_message": null,
+        "more_info_link": null,
+        "expanded_coordinates": [],
+        "current_time_string": "Apr 01 2000 12:00"
+    },
+    "render": {
+        "auto": true,
+        "x_scale": 1,
+        "y_scale": 1,
+        "z_scale": 1,
+        "scalar_warp": false,
+        "transparency": false,
+        "transparency_function": "linear",
+        "colormap": "viridis"
+    }
+}
