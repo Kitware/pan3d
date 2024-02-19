@@ -37,6 +37,9 @@ viewer = [
     "trame-vtk>=2.6",
     "trame-vuetify>=2.4",
 ]
+esgf = [
+    "intake-esgf>=2024.1",
+]
 
 [project.scripts]
 pan3d-viewer = "pan3d.serve_viewer:serve"
