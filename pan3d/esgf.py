@@ -1,5 +1,6 @@
 # https://intake-esgf.readthedocs.io/en/latest/quickstart.html
 from intake_esgf import ESGFCatalog
+from intake_esgf.exceptions import NoSearchResults
 from datetime import datetime
 from pathlib import Path
 import json
@@ -55,21 +56,25 @@ def get_group_datasets(group_value):
     experiment_id, source_id = group_value.split('/')
     start = datetime.now()
     catalog = ESGFCatalog()
-    search = catalog.search(
-        experiment_id=experiment_id,
-        source_id=source_id,
-    )
-    results = [
-        {
-            'name': id,
-            'value': {
-                'source': 'esgf',
-                'id': id
+    results = []
+    try:
+        search = catalog.search(
+            experiment_id=experiment_id,
+            source_id=source_id,
+        )
+        results = [
+            {
+                'name': id,
+                'value': {
+                    'source': 'esgf',
+                    'id': id
+                }
             }
-        }
-        # get first dataset for each unique variable
-        for id in search.df.groupby('variable_id').head(n=1).id
-    ]
+            # get first dataset for each unique variable
+            for id in search.df.groupby('variable_id').head(n=1).id
+        ]
+    except NoSearchResults:
+        pass
 
     catalog_contents[group_value] = results
     with open(CACHED_CATALOG_PATH, 'w') as f:
