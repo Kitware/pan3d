@@ -1,10 +1,16 @@
 from trame.widgets import html
 from trame.widgets import vuetify3 as vuetify
 
+from .catalog_search import CatalogSearch
+
 
 class MainDrawer(vuetify.VNavigationDrawer):
     def __init__(
         self,
+        update_catalog_search_term_function,
+        catalog_search_function,
+        catalog_term_search_function,
+        available_catalogs="available_catalogs",
         available_data_groups="available_data_groups",
         data_group="data_group",
         dataset_ready="dataset_ready",
@@ -27,6 +33,12 @@ class MainDrawer(vuetify.VNavigationDrawer):
             v_model=(ui_main_drawer,), classes="pa-2", permanent=True, width=300
         )
         with self:
+            with html.Div(v_show=(f"{available_catalogs}.length",),):
+                CatalogSearch(
+                    update_catalog_search_term_function,
+                    catalog_search_function,
+                    catalog_term_search_function,
+                )
             vuetify.VSelect(
                 label="Choose a group",
                 v_show=(available_data_groups,),
