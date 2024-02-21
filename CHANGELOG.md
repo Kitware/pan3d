@@ -2,6 +2,108 @@
 
 
 
+## v0.3.0 (2024-02-21)
+
+### Documentation
+
+* docs: Add `site` to .gitignore ([`cafc96e`](https://github.com/Kitware/pan3d/commit/cafc96ef76f0b303cf14e60df7423baa41d6e4a9))
+
+* docs: Improve language in tutorial pages
+
+Co-authored by: @johnkit ([`effbc94`](https://github.com/Kitware/pan3d/commit/effbc944d613a80c17e2db5ac66e831123339759))
+
+* docs: update tutorials and other descriptive documentation ([`11e5ec7`](https://github.com/Kitware/pan3d/commit/11e5ec72fab28da9cf646e8477effa546213d02b))
+
+* docs: update image folder (stored with lfs) ([`c63ec8e`](https://github.com/Kitware/pan3d/commit/c63ec8ea7300c81c7d56c92fad464a94071c7023))
+
+* docs: update docstrings for API docs pages ([`7332c35`](https://github.com/Kitware/pan3d/commit/7332c352827bcceda542fbe066b7cb4bd2443913))
+
+* docs: Add two new example jupyter notebooks ([`c09fd06`](https://github.com/Kitware/pan3d/commit/c09fd068c2481f7e40c7571d9fdca71996c33e29))
+
+* docs: update existing jupyter notebook examples ([`63ae602`](https://github.com/Kitware/pan3d/commit/63ae6021142fd53958b113ee0c346f43fd010164))
+
+* docs: replace &#34;active&#34; with &#34;name&#34; in config schema ([`e9758d7`](https://github.com/Kitware/pan3d/commit/e9758d773c6ff12d6e417b739a9cf0b71a4b7c58))
+
+### Feature
+
+* feat: add automatic rendering, enabled by default ([`4f20e39`](https://github.com/Kitware/pan3d/commit/4f20e397fa83838f301fb1e95a16cfbf6fbf1ea4))
+
+* feat: more extensive automatic coordinate selection ([`e3a54cc`](https://github.com/Kitware/pan3d/commit/e3a54ccd2968bcdda706a22e7b7babdee485e50d))
+
+* feat: add more xarray examples to default dataset list ([`f533334`](https://github.com/Kitware/pan3d/commit/f5333343e3d1388c13e1cf00dacdff7fd58283ad))
+
+### Fix
+
+* fix: remove broken pangeo-forge links from catalog ([`bcec69e`](https://github.com/Kitware/pan3d/commit/bcec69e66e7bdcd6f70a76b6c73cdedc110b6fa3))
+
+* fix: improve usability of import via UI ([`7eea64b`](https://github.com/Kitware/pan3d/commit/7eea64ba8f6d135781732cfdbf91f066de6fc8ca))
+
+* fix: wait until server ready before enabling auto rendering ([`2bceade`](https://github.com/Kitware/pan3d/commit/2bceade7c915f2f6b553f0442559268a0e112f5a))
+
+* fix: synchronize slicing state between builder and viewer ([`e6e6421`](https://github.com/Kitware/pan3d/commit/e6e6421b40ff85026a9f1ee85fd1db29ebe98b82))
+
+* fix: assign coordinates on implicitly indexed data arrays before sending to algorithm ([`b554d4d`](https://github.com/Kitware/pan3d/commit/b554d4de39e26065fd48f6c26b24c78a0e33dc6f))
+
+* fix: asynchronous trame state updates ([`7152037`](https://github.com/Kitware/pan3d/commit/7152037c383711a144e7121482b73cd7b515835e))
+
+* fix: state synchronization between builder and viewer ([`68bdfae`](https://github.com/Kitware/pan3d/commit/68bdfaebaed0001524452ae5274094ea802d4713))
+
+* fix(threading): use `call_soon_threadsafe` for plotting mesh ([`9b2d652`](https://github.com/Kitware/pan3d/commit/9b2d652cdce75be01067effde36a3512b036d1c1))
+
+### Refactor
+
+* refactor: suggested changes from @jourdain ([`b87a945`](https://github.com/Kitware/pan3d/commit/b87a9450a989c0c672d41afe7d852b030323d219))
+
+* refactor(dataset_builder): separate trame and plotting from data configuration ([`bfb64be`](https://github.com/Kitware/pan3d/commit/bfb64bee8cfe34b2ee32a21e4dbadde302f63f85))
+
+### Style
+
+* style: Reformat with black ([`9a83c4f`](https://github.com/Kitware/pan3d/commit/9a83c4faeb2000dd5822546ab0b2fcaa8243b783))
+
+* style: Reformat with black ([`42ecfd4`](https://github.com/Kitware/pan3d/commit/42ecfd4fab7b929fa9ba37d2ac388aaa03773f26))
+
+* style: fix formatting ([`27fd178`](https://github.com/Kitware/pan3d/commit/27fd1784190bff1f6274372315673640b8ffbb23))
+
+* style: fix formatting ([`068865d`](https://github.com/Kitware/pan3d/commit/068865d22e1eae780bd31287707f6b4d7a816e01))
+
+* style: fix formatting ([`8a45de4`](https://github.com/Kitware/pan3d/commit/8a45de4b7d1d3b66c4b33c13d89fcd5c791c76dc))
+
+* style(css): hide scroll bar by default ([`e4d32e9`](https://github.com/Kitware/pan3d/commit/e4d32e9a0827b4e28cd2440f9085e5edccd90b8e))
+
+### Test
+
+* test: update expected state with new default expanded coordinates ([`61bcff5`](https://github.com/Kitware/pan3d/commit/61bcff51ee2c0414e7013dead5ba975d98773d06))
+
+* test: update expected state with new drawer defaults ([`7e5c5c7`](https://github.com/Kitware/pan3d/commit/7e5c5c7898f58b179926376635de9a880846b519))
+
+* test: disable `DatasetViewer` automatic render in tests ([`dee418e`](https://github.com/Kitware/pan3d/commit/dee418e3aebe68727ba8cb81075773349e3b3863))
+
+* test: update main testing workflow ([`de68b49`](https://github.com/Kitware/pan3d/commit/de68b4901681ce61c2e3829be0807954ae2bb396))
+
+* test: add tests for builder and viewer ([`9e305d4`](https://github.com/Kitware/pan3d/commit/9e305d427de2b6ba72cd6f26428fb0efe4a19a34))
+
+### Unknown
+
+* Merge pull request #59 from Kitware/separate-viewer
+
+Separate DatasetViewer from DatasetBuilder ([`f89d2b0`](https://github.com/Kitware/pan3d/commit/f89d2b0feaf2a4a7888a3fbc5a2d7551ebb2d27c))
+
+* More doc changes
+
+* Change title from &#34;local server to a more general &#34;command line&#34;
+* Change pip instruction to include [viewer]
+* Show more code in jupyter_notebook.md
+* Also fix mkdocs warning in dataset_viewer.py ([`f74dada`](https://github.com/Kitware/pan3d/commit/f74dadacfd407afbbff172b3c0a352079fb4a162))
+
+* setup: specify minimum versions for requirements in pyproject.toml ([`612d42d`](https://github.com/Kitware/pan3d/commit/612d42ddecdeb770c43e872d3dbaf5454fc1a807))
+
+* ui: change loading widget style ([`32b4a2b`](https://github.com/Kitware/pan3d/commit/32b4a2b65d4bc4bcfb17ce372f939b949d14c310))
+
+* ui: Differentiate between icons for menus and drawers on the left and right sides ([`50bfd92`](https://github.com/Kitware/pan3d/commit/50bfd92ab5867cc9689cb40c3d2167d9ea1317f6))
+
+* setup: move trame dependencies to [viewer] option ([`b243779`](https://github.com/Kitware/pan3d/commit/b2437794f4bbd41193af618fa656547fcf2ef9f5))
+
+
 ## v0.2.3 (2024-01-17)
 
 ### Fix
