@@ -54,8 +54,6 @@ class DatasetViewer:
         self.current_event_loop = asyncio.get_event_loop()
         self.pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         self._ui = None
-        self._pangeo = False
-        self._esgf = False
 
         self.plotter = pyvista.Plotter(off_screen=True, notebook=False)
         self.plotter.set_background("lightgrey")
@@ -69,16 +67,16 @@ class DatasetViewer:
         if state:
             self.state.update(state)
 
+        self._pangeo = pangeo
+        self._esgf = esgf
         if pangeo:
-            from pan3d.pangeo_forge import GROUPS
+            from pan3d.pangeo_forge import get_catalog
 
-            self.state.available_data_groups += GROUPS
-            self._pangeo = True
+            self.state.available_catalogs.append(get_catalog())
         if esgf:
-            from pan3d.esgf import GROUPS
+            from pan3d.esgf import get_catalog
 
-            self.state.available_data_groups += GROUPS
-            self._esgf = True
+            self.state.available_catalogs.append(get_catalog())
 
         self._force_local_rendering = not has_gpu_rendering()
         if self._force_local_rendering:
@@ -125,7 +123,11 @@ class DatasetViewer:
                     self._submit_import,
                     self.builder.export_config,
                 )
-                MainDrawer()
+                MainDrawer(
+                    update_catalog_search_term_function=self._update_catalog_search_term,
+                    catalog_search_function=self._catalog_search,
+                    catalog_term_search_function=self._catalog_term_option_search,
+                )
                 AxisDrawer(
                     coordinate_select_axis_function=self._coordinate_select_axis,
                     coordinate_change_slice_function=self._coordinate_change_slice,
@@ -152,6 +154,68 @@ class DatasetViewer:
     # -----------------------------------------------------
     # UI bound methods
     # -----------------------------------------------------
+    def _update_catalog_search_term(self, term_key, term_value):
+        self.state.catalog_current_search[term_key] = term_value
+        self.state.dirty('catalog_current_search')
+
+    def _catalog_search(self):
+        catalog_id = self.state.catalog.get('id')
+        if catalog_id == 'pangeo':
+            print('do pangeo search')
+        elif catalog_id == 'esgf':
+            from pan3d.esgf import search_catalog
+
+            def load_results():
+                results, group_name, message = search_catalog(**self.state.catalog_current_search)
+
+                if len(results) > 0:
+                    self.state.available_data_groups.append(
+                        {'name': group_name, 'value': group_name}
+                    )
+                    self.state.available_datasets[group_name] = results
+                    self.state.ui_catalog_search_message = message
+                    self.state.dirty('available_data_groups', 'available_datasets')
+                else:
+                    self.state.ui_catalog_search_message = "No results found for current search criteria."
+
+            self.run_as_async(
+                load_results,
+                loading_state="ui_catalog_term_search_loading",
+                error_state="ui_catalog_search_message",
+            )
+
+    def _catalog_term_option_search(self):
+        catalog_id = self.state.catalog.get('id')
+        if catalog_id == 'pangeo':
+            print('get pangeo terms')
+        elif catalog_id == 'esgf':
+            from pan3d.esgf import get_catalog_search_options
+
+            def load_terms():
+                search_options = get_catalog_search_options()
+                self.state.available_catalogs = [
+                    {
+                        **catalog,
+                        'search_terms': [
+                            {
+                                'key': k,
+                                'options': v
+                            }
+                            for k, v in search_options.items()
+                        ],
+                    }
+                    if catalog.get('id') == catalog_id else catalog
+                    for catalog in self.state.available_catalogs
+                ]
+                for catalog in self.state.available_catalogs:
+                    if catalog.get('id') == catalog_id:
+                        self.state.catalog = catalog
+
+            self.run_as_async(
+                load_terms,
+                loading_state="ui_catalog_term_search_loading",
+                error_state="ui_catalog_search_message",
+            )
 
     def _coordinate_select_axis(
         self, coordinate_name, current_axis, new_axis, **kwargs
@@ -310,6 +374,26 @@ class DatasetViewer:
         """Asynchronously reset and update cached mesh and render to viewer's plotter."""
 
         asyncio.run_coroutine_threadsafe(self.plot_mesh(), self.current_event_loop)
+
+    def run_as_async(self, function, loading_state="ui_loading", error_state="ui_error_message"):
+        async def run():
+            if loading_state is not None:
+                with self.state:
+                    self.state[loading_state] = True
+
+            await asyncio.sleep(1)
+
+            with self.state:
+                try:
+                    function()
+                except Exception as e:
+                    if error_state is not None:
+                        self.state[error_state] = str(e)
+                    else:
+                        print(e)
+                if loading_state is not None:
+                    self.state[loading_state] = False
+        asyncio.run_coroutine_threadsafe(run(), self.current_event_loop)
 
     # -----------------------------------------------------
     # State sync with Builder
@@ -473,39 +557,14 @@ class DatasetViewer:
     # -----------------------------------------------------
     # State change callbacks
     # -----------------------------------------------------
-    @change("data_group")
-    def _on_change_data_group(self, data_group, **kwargs):
-        existing_dataset_list = self.state.available_datasets.get(data_group)
-        if existing_dataset_list is not None:
-            if not any(d['value'] == self.state.dataset_info for d in existing_dataset_list):
-                self.state.dataset_info = None
-            return
-
-        self.state.dataset_info = None
-        load_datasets_function = None
-        if self._pangeo:
-            from pan3d.pangeo_forge import GROUPS, get_group_datasets
-
-            if any(group['value'] == data_group for group in GROUPS):
-                load_datasets_function = get_group_datasets
-        if self._esgf:
-            from pan3d.esgf import GROUPS, get_group_datasets
-
-            if any(group['value'] == data_group for group in GROUPS):
-                load_datasets_function = get_group_datasets
-
-        if load_datasets_function:
-            async def load_group():
-                with self.state:
-                    self.state.ui_group_loading = True
-
-                await asyncio.sleep(1)
-                with self.state:
-                    self.state.available_datasets[data_group] = load_datasets_function(data_group)
-                    self.state.dirty('available_datasets')
-                    self.state.ui_group_loading = False
-
-            asyncio.run_coroutine_threadsafe(load_group(), self.current_event_loop)
+    @change("ui_search_catalogs")
+    def _on_change_ui_search_catalogs(self, ui_search_catalogs, **kwargs):
+        if ui_search_catalogs:
+            self.state.catalog = self.state.available_catalogs[0]
+        else:
+            self.state.catalog = None
+            self.state.catalog_current_search = {}
+            self.state.ui_catalog_search_message = None
 
     @change("dataset_info")
     def _on_change_dataset_info(self, dataset_info, **kwargs):
@@ -528,16 +587,10 @@ class DatasetViewer:
                 }]
                 self.state.dirty('available_datasets')
 
-        async def load_dataset():
-            with self.state:
-                self.state.ui_loading = True
+        def load_dataset():
+            self.builder.dataset_info = dataset_info
 
-            await asyncio.sleep(1)
-            with self.state:
-                self.builder.dataset_info = dataset_info
-                self.state.ui_loading = False
-
-        asyncio.run_coroutine_threadsafe(load_dataset(), self.current_event_loop)
+        self.run_as_async(load_dataset)
 
     @change("da_active")
     def _on_change_da_active(self, da_active, **kwargs):

@@ -2,66 +2,35 @@
 from intake_esgf import ESGFCatalog
 from intake_esgf.exceptions import NoSearchResults
 from datetime import datetime
-from pathlib import Path
-import json
 
 
-BASE_DIR = Path(__file__).parent
-CACHED_CATALOG_PATH = Path(BASE_DIR, "../examples/esgf_catalog.json")
-
-if not CACHED_CATALOG_PATH.exists():
-    with open(CACHED_CATALOG_PATH, 'w') as f:
-        json.dump({}, f)
-
-EXPERIMENT_IDS = [
-    'pdSST-futAntSIC',
-    'pdSST-futArcSIC',
-    'pdSST-piAntSIC',
-    'pdSST-pdSIC',
-    'piSST-pdSIC',
-    'dcppA-hindcast',
-    'pdSST-piArcSIC'
-]
-SOURCE_IDS = [
-    'NorESM2-LM',
-    'HadGEM3-GC31-MM',
-    'IPSL-CM6A-LR',
-    'CESM2',
-    'CESM1-WACCM-SC',
-    'CanESM5',
-    'MIROC6',
-    'E3SM-1-0',
-    'AWI-CM-1-1-MR',
-    'TaiESM1',
-]
+def get_catalog():
+    return {
+        'name': 'ESGF',
+        'id': 'esgf',
+        'search_terms': [
+            {'key': 'id', 'options': []}
+        ]
+    }
 
 
-GROUPS = []
-for experiment_id in EXPERIMENT_IDS:
-    for source_id in SOURCE_IDS:
-        GROUPS.append({
-            'name': f'ESGF - {experiment_id} - {source_id}',
-            'value': f'{experiment_id}/{source_id}'
-        })
+def get_catalog_search_options():
+    catalog = ESGFCatalog()
+    # perform unfiltered search and get unique values for each column
+    results = catalog.search()
+    search_options = {}
+    for col in results.df.columns:
+        search_options[col] = list(results.df[col].explode().unique())
+    return search_options
 
-def get_group_datasets(group_value):
-    catalog_contents = {}
-    with open(CACHED_CATALOG_PATH) as f:
-        catalog_contents = json.load(f)
-    datasets = catalog_contents.get(group_value)
-    if datasets is not None:
-        return datasets
 
-    print(f'Searching for datasets in {group_value}.')
-    experiment_id, source_id = group_value.split('/')
+def search_catalog(**kwargs):
+    group_name = '/'.join(list(','.join(v) for v in kwargs.values()))
     start = datetime.now()
     catalog = ESGFCatalog()
     results = []
     try:
-        search = catalog.search(
-            experiment_id=experiment_id,
-            source_id=source_id,
-        )
+        search = catalog.search(**kwargs)
         results = [
             {
                 'name': id,
@@ -70,19 +39,16 @@ def get_group_datasets(group_value):
                     'id': id
                 }
             }
-            # get first dataset for each unique variable
-            for id in search.df.groupby('variable_id').head(n=1).id
+            for id in search.df.id.explode().unique()
         ]
     except NoSearchResults:
         pass
 
-    catalog_contents[group_value] = results
-    with open(CACHED_CATALOG_PATH, 'w') as f:
-        json.dump(catalog_contents, f)
-
     delta = datetime.now() - start
-    print(f'Cached {len(results)} dataset ids in {delta.total_seconds()} seconds.')
-    return results
+    message = f'Found {len(results)} dataset ids \
+        in {delta.total_seconds()} seconds.\
+        Results added to group "{group_name}".'
+    return (results, group_name, message)
 
 
 def load_dataset(id):
