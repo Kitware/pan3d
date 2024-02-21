@@ -1,11 +1,13 @@
-import os
 import logging
-
-os.environ["TRAME_DISABLE_V3_WARNING"] = "1"
-
-from .dataset_builder import DatasetBuilder  # noqa: E402
+from .dataset_builder import DatasetBuilder
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-__all__ = [DatasetBuilder]
+try:
+    from .dataset_viewer import DatasetViewer
+
+    __all__ = [DatasetBuilder, DatasetViewer]
+except Exception:
+    # Trame is not installed, DatasetViewer will not be accessible
+    __all__ = [DatasetBuilder]

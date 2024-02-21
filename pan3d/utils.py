@@ -1,54 +1,4 @@
-import asyncio
 import os
-import threading
-
-
-singleton_task = None
-task_thread = None
-task_loop = asyncio.new_event_loop()
-
-
-def loop_runner(loop):
-    loop.run_forever()
-
-
-def start_task_thread():
-    global task_thread
-
-    task_thread = threading.Thread(
-        name="Task Thread",
-        target=loop_runner,
-        args=(task_loop,),
-    )
-    task_thread.start()
-
-
-def run_singleton_task(
-    function, callback, timeout=3, timeout_message="Timed out.", **kwargs
-):
-    global singleton_task
-    global task_loop
-    global task_thread
-
-    async def coroutine():
-        try:
-            await asyncio.wait_for(function(), timeout=timeout)
-        except Exception as e:
-            if type(e) == asyncio.exceptions.TimeoutError:
-                callback(timeout_message)
-            else:
-                callback(e)
-        else:
-            callback()
-
-    task_loop.set_exception_handler(lambda self, context: callback(context["message"]))
-
-    if not task_thread:
-        start_task_thread()
-    if singleton_task and not singleton_task.done():
-        # TODO: Can the task be truly interrupted and cancelled?
-        singleton_task.cancel()
-    singleton_task = asyncio.run_coroutine_threadsafe(coroutine(), task_loop)
 
 
 def has_gpu_rendering():
@@ -60,15 +10,22 @@ def has_gpu_rendering():
 initial_state = {
     "trame__title": "Pan3D Viewer",
     "dataset_ready": False,
-    "mesh_timeout": 30,
     "state_export": None,
     "available_datasets": [
+        # from https://docs.xarray.dev/en/stable/generated/xarray.tutorial.open_dataset.html
         {
-            "name": "XArray Examples - air temperature",
+            "name": "XArray Examples - Air Temperature",
             "url": "air_temperature",
         },
-        {"name": "XArray Examples - basin mask", "url": "basin_mask"},
-        {"name": "XArray Examples - eraint uvz", "url": "eraint_uvz"},
+        {"name": "XArray Examples - Ocean Basins", "url": "basin_mask"},
+        {"name": "XArray Examples - Ice Velocity", "url": "ASE_ice_velocity"},
+        {"name": "XArray Examples - Regional Arctic System Model", "url": "rasm"},
+        {
+            "name": "XArray Examples - Regional Ocean Model System",
+            "url": "ROMS_example",
+        },
+        {"name": "XArray Examples - ERA-Interim analysis", "url": "eraint_uvz"},
+        {"name": "XArray Examples - NOAA Sea Surface Temperatures", "url": "ersstv5"},
     ],
     "dataset_path": None,
     "da_active": None,
@@ -82,7 +39,7 @@ initial_state = {
     "da_t_index": 0,
     "da_size": None,
     "ui_loading": False,
-    "ui_main_drawer": True,
+    "ui_main_drawer": False,
     "ui_axis_drawer": False,
     "ui_unapplied_changes": False,
     "ui_error_message": None,
@@ -90,8 +47,9 @@ initial_state = {
     "ui_expanded_coordinates": [],
     "ui_action_name": None,
     "ui_action_message": None,
-    "ui_selected_config_file": None,
+    "ui_action_config_file": None,
     "ui_current_time_string": "",
+    "render_auto": False,
     "render_x_scale": 1,
     "render_y_scale": 1,
     "render_z_scale": 1,
@@ -128,8 +86,8 @@ initial_state = {
 }
 
 coordinate_auto_selection = {
-    "da_x": ["x", "i", "lon", "len"],
-    "da_y": ["y", "j", "lat", "width"],
-    "da_z": ["z", "k", "depth", "height"],
-    "da_t": ["t", "time"],
+    "x": ["x", "i", "lon", "len", "nx"],
+    "y": ["y", "j", "lat", "width", "ny"],
+    "z": ["z", "k", "depth", "height", "nz", "level"],
+    "t": ["t", "time", "year", "month", "date", "day", "hour", "minute", "second"],
 }

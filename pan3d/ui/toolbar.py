@@ -16,24 +16,49 @@ class Toolbar(vuetify.VAppBar):
         ui_unapplied_changes="ui_unapplied_changes",
         da_active="da_active",
         da_size="da_size",
+        render_auto="render_auto",
     ):
         super().__init__()
         with self:
-            vuetify.VAppBarNavIcon(click=f"{ui_main_drawer} = !{ui_main_drawer}")
+            with vuetify.VBtn(
+                size="x-large",
+                classes="pa-0 ma-0",
+                style="min-width: 60px",
+                click=f"{ui_main_drawer} = !{ui_main_drawer}",
+            ):
+                vuetify.VIcon("mdi-database-cog-outline")
+                vuetify.VIcon(
+                    "{{ %s? 'mdi-chevron-left' : 'mdi-chevron-right' }}"
+                    % ui_main_drawer
+                )
+
             vuetify.VAppBarTitle("Pan3D Viewer")
+            vuetify.VProgressLinear(
+                v_show=(ui_loading,),
+                indeterminate=True,
+                absolute=True,
+            )
             with html.Div(
-                classes="d-flex flex-row-reverse pa-3 fill-height",
+                classes="d-flex flex-row-reverse fill-height",
                 style="column-gap: 10px; align-items: center",
             ):
-                vuetify.VAppBarNavIcon(click=f"{ui_axis_drawer} = !{ui_axis_drawer}")
-                vuetify.VProgressCircular(
-                    v_show=(ui_loading,),
-                    indeterminate=True,
-                    classes="mx-10",
+                with vuetify.VBtn(
+                    size="x-large",
+                    classes="pa-0 ma-0",
+                    style="min-width: 60px",
+                    click=f"{ui_axis_drawer} = !{ui_axis_drawer}",
+                ):
+                    vuetify.VIcon("mdi-axis-arrow-info")
+                    vuetify.VIcon(
+                        "{{ %s? 'mdi-chevron-right' : 'mdi-chevron-left' }}"
+                        % ui_axis_drawer
+                    )
+                vuetify.VCheckbox(
+                    label="Auto Render", v_model=(render_auto,), hide_details=True
                 )
                 with vuetify.VBtn(
                     click=reset_function,
-                    v_show=(ui_unapplied_changes,),
+                    v_show=(f"{ui_unapplied_changes} && !{render_auto}",),
                     variant="tonal",
                 ):
                     html.Span("Apply & Render")

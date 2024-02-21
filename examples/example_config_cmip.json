@@ -1,7 +1,7 @@
 {
     "data_origin": "https://ncsa.osn.xsede.org/Pangeo/pangeo-forge/cmip6-feedstock/test_surface.zarr",
     "data_array": {
-        "active": "zos",
+        "name": "zos",
         "x": "i",
         "y": "j",
         "t": "time",

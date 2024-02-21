@@ -1,4 +1,3 @@
-import json
 from trame.widgets import html, vuetify3 as vuetify
 from trame.app import get_server
 
@@ -11,16 +10,11 @@ class FileSelect(vuetify.VCard):
         import_function,
         export_function,
         ui_action_name="ui_action_name",
-        ui_selected_config_file="ui_selected_config_file",
+        ui_action_config_file="ui_action_config_file",
         state_export="state_export",
         ui_action_message="ui_action_message",
+        ui_import_loading="ui_import_loading",
     ):
-        def submit_import():
-            files = server.state[ui_selected_config_file]
-            if files and len(files) > 0:
-                file_content = server.state[ui_selected_config_file][0]["content"]
-                import_function(json.loads(file_content.decode()))
-
         super().__init__()
         with self:
             with vuetify.VCardText(v_show=(ui_action_name,)):
@@ -38,25 +32,33 @@ class FileSelect(vuetify.VCard):
                     vuetify.VCardTitle("{{ %s }} File Select" % ui_action_name)
 
                     vuetify.VFileInput(
-                        v_model=(ui_selected_config_file,),
+                        v_model=(ui_action_config_file,),
                         v_show=(f"{ui_action_name} === 'Import'",),
                         accept=".json",
                         label="Config File",
                     )
                     vuetify.VBtn(
                         v_show=(
-                            f"{ui_action_name} === 'Import' && {ui_selected_config_file}",
+                            f"{ui_action_name} === 'Import' && {ui_action_config_file} && !{ui_import_loading}",
                         ),
                         variant="tonal",
                         text=(ui_action_name,),
-                        click=submit_import,
+                        click=import_function,
                         style="width: 100%",
+                    )
+                    vuetify.VCardSubtitle(
+                        "Reading configuration file and applying changes...",
+                        v_show=(ui_import_loading,),
+                    )
+                    vuetify.VProgressLinear(
+                        v_show=(ui_import_loading,),
+                        indeterminate=True,
                     )
 
                     vuetify.VTextField(
-                        v_model=(ui_selected_config_file,),
+                        v_model=(ui_action_config_file,),
                         v_show=(
-                            f"{ui_action_name} === 'Export' && {ui_selected_config_file} != false",
+                            f"{ui_action_name} === 'Export' && {ui_action_config_file} != false",
                         ),
                         label="Download Location",
                         prepend_icon="mdi-paperclip",
@@ -85,11 +87,11 @@ class FileSelect(vuetify.VCard):
                                 }
                             }
                         """
-                        % (state_export, ui_action_message, ui_selected_config_file),
+                        % (state_export, ui_action_message, ui_action_config_file),
                     )
                     vuetify.VBtn(
                         v_show=(
-                            f"{ui_action_name} === 'Export' && {ui_selected_config_file} === false",
+                            f"{ui_action_name} === 'Export' && {ui_action_config_file} === false",
                         ),
                         variant="tonal",
                         text="Download pan3d_state.json",

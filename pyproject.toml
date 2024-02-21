@@ -6,20 +6,17 @@ authors = [
     {name = "Kitware Inc."},
 ]
 dependencies = [
-    "dask",
-    "fsspec",
-    "matplotlib",
-    "netCDF4",
-    "pyvista",
-    "pyvista-xarray",
-    "trame",
-    "trame-vtk>=2.6.3",
-    "trame-vuetify",
-    "vtk",
-    "xarray",
-    "zarr",
+    "aiohttp>=3.8",
+    "dask>=2023.10",
+    "fsspec>=2023.9",
+    "netCDF4>=1.6",
+    "pyvista>=0.43",
+    "pyvista-xarray>=0.1",
+    "requests>=2.31",
+    "xarray>=2023.8",
+    "zarr>=2.16",
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 readme = "docs/README.md"
 license = {text = "Apache Software License"}
 keywords = ["Python", "Interactive", "Web", "Application", "Framework"]
@@ -34,8 +31,15 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
+[project.optional-dependencies]
+viewer = [
+    "trame>=3.5",
+    "trame-vtk>=2.6",
+    "trame-vuetify>=2.4",
+]
+
 [project.scripts]
-pan3d-viewer = "pan3d.__main__:main"
+pan3d-viewer = "pan3d.serve_viewer:serve"
 
 [project.entry-points.jupyter_serverproxy_servers]
 pan3d-viewer = "pan3d.jupyter:jupyter_proxy_info"

@@ -1,15 +1,24 @@
-# How to run Pan3D as a local Python server
+# Pan3D command line arguments
 
-Pan3D is intended to aid data scientists in exploring a given multidimensional dataset, so for this tutorial we will refer to a public dataset provided by Pangeo Forge. This dataset, provided by the National Oceanic and Atmospheric Administration (NOAA), maps global sea surface temperatures over time.  Visit [https://pangeo-forge.org/dashboard/feedstock/3](https://pangeo-forge.org/dashboard/feedstock/3) to view more information about this data.
+By default, invoking `pan3d-viewer`  will launch a tab in your default browser and navigate to `localhost:8080`. You can change this behavior in a number of ways. For example, you can launch the Pan3D viewer as a local Python server by running
 
-1. In a Python environment, install Pan3D.
+        pan3d-viewer --server
 
-        pip install pan3d
+In response, `pan3d-viewer` will display this message in the terminal:
 
-2. Run the following command to launch the Pan3D viewer with the target dataset loaded.
+        App running at:
+        - Local:   http://localhost:8080/
+        - Network: http://127.0.0.1:8080/
 
-        pan3d-viewer --dataset=https://ncsa.osn.xsede.org/Pangeo/pangeo-forge/noaa-coastwatch-geopolar-sst-feedstock/noaa-coastwatch-geopolar-sst.zarr
+As the message indicates, pointing a browser to http://localhost:8080/ will open the application.
 
-3. If you have an exported configuration file for the dataset, you can replace the dataset argument with `--config_path=/path/to/pan3d_state.json`.
+There are other arguments to initialize features and data. Here is the full list:
 
-4. The server will automatically launch a browser window to `localhost:8080`. To run the server without automatically launching a browser window, add the `--server` argument to the `pan3d-viewer` command.
+```bash
+--help/-h:        Write command info including the list of options to the terminal and exit.
+--server/-S:      Launch in server mode, which disables the default behavior of opening a browser tab on startup.
+--pangeo/-P:      Launch with a default catalog of Pangeo Forge example datasets available in the dataset selection box in the left drawer.
+--dataset/-D:     Pass a string with this argument to specify a target dataset. This value can be either a local path or remote URL. This value must be readable by `xarray.open_dataset()`.
+--config_path/-C: Pass a string with this argument to specify a startup configuration. This value must be a local path to a JSON file which adheres to the schema specified in the [Configuration Files documentation](../api/configuration.md). A dataset specified in this configuration will override any value passed to `--dataset`/`-D`.
+--debug/-d:       Launch in debug mode, which will include more terminal output. Intended for developer use.
+```
