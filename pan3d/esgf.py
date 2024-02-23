@@ -6,11 +6,9 @@ from datetime import datetime
 
 def get_catalog():
     return {
-        'name': 'ESGF',
-        'id': 'esgf',
-        'search_terms': [
-            {'key': 'id', 'options': []}
-        ]
+        "name": "ESGF",
+        "id": "esgf",
+        "search_terms": [{"key": "id", "options": []}],
     }
 
 
@@ -25,20 +23,14 @@ def get_catalog_search_options():
 
 
 def search_catalog(**kwargs):
-    group_name = '/'.join(list(','.join(v) for v in kwargs.values()))
+    group_name = "/".join(list(",".join(v) for v in kwargs.values()))
     start = datetime.now()
     catalog = ESGFCatalog()
     results = []
     try:
         search = catalog.search(**kwargs)
         results = [
-            {
-                'name': id,
-                'value': {
-                    'source': 'esgf',
-                    'id': id
-                }
-            }
+            {"name": id, "value": {"source": "esgf", "id": id}}
             for id in search.df.id.explode().unique()
         ]
     except NoSearchResults:
@@ -59,4 +51,4 @@ def load_dataset(id):
     if len(keys) > 0:
         return loaded[keys[0]]
     else:
-        raise ValueError(f'No dataset found for {id}.')
+        raise ValueError(f"No dataset found for {id}.")

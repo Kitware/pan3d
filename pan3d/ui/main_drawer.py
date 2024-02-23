@@ -33,7 +33,9 @@ class MainDrawer(vuetify.VNavigationDrawer):
             v_model=(ui_main_drawer,), classes="pa-2", permanent=True, width=300
         )
         with self:
-            with html.Div(v_show=(f"{available_catalogs}.length",),):
+            with html.Div(
+                v_show=(f"{available_catalogs}.length",),
+            ):
                 CatalogSearch(
                     update_catalog_search_term_function,
                     catalog_search_function,

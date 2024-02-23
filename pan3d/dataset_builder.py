@@ -39,8 +39,8 @@ class DatasetBuilder:
 
         if dataset:
             self.dataset_info = {
-                'source': 'default',
-                'id': dataset,
+                "source": "default",
+                "id": dataset,
             }
 
     # -----------------------------------------------------
@@ -101,7 +101,7 @@ class DatasetBuilder:
     def dataset(self, dataset: Optional[xarray.Dataset]) -> None:
         self._dataset = dataset
         if dataset is not None:
-            vars = list(k for k in dataset.data_vars.keys() if not k.endswith('_bnds'))
+            vars = list(k for k in dataset.data_vars.keys() if not k.endswith("_bnds"))
             if len(vars) > 0:
                 self.data_array_name = vars[0]
         else:
@@ -253,31 +253,39 @@ class DatasetBuilder:
         ds = None
         if dataset_info is not None:
             self._set_state_values(ui_loading=True)
-            source = dataset_info.get('source')
-            if source == 'pangeo':
+            source = dataset_info.get("source")
+            if source == "pangeo":
                 if self._pangeo:
                     from pan3d.pangeo_forge import load_dataset
 
-                    ds = load_dataset(dataset_info['id'])
+                    ds = load_dataset(dataset_info["id"])
                 else:
-                    raise ValueError('Pangeo module not enabled. Set pangeo=true to load this dataset.')
-            elif source == 'esgf':
+                    raise ValueError(
+                        "Pangeo module not enabled. Set pangeo=true to load this dataset."
+                    )
+            elif source == "esgf":
                 if self._esgf:
                     from pan3d.esgf import load_dataset
 
-                    ds = load_dataset(dataset_info['id'])
+                    ds = load_dataset(dataset_info["id"])
                 else:
-                    raise ValueError('ESGF module not enabled. Set esgf=true to load this dataset.')
-            elif source == 'xarray':
-                ds = xarray.tutorial.load_dataset(dataset_info['id'])
+                    raise ValueError(
+                        "ESGF module not enabled. Set esgf=true to load this dataset."
+                    )
+            elif source == "xarray":
+                ds = xarray.tutorial.load_dataset(dataset_info["id"])
             else:
-                if "https://" in dataset_info['id'] or os.path.exists(dataset_info['id']):
+                if "https://" in dataset_info["id"] or os.path.exists(
+                    dataset_info["id"]
+                ):
                     engine = None
-                    if ".zarr" in dataset_info['id']:
+                    if ".zarr" in dataset_info["id"]:
                         engine = "zarr"
-                    if ".nc" in dataset_info['id']:
+                    if ".nc" in dataset_info["id"]:
                         engine = "netcdf4"
-                    ds = xarray.open_dataset(dataset_info['id'], engine=engine, chunks={})
+                    ds = xarray.open_dataset(
+                        dataset_info["id"], engine=engine, chunks={}
+                    )
                 else:
                     raise ValueError(f'Could not find dataset at {dataset_info["id"]}')
 
@@ -360,8 +368,8 @@ class DatasetBuilder:
 
         if isinstance(origin_config, str):
             origin_config = {
-                'source': 'default',
-                'id': origin_config,
+                "source": "default",
+                "id": origin_config,
             }
         self.dataset_info = origin_config
         self.data_array_name = array_config.pop("name")
@@ -390,8 +398,8 @@ class DatasetBuilder:
                 For details, see Configuration Files documentation.
         """
         data_origin = self.dataset_info
-        if data_origin.get('source') == 'default':
-            data_origin = data_origin.get('id')
+        if data_origin.get("source") == "default":
+            data_origin = data_origin.get("id")
         config = {
             "data_origin": data_origin,
             "data_array": {

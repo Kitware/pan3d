@@ -34,10 +34,7 @@ def test_export_config():
 def test_setters():
     builder = DatasetBuilder()
 
-    builder.dataset_info = {
-        "source": "xarray",
-        "id": "eraint_uvz"
-    }
+    builder.dataset_info = {"source": "xarray", "id": "eraint_uvz"}
     # builder will auto select the following:
     # builder.data_array_name = 'z'
     # builder.x = 'longitude'
@@ -47,10 +44,7 @@ def test_setters():
     builder.t_index = 1
     builder.slicing = {"longitude": [0, 90, 2]}
 
-    assert builder.dataset_info == {
-        "source": "xarray",
-        "id": "eraint_uvz"
-    }
+    assert builder.dataset_info == {"source": "xarray", "id": "eraint_uvz"}
     assert builder.dataset is not None
     assert builder.data_array_name == "z"
     assert builder.x == "longitude"

@@ -15,15 +15,15 @@ XARRAY_EXAMPLES = [
     },
     {
         "name": "XArray Examples - Ocean Basins",
-        "value": {"source": "xarray", "id": "basin_mask"}
+        "value": {"source": "xarray", "id": "basin_mask"},
     },
     {
         "name": "XArray Examples - Ice Velocity",
-        "value": {"source": "xarray", "id": "ASE_ice_velocity"}
+        "value": {"source": "xarray", "id": "ASE_ice_velocity"},
     },
     {
         "name": "XArray Examples - Regional Arctic System Model",
-        "value": {"source": "xarray", "id": "rasm"}
+        "value": {"source": "xarray", "id": "rasm"},
     },
     {
         "name": "XArray Examples - Regional Ocean Model System",
@@ -31,11 +31,11 @@ XARRAY_EXAMPLES = [
     },
     {
         "name": "XArray Examples - ERA-Interim analysis",
-        "value": {"source": "xarray", "id": "eraint_uvz"}
+        "value": {"source": "xarray", "id": "eraint_uvz"},
     },
     {
         "name": "XArray Examples - NOAA Sea Surface Temperatures",
-        "value": {"source": "xarray", "id": "ersstv5"}
+        "value": {"source": "xarray", "id": "ersstv5"},
     },
 ]
 
@@ -52,9 +52,7 @@ initial_state = {
     ],
     "data_group": "xarray",
     "ui_group_loading": False,
-    "available_datasets": {
-        'xarray': XARRAY_EXAMPLES
-    },
+    "available_datasets": {"xarray": XARRAY_EXAMPLES},
     "dataset_info": None,
     "da_active": None,
     "da_vars": [],
