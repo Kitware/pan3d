@@ -23,7 +23,7 @@ class CatalogSearch(vuetify.VDialog):
                     click=f"{ui_search_catalogs} = true",
                     size="small",
                     block=True,
-                    classes="my-2"
+                    classes="my-2",
                 )
             with vuetify.VCard():
                 with vuetify.VCardText():
@@ -48,13 +48,13 @@ class CatalogSearch(vuetify.VDialog):
 
                     with vuetify.VTooltip(
                         location="bottom",
-                        text="For each search term, you may specify one or more acceptable values."
+                        text="For each search term, you may specify one or more acceptable values.",
                     ):
                         with vuetify.Template(v_slot_activator=("{ props }",)):
                             vuetify.VIcon(
                                 v_bind="props",
                                 icon="mdi-information-outline",
-                                style="vertical-align: baseline"
+                                style="vertical-align: baseline",
                             )
                     vuetify.VCardSubtitle(
                         "Select or enter search terms",
@@ -79,13 +79,10 @@ class CatalogSearch(vuetify.VDialog):
                                 to find all unique values for all searchable terms.
                                 The results will appear as selectable options in
                                 the value input dropdowns.
-                                """
-                            )
+                                """,
+                        )
 
-                    with vuetify.VTable(
-                        v_if=(catalog,),
-                        style="max-height: 500px"
-                    ):
+                    with vuetify.VTable(v_if=(catalog,), style="max-height: 500px"):
                         with html.Tbody():
                             with html.Tr(
                                 v_for=(f"term in {catalog}.search_terms",),
@@ -99,10 +96,13 @@ class CatalogSearch(vuetify.VDialog):
                                         chips=True,
                                         closable_chips=True,
                                         clearable=True,
-                                        model_value=(f"{catalog_current_search}[term.key]", []),
+                                        model_value=(
+                                            f"{catalog_current_search}[term.key]",
+                                            [],
+                                        ),
                                         update_modelValue=(
                                             update_catalog_search_term_function,
-                                            "[term.key, $event]"
+                                            "[term.key, $event]",
                                         ),
                                     )
 
@@ -120,8 +120,8 @@ class CatalogSearch(vuetify.VDialog):
                             text="""
                                 Perform a filtered search with the union of all selected terms.
                                 The results will be grouped and added to the list of available datasets.
-                                """
-                            )
+                                """,
+                        )
 
                     html.Span(
                         "{{ %s }}" % ui_catalog_search_message,
