@@ -590,7 +590,7 @@ class DatasetViewer:
         def load_dataset():
             self.builder.dataset_info = dataset_info
 
-        self.run_as_async(load_dataset)
+        self.run_as_async(load_dataset())
 
     @change("da_active")
     def _on_change_da_active(self, da_active, **kwargs):
