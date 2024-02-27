@@ -134,12 +134,12 @@ class DatasetViewer:
                     coordinate_change_slice_function=self._coordinate_change_slice,
                     coordinate_toggle_expansion_function=self._coordinate_toggle_expansion,
                 )
-                with vuetify.VMain(v_if=("da_active",)):
+                with vuetify.VMain():
                     vuetify.VBanner(
                         "{{ ui_error_message }}",
                         v_show=("ui_error_message",),
                     )
-                    with html.Div(style="height: 100%; position: relative"):
+                    with html.Div(v_if=("da_active",), style="height: 100%; position: relative"):
                         RenderOptions()
                         with pyvista.trame.ui.plotter_ui(
                             self.ctrl.get_plotter(),
@@ -372,12 +372,7 @@ class DatasetViewer:
         if self.state.render_transparency:
             args["opacity"] = self.state.render_transparency_function
 
-        try:
-            mesh = self.builder.mesh
-        except Exception as exception:
-            self.state.ui_error_message = str(exception)
-            self.state.ui_loading = False
-            return
+        mesh = self.builder.mesh
 
         if self.state.render_scalar_warp:
             mesh = mesh.warp_by_scalar()
@@ -445,7 +440,6 @@ class DatasetViewer:
 
         dataset = self.builder.dataset
         if dataset:
-            self.state.ui_loading = True
             if self._ui is not None:
                 self.state.ui_main_drawer = True
 
@@ -592,7 +586,6 @@ class DatasetViewer:
         if da is None:
             self.state.da_size = 0
             self.state.ui_unapplied_changes = False
-            self.state.ui_loading = False
             return
         total_bytes = da.size * da.dtype.itemsize
         exponents_map = {0: "bytes", 1: "KB", 2: "MB", 3: "GB"}
@@ -602,9 +595,7 @@ class DatasetViewer:
             if total_bytes > divisor:
                 self.state.da_size = f"{round(total_bytes / divisor)} {suffix}"
                 break
-        self.state.ui_error_message = None
         self.state.ui_unapplied_changes = True
-        self.state.ui_loading = False
 
         if self.state.render_auto:
             self.apply_and_render()
