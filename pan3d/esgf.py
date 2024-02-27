@@ -23,7 +23,9 @@ def get_catalog_search_options():
 
 
 def search_catalog(**kwargs):
-    group_name = "/".join(list(",".join(v) for v in kwargs.values()))
+    group_name = "/".join([f'{k}:{",".join(v)}' for k, v in kwargs.items()])
+    if not group_name:
+        group_name = "All ESGF Datasets"
     start = datetime.now()
     catalog = ESGFCatalog()
     results = []
