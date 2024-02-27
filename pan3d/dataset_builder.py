@@ -73,9 +73,16 @@ class DatasetBuilder:
         return self._viewer
 
     @property
-    def dataset_info(self) -> Optional[str]:
-        """A string referencing the current dataset, which may be a local path or remote URL.
-        Value must be readable with xarray.open_dataset().
+    def dataset_info(self) -> Optional[Dict]:
+        """A dictionary referencing the current dataset.
+        This dictionary should adhere to the following schema:
+
+        | Key | Required? | Default | Type | Value Description |
+        |-----|-----------|---------|------|-------------------|
+        | `id` | Yes |  | string | A unique identifier that will be used to load the dataset
+        |`source`| No | "default" | string | Name of a module to load the dataset (options: "default", "xarray", "pangeo", "esgf")
+
+        With the default source, the id value must be readable with xarray.open_dataset().
         """
         return self._dataset_info
 
@@ -101,7 +108,11 @@ class DatasetBuilder:
     def dataset(self, dataset: Optional[xarray.Dataset]) -> None:
         self._dataset = dataset
         if dataset is not None:
-            vars = list(k for k in dataset.data_vars.keys() if not k.endswith("_bnds"))
+            vars = list(
+                k
+                for k in dataset.data_vars.keys()
+                if not k.endswith("_bnds") and not k.endswith("_bounds")
+            )
             if len(vars) > 0:
                 self.data_array_name = vars[0]
         else:
@@ -252,7 +263,6 @@ class DatasetBuilder:
     def _load_dataset(self, dataset_info):
         ds = None
         if dataset_info is not None:
-            self._set_state_values(ui_loading=True)
             source = dataset_info.get("source")
             if source == "pangeo":
                 if self._pangeo:
@@ -289,8 +299,8 @@ class DatasetBuilder:
                 else:
                     raise ValueError(f'Could not find dataset at {dataset_info["id"]}')
 
-        self.dataset = ds
-        self._set_state_values(ui_loading=False)
+        if ds is not None:
+            self.dataset = ds
 
     def _set_state_values(self, **kwargs):
         if self._viewer is not None:
