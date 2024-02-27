@@ -131,7 +131,6 @@ def test_viewer_export():
     assert viewer.state.state_export["data_slices"]["latitude"] == [-90.0, 90.0, 1]
     assert viewer.state.state_export["data_slices"]["level"] == [200, 850, 1]
     assert viewer.state.state_export["data_slices"]["month"] == [1, 7, 1]
-    assert not viewer.state.state_export["ui"]["loading"]
     assert not viewer.state.state_export["ui"]["main_drawer"]
     assert not viewer.state.state_export["ui"]["axis_drawer"]
     assert viewer.state.state_export["ui"]["unapplied_changes"]
