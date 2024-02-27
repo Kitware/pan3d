@@ -494,7 +494,7 @@ class DatasetViewer:
             array_max = current_coord.values.max()
 
             # make content serializable by its type
-            if d.kind in ["m", "M", "O"]:  # is timedelta or datetime
+            if d.kind in ["O", "M"]:  # is datetime
                 if not hasattr(array_min, "strftime"):
                     array_min = pandas.to_datetime(array_min)
                 if not hasattr(array_max, "strftime"):
@@ -502,6 +502,13 @@ class DatasetViewer:
                 array_min = array_min.strftime("%b %d %Y %H:%M")
                 array_max = array_max.strftime("%b %d %Y %H:%M")
                 numeric = False
+            elif d.kind in ["m"]:  # is timedelta
+                if not hasattr(array_min, "total_seconds"):
+                    array_min = pandas.to_timedelta(array_min)
+                if not hasattr(array_max, "total_seconds"):
+                    array_max = pandas.to_timedelta(array_max)
+                array_min = array_min.total_seconds()
+                array_max = array_max.total_seconds()
             elif d.kind in ["i", "u"]:
                 array_min = int(array_min)
                 array_max = int(array_max)
@@ -564,11 +571,21 @@ class DatasetViewer:
             and dataset[da_name] is not None
             and dataset[da_name][t] is not None
         ):
+            d = dataset[da_name].coords[t].dtype
             time_steps = dataset[da_name][t]
             current_time = time_steps.values[t_index]
-            if not hasattr(current_time, "strftime"):
-                current_time = pandas.to_datetime(current_time)
-            self.state.ui_current_time_string = current_time.strftime("%b %d %Y %H:%M")
+
+            if d.kind in ["O", "M"]:  # is datetime
+                if not hasattr(current_time, "strftime"):
+                    current_time = pandas.to_datetime(current_time)
+                current_time = current_time.strftime("%b %d %Y %H:%M")
+            elif d.kind in [
+                "m",
+            ]:  # is timedelta
+                if not hasattr(current_time, "total_seconds"):
+                    current_time = pandas.to_timedelta(current_time)
+                current_time = f"{current_time.total_seconds()} seconds"
+            self.state.ui_current_time_string = str(current_time)
 
     def _mesh_changed(self) -> None:
         da = self.builder.data_array

@@ -76,7 +76,7 @@ def test_ui_state():
     assert viewer.state.ui_unapplied_changes
     assert viewer.state.ui_error_message is None
     assert viewer.state.ui_more_info_link is None
-    assert viewer.state.ui_current_time_string == "Jan 01 1970 00:00"
+    assert viewer.state.ui_current_time_string == "7"
     assert viewer.state.ui_expanded_coordinates == ["month", "level"]
 
 
@@ -138,7 +138,7 @@ def test_viewer_export():
     assert viewer.state.state_export["ui"]["error_message"] is None
     assert viewer.state.state_export["ui"]["more_info_link"] is None
     assert viewer.state.state_export["ui"]["expanded_coordinates"] == []
-    assert viewer.state.state_export["ui"]["current_time_string"] == "Jan 01 1970 00:00"
+    assert viewer.state.state_export["ui"]["current_time_string"] == "7"
 
 
 def test_layout():
