@@ -139,7 +139,9 @@ class DatasetViewer:
                         "{{ ui_error_message }}",
                         v_show=("ui_error_message",),
                     )
-                    with html.Div(v_if=("da_active",), style="height: 100%; position: relative"):
+                    with html.Div(
+                        v_if=("da_active",), style="height: 100%; position: relative"
+                    ):
                         RenderOptions()
                         with pyvista.trame.ui.plotter_ui(
                             self.ctrl.get_plotter(),
