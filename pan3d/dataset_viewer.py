@@ -127,6 +127,7 @@ class DatasetViewer:
                     update_catalog_search_term_function=self._update_catalog_search_term,
                     catalog_search_function=self._catalog_search,
                     catalog_term_search_function=self._catalog_term_option_search,
+                    switch_data_group_function=self._switch_data_group,
                 )
                 AxisDrawer(
                     coordinate_select_axis_function=self._coordinate_select_axis,
@@ -160,13 +161,20 @@ class DatasetViewer:
 
     def _catalog_search(self):
         catalog_id = self.state.catalog.get("id")
+        search_function = None
         if catalog_id == "pangeo":
-            print("do pangeo search")
+            from pan3d.pangeo_forge import search_catalog
+
+            search_function = search_catalog
         elif catalog_id == "esgf":
             from pan3d.esgf import search_catalog
 
+            search_function = search_catalog
+
+        if search_function is not None:
+
             def load_results():
-                results, group_name, message = search_catalog(
+                results, group_name, message = search_function(
                     **self.state.catalog_current_search
                 )
 
@@ -186,17 +194,25 @@ class DatasetViewer:
                 load_results,
                 loading_state="ui_catalog_term_search_loading",
                 error_state="ui_catalog_search_message",
+                unapplied_changes_state=None,
             )
 
     def _catalog_term_option_search(self):
         catalog_id = self.state.catalog.get("id")
+        search_function = None
         if catalog_id == "pangeo":
-            print("get pangeo terms")
+            from pan3d.pangeo_forge import get_catalog_search_options
+
+            search_function = get_catalog_search_options
         elif catalog_id == "esgf":
             from pan3d.esgf import get_catalog_search_options
 
+            search_function = get_catalog_search_options
+
+        if search_function is not None:
+
             def load_terms():
-                search_options = get_catalog_search_options()
+                search_options = search_function()
                 self.state.available_catalogs = [
                     {
                         **catalog,
@@ -216,7 +232,25 @@ class DatasetViewer:
                 load_terms,
                 loading_state="ui_catalog_term_search_loading",
                 error_state="ui_catalog_search_message",
+                unapplied_changes_state=None,
             )
+
+    def _switch_data_group(self):
+        # Setup from previous group needs to be cleared
+        self.state.dataset_info = None
+        self.state.da_attrs = {}
+        self.state.da_vars = {}
+        self.state.da_vars_attrs = {}
+        self.state.da_coordinates = []
+        self.state.ui_expanded_coordinates = []
+        self.state.da_active = None
+        self.state.da_x = None
+        self.state.da_y = None
+        self.state.da_z = None
+        self.state.da_t = None
+        self.state.da_t_index = 0
+        self.plotter.clear()
+        self.plotter.view_isometric()
 
     def _coordinate_select_axis(
         self, coordinate_name, current_axis, new_axis, **kwargs
