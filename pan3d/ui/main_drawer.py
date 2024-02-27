@@ -10,6 +10,7 @@ class MainDrawer(vuetify.VNavigationDrawer):
         update_catalog_search_term_function,
         catalog_search_function,
         catalog_term_search_function,
+        switch_data_group_function,
         available_catalogs="available_catalogs",
         available_data_groups="available_data_groups",
         data_group="data_group",
@@ -52,6 +53,7 @@ class MainDrawer(vuetify.VNavigationDrawer):
                 item_value="value",
                 density="compact",
                 hide_details=True,
+                update_modelValue=switch_data_group_function,
             )
             vuetify.VSelect(
                 label="Choose a dataset",
