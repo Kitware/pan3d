@@ -415,7 +415,10 @@ class DatasetBuilder:
             config["ui"] = {
                 k.replace("ui_", ""): v
                 for k, v in state_items
-                if k.startswith("ui_") and "action_" not in k
+                if k.startswith("ui_")
+                and "action" not in k
+                and "loading" not in k
+                and "catalog" not in k
             }
             config["render"] = {
                 k.replace("render_", ""): v
