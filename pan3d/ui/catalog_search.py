@@ -46,6 +46,11 @@ class CatalogSearch(vuetify.VDialog):
                         hide_details=True,
                     )
 
+                    vuetify.VCardSubtitle(
+                        "Select or enter search terms",
+                        classes="mt-5",
+                        style="display: inline-block",
+                    )
                     with vuetify.VTooltip(
                         location="bottom",
                         text="For each search term, you may specify one or more acceptable values.",
@@ -56,11 +61,6 @@ class CatalogSearch(vuetify.VDialog):
                                 icon="mdi-information-outline",
                                 style="vertical-align: baseline",
                             )
-                    vuetify.VCardSubtitle(
-                        "Select or enter search terms",
-                        classes="mt-5",
-                        style="display: inline-block",
-                    )
 
                     with vuetify.VBtn(
                         size="small",
