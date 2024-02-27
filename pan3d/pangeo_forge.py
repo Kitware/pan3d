@@ -1,6 +1,8 @@
-import xarray
 import intake
 from datetime import datetime
+
+from botocore.exceptions import NoCredentialsError
+from rasterio.errors import RasterioIOError
 
 
 CATALOG_URL = "https://raw.githubusercontent.com/pangeo-data/pangeo-datastore/master/intake-catalogs/master.yaml"
@@ -21,7 +23,6 @@ def get_entry_info(entry):
 
     name = entry_data.get("name")
     description = entry_data.get("description")
-    url = metadata.get("url")
     container = entry_data.get("container")
     driver_list = entry_data.get("driver", [])
     tags_list = metadata.get("tags", [])
