@@ -293,20 +293,19 @@ class DatasetViewer:
         self.state.dirty("ui_expanded_coordinates")
 
     def _submit_import(self):
-        async def submit():
+        def submit():
             files = self.state["ui_action_config_file"]
             if files and len(files) > 0:
                 file_content = files[0]["content"]
                 self.plotter.clear()
-                with self.state:
-                    self.state["ui_import_loading"] = True
-                await asyncio.sleep(1)
+                self.plotter.view_isometric()
 
                 self.builder.import_config(json.loads(file_content.decode()))
-                await asyncio.sleep(1)
                 self._mesh_changed()
 
-        asyncio.run_coroutine_threadsafe(submit(), self.current_event_loop)
+        self.run_as_async(
+            submit, loading_state="ui_import_loading", unapplied_changes_state=None
+        )
 
     # -----------------------------------------------------
     # Rendering methods
@@ -359,64 +358,62 @@ class DatasetViewer:
         if self.builder.mesh is not None and self.builder.data_array is not None:
             self.apply_and_render()
 
-    async def plot_mesh(self) -> None:
+    def plot_mesh(self) -> None:
         """Render current cached mesh in viewer's plotter."""
-        if self.builder.data_array is None or self.state.ui_loading:
+        if self.builder.data_array is None:
             return
 
-        with self.state:
-            self.state.ui_error_message = None
-            self.state.ui_loading = True
-            self.state.ui_unapplied_changes = False
+        self.plotter.clear()
+        args = dict(
+            cmap=self.state.render_colormap,
+            clim=self.builder.data_range,
+            scalar_bar_args=dict(interactive=True),
+        )
+        if self.state.render_transparency:
+            args["opacity"] = self.state.render_transparency_function
 
-        await asyncio.sleep(1)
-
-        with self.state:
-            self.plotter.clear()
-            args = dict(
-                cmap=self.state.render_colormap,
-                clim=self.builder.data_range,
-                scalar_bar_args=dict(interactive=True),
-            )
-            if self.state.render_transparency:
-                args["opacity"] = self.state.render_transparency_function
-
-            try:
-                mesh = self.builder.mesh
-            except Exception as exception:
-                self.state.ui_error_message = str(exception)
-                self.state.ui_loading = False
-                return
-
-            if self.state.render_scalar_warp:
-                mesh = mesh.warp_by_scalar()
-            self.actor = self.plotter.add_mesh(
-                mesh,
-                **args,
-            )
-            if len(self.builder.data_array.shape) > 2:
-                self.plotter.view_isometric()
-            else:
-                self.plotter.view_xy()
-
-            if self.plot_view:
-                self.ctrl.push_camera()
-                self.ctrl.view_update()
-
+        try:
+            mesh = self.builder.mesh
+        except Exception as exception:
+            self.state.ui_error_message = str(exception)
             self.state.ui_loading = False
+            return
+
+        if self.state.render_scalar_warp:
+            mesh = mesh.warp_by_scalar()
+        self.actor = self.plotter.add_mesh(
+            mesh,
+            **args,
+        )
+        if len(self.builder.data_array.shape) > 2:
+            self.plotter.view_isometric()
+        else:
+            self.plotter.view_xy()
+
+        if self.plot_view:
+            self.ctrl.push_camera()
+            self.ctrl.view_update()
 
     def apply_and_render(self, **kwargs) -> None:
         """Asynchronously reset and update cached mesh and render to viewer's plotter."""
 
-        asyncio.run_coroutine_threadsafe(self.plot_mesh(), self.current_event_loop)
+        self.run_as_async(self.plot_mesh)
 
     def run_as_async(
-        self, function, loading_state="ui_loading", error_state="ui_error_message"
+        self,
+        function,
+        loading_state="ui_loading",
+        error_state="ui_error_message",
+        unapplied_changes_state="ui_unapplied_changes",
     ):
         async def run():
-            if loading_state is not None:
-                with self.state:
+            with self.state:
+                if loading_state is not None:
                     self.state[loading_state] = True
+                if error_state is not None:
+                    self.state[error_state] = None
+                if unapplied_changes_state is not None:
+                    self.state[unapplied_changes_state] = False
 
             await asyncio.sleep(1)
 
@@ -427,11 +424,15 @@ class DatasetViewer:
                     if error_state is not None:
                         self.state[error_state] = str(e)
                     else:
-                        print(e)
+                        raise e
                 if loading_state is not None:
                     self.state[loading_state] = False
 
-        asyncio.run_coroutine_threadsafe(run(), self.current_event_loop)
+        if self.current_event_loop.is_running():
+            asyncio.run_coroutine_threadsafe(run(), self.current_event_loop)
+        else:
+            # Pytest environment needs synchronous execution
+            function()
 
     # -----------------------------------------------------
     # State sync with Builder
@@ -605,6 +606,9 @@ class DatasetViewer:
 
     @change("dataset_info")
     def _on_change_dataset_info(self, dataset_info, **kwargs):
+        self.plotter.clear()
+        self.plotter.view_isometric()
+
         if dataset_info is not None:
             dataset_exists = False
             for dataset_group in self.state.available_datasets.values():
@@ -629,7 +633,7 @@ class DatasetViewer:
         def load_dataset():
             self.builder.dataset_info = dataset_info
 
-        self.run_as_async(load_dataset())
+        self.run_as_async(load_dataset, unapplied_changes_state=None)
 
     @change("da_active")
     def _on_change_da_active(self, da_active, **kwargs):
