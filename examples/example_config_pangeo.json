@@ -1,49 +1,55 @@
 {
     "data_origin": {
-        "source": "esgf",
-        "id": "CMIP6.PAMIP.MOHC.HadGEM3-GC31-MM.pdSST-futAntSIC.r102i1p1f2.day.sfcWind.gn.v20210311|eagle.alcf.anl.gov"
+        "source": "pangeo",
+        "id": "MITgcm_channel_flatbottom_02km_run01_phys_snap15D"
     },
     "data_array": {
-        "name": "sfcWind",
-        "x": "lon",
-        "y": "lat",
+        "name": "T",
+        "x": "YC",
+        "y": "XC",
+        "z": "Z",
         "t": "time",
         "t_index": 0
     },
     "data_slices": {
         "time": [
-            "Apr 01 2000 12:00",
-            "May 30 2001 12:00",
+            142560000,
+            171072000,
             1
         ],
-        "lat": [
-            -89.72,
-            89.72,
+        "Z": [
+            -2912.67,
+            -0.5,
             1
         ],
-        "lon": [
-            0.42,
-            359.58,
+        "YC": [
+            1000,
+            1999000,
+            1
+        ],
+        "XC": [
+            1000,
+            999000,
             1
         ]
     },
     "ui": {
         "main_drawer": false,
-        "axis_drawer": true,
+        "axis_drawer": false,
         "unapplied_changes": false,
         "error_message": null,
         "more_info_link": null,
         "expanded_coordinates": [],
-        "current_time_string": "Apr 01 2000 12:00"
+        "current_time_string": "139968000.0 seconds"
     },
     "render": {
         "auto": true,
         "x_scale": 1,
         "y_scale": 1,
-        "z_scale": 1,
+        "z_scale": 100,
         "scalar_warp": false,
         "transparency": false,
         "transparency_function": "linear",
-        "colormap": "cividis"
+        "colormap": "viridis"
     }
 }
