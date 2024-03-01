@@ -2,6 +2,19 @@
 
 
 
+## v0.3.1 (2024-03-01)
+
+### Fix
+
+* fix: update binder requirements.txt ([`aaa890d`](https://github.com/Kitware/pan3d/commit/aaa890d6a6d9ec0d4cda8e4398346f830869e68e))
+
+### Unknown
+
+* Merge pull request #68 from Kitware/binder-reqs
+
+Update Binder Requirements ([`f10dec3`](https://github.com/Kitware/pan3d/commit/f10dec33249228db876aad86c283465f9104b50c))
+
+
 ## v0.3.0 (2024-02-21)
 
 ### Documentation
