@@ -1,4 +1,3 @@
-# pan3d # install from PyPI
-. # install from relative path (for testing)
+pan3d[viewer]
 imageio
 trame-jupyter-extension
