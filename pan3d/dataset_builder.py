@@ -1,5 +1,6 @@
 import os
 import json
+import importlib
 import pyvista
 import xarray
 
@@ -255,28 +256,24 @@ class DatasetBuilder:
     # Internal methods
     # -----------------------------------------------------
 
+    def _call_catalog_function(self, catalog_name, function_name, **kwargs):
+        try:
+            module = importlib.import_module(f"pan3d.{catalog_name}")
+            func = getattr(module, function_name)
+            return func(**kwargs)
+        except ImportError:
+            raise ValueError(
+                f"{catalog_name} catalog module not enabled. Install pan3d[{catalog_name}] to load this catalog."
+            )
+        except AttributeError:
+            raise ValueError(f"{catalog_name} is not a valid catalog module.")
+
     def _load_dataset(self, dataset_info):
         ds = None
         if dataset_info is not None:
             source = dataset_info.get("source")
-            if source == "pangeo":
-                try:
-                    from pan3d.pangeo_forge import load_dataset
-
-                    ds = load_dataset(dataset_info["id"])
-                except ImportError:
-                    raise ValueError(
-                        "Pangeo module not enabled. Install pan3d[pangeo] to load this dataset."
-                    )
-            elif source == "esgf":
-                try:
-                    from pan3d.esgf import load_dataset
-
-                    ds = load_dataset(dataset_info["id"])
-                except ImportError:
-                    raise ValueError(
-                        "ESGF module not enabled. Install pan3d[esgf] to load this dataset."
-                    )
+            if source in ["pangeo", "esgf"]:
+                ds = self._call_catalog_function(source, 'load_dataset', id=dataset_info["id"])
             elif source == "xarray":
                 ds = xarray.tutorial.load_dataset(dataset_info["id"])
             else:

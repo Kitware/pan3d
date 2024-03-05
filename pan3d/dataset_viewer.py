@@ -66,14 +66,10 @@ class DatasetViewer:
         if state:
             self.state.update(state)
 
-        if "pangeo" in catalogs:
-            from pan3d.pangeo_forge import get_catalog
-
-            self.state.available_catalogs.append(get_catalog())
-        if "esgf" in catalogs:
-            from pan3d.esgf import get_catalog
-
-            self.state.available_catalogs.append(get_catalog())
+        self.state.available_catalogs = [
+            self.builder._call_catalog_function(catalog_name, "get_catalog")
+            for catalog_name in catalogs
+        ]
 
         self._force_local_rendering = not has_gpu_rendering()
         if self._force_local_rendering:
@@ -159,80 +155,58 @@ class DatasetViewer:
         self.state.dirty("catalog_current_search")
 
     def _catalog_search(self):
-        catalog_id = self.state.catalog.get("id")
-        search_function = None
-        if catalog_id == "pangeo":
-            from pan3d.pangeo_forge import search_catalog
+        def load_results():
+            catalog_id = self.state.catalog.get("id")
+            results, group_name, message = self.builder._call_catalog_function(
+                catalog_id, "search_catalog", **self.state.catalog_current_search
+            )
 
-            search_function = search_catalog
-        elif catalog_id == "esgf":
-            from pan3d.esgf import search_catalog
-
-            search_function = search_catalog
-
-        if search_function is not None:
-
-            def load_results():
-                results, group_name, message = search_function(
-                    **self.state.catalog_current_search
+            if len(results) > 0:
+                self.state.available_data_groups.append(
+                    {"name": group_name, "value": group_name}
+                )
+                self.state.available_datasets[group_name] = results
+                self.state.ui_catalog_search_message = message
+                self.state.dirty("available_data_groups", "available_datasets")
+            else:
+                self.state.ui_catalog_search_message = (
+                    "No results found for current search criteria."
                 )
 
-                if len(results) > 0:
-                    self.state.available_data_groups.append(
-                        {"name": group_name, "value": group_name}
-                    )
-                    self.state.available_datasets[group_name] = results
-                    self.state.ui_catalog_search_message = message
-                    self.state.dirty("available_data_groups", "available_datasets")
-                else:
-                    self.state.ui_catalog_search_message = (
-                        "No results found for current search criteria."
-                    )
-
-            self.run_as_async(
-                load_results,
-                loading_state="ui_catalog_term_search_loading",
-                error_state="ui_catalog_search_message",
-                unapplied_changes_state=None,
-            )
+        self.run_as_async(
+            load_results,
+            loading_state="ui_catalog_term_search_loading",
+            error_state="ui_catalog_search_message",
+            unapplied_changes_state=None,
+        )
 
     def _catalog_term_option_search(self):
-        catalog_id = self.state.catalog.get("id")
-        search_function = None
-        if catalog_id == "pangeo":
-            from pan3d.pangeo_forge import get_catalog_search_options
-
-            search_function = get_catalog_search_options
-        elif catalog_id == "esgf":
-            from pan3d.esgf import get_catalog_search_options
-
-            search_function = get_catalog_search_options
-
-        if search_function is not None:
-
-            def load_terms():
-                search_options = search_function()
-                self.state.available_catalogs = [
-                    {
-                        **catalog,
-                        "search_terms": [
-                            {"key": k, "options": v} for k, v in search_options.items()
-                        ],
-                    }
-                    if catalog.get("id") == catalog_id
-                    else catalog
-                    for catalog in self.state.available_catalogs
-                ]
-                for catalog in self.state.available_catalogs:
-                    if catalog.get("id") == catalog_id:
-                        self.state.catalog = catalog
-
-            self.run_as_async(
-                load_terms,
-                loading_state="ui_catalog_term_search_loading",
-                error_state="ui_catalog_search_message",
-                unapplied_changes_state=None,
+        def load_terms():
+            catalog_id = self.state.catalog.get("id")
+            search_options = self.builder._call_catalog_function(
+                catalog_id, "get_catalog_search_options"
             )
+            self.state.available_catalogs = [
+                {
+                    **catalog,
+                    "search_terms": [
+                        {"key": k, "options": v} for k, v in search_options.items()
+                    ],
+                }
+                if catalog.get("id") == catalog_id
+                else catalog
+                for catalog in self.state.available_catalogs
+            ]
+            for catalog in self.state.available_catalogs:
+                if catalog.get("id") == catalog_id:
+                    self.state.catalog = catalog
+
+        self.run_as_async(
+            load_terms,
+            loading_state="ui_catalog_term_search_loading",
+            error_state="ui_catalog_search_message",
+            unapplied_changes_state=None,
+        )
 
     def _switch_data_group(self):
         # Setup from previous group needs to be cleared
