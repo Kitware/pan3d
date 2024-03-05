@@ -66,7 +66,6 @@ class DatasetViewer:
         if state:
             self.state.update(state)
 
-        print(catalogs)
         if "pangeo" in catalogs:
             from pan3d.pangeo_forge import get_catalog
 
