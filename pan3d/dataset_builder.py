@@ -16,6 +16,7 @@ class DatasetBuilder:
         self,
         dataset: str = None,
         server: Any = None,
+        viewer: bool = False,
         pangeo: bool = False,
         esgf: bool = False,
     ) -> None:
@@ -36,6 +37,10 @@ class DatasetBuilder:
         self._server = server
         self._pangeo = pangeo
         self._esgf = esgf
+
+        if viewer:
+            # Access to instantiate
+            self.viewer
 
         if dataset:
             self.dataset_info = {
