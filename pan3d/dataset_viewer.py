@@ -606,8 +606,11 @@ class DatasetViewer:
             self.state.catalog = self.state.available_catalogs[0]
         else:
             self.state.catalog = None
-            self.state.catalog_current_search = {}
-            self.state.ui_catalog_search_message = None
+
+    @change("catalog")
+    def _on_change_catalog(self, catalog, **kwargs):
+        self.state.catalog_current_search = {}
+        self.state.ui_catalog_search_message = None
 
     @change("dataset_info")
     def _on_change_dataset_info(self, dataset_info, **kwargs):
