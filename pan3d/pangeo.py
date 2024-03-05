@@ -130,7 +130,7 @@ def informative_error(e, **kwargs):
     return f'Failed to load dataset {kwargs.get("dataset")} - {str(e)}'
 
 
-def load_dataset(dataset_id):
+def load_dataset(id):
     catalog = intake.open_catalog(CATALOG_URL)
     for subcatalog_name in catalog:
         subcatalog = catalog[subcatalog_name]
@@ -139,10 +139,10 @@ def load_dataset(dataset_id):
                 entry = subcatalog[entry_name]
                 if entry.container == "catalog":
                     for subentry_name in entry:
-                        if subentry_name == dataset_id:
+                        if subentry_name == id:
                             subentry = entry[subentry_name]
                             return subentry.to_dask()
-                elif entry_name == dataset_id:
+                elif entry_name == id:
                     return entry.to_dask()
             except Exception as e:
                 raise ValueError(informative_error(e, dataset=entry_data.describe()))
