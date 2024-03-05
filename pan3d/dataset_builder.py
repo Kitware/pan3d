@@ -264,22 +264,22 @@ class DatasetBuilder:
         if dataset_info is not None:
             source = dataset_info.get("source")
             if source == "pangeo":
-                if self._pangeo:
+                try:
                     from pan3d.pangeo_forge import load_dataset
 
                     ds = load_dataset(dataset_info["id"])
-                else:
+                except ImportError:
                     raise ValueError(
-                        "Pangeo module not enabled. Set pangeo=true to load this dataset."
+                        "Pangeo module not enabled. Install pan3d[pangeo] to load this dataset."
                     )
             elif source == "esgf":
-                if self._esgf:
+                try:
                     from pan3d.esgf import load_dataset
 
                     ds = load_dataset(dataset_info["id"])
-                else:
+                except ImportError:
                     raise ValueError(
-                        "ESGF module not enabled. Set esgf=true to load this dataset."
+                        "ESGF module not enabled. Install pan3d[esgf] to load this dataset."
                     )
             elif source == "xarray":
                 ds = xarray.tutorial.load_dataset(dataset_info["id"])
