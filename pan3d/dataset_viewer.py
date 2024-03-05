@@ -573,9 +573,7 @@ class DatasetViewer:
                 if not hasattr(current_time, "strftime"):
                     current_time = pandas.to_datetime(current_time)
                 current_time = current_time.strftime("%b %d %Y %H:%M")
-            elif d.kind in [
-                "m",
-            ]:  # is timedelta
+            elif d.kind in ["m"]:  # is timedelta
                 if not hasattr(current_time, "total_seconds"):
                     current_time = pandas.to_timedelta(current_time)
                 current_time = f"{current_time.total_seconds()} seconds"
