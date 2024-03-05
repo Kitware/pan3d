@@ -409,7 +409,7 @@ class DatasetViewer:
                 if unapplied_changes_state is not None:
                     self.state[unapplied_changes_state] = False
 
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.001)
 
             with self.state:
                 try:
