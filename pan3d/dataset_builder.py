@@ -273,7 +273,9 @@ class DatasetBuilder:
         if dataset_info is not None:
             source = dataset_info.get("source")
             if source in ["pangeo", "esgf"]:
-                ds = self._call_catalog_function(source, 'load_dataset', id=dataset_info["id"])
+                ds = self._call_catalog_function(
+                    source, "load_dataset", id=dataset_info["id"]
+                )
             elif source == "xarray":
                 ds = xarray.tutorial.load_dataset(dataset_info["id"])
             else:
