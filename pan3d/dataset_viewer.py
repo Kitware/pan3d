@@ -4,7 +4,7 @@ import json
 import pandas
 import pyvista
 from pathlib import Path
-from typing import Optional, Union
+from typing import List, Optional, Union
 
 from trame.decorators import TrameApp, change
 from trame.app import get_server
@@ -35,8 +35,7 @@ class DatasetViewer:
         builder: Optional[DatasetBuilder] = None,
         server: Union[Server, str] = None,
         state: dict = None,
-        pangeo: bool = False,
-        esgf: bool = False,
+        catalogs: List[str] = [],
     ) -> None:
         """Create an instance of the DatasetViewer class.
 
@@ -44,7 +43,7 @@ class DatasetViewer:
             builder: Pan3D DatasetBuilder instance.
             server: Trame server name or instance.
             state:  A dictionary of initial state values.
-            pangeo: If true, use a list of example datasets from Pangeo Forge (examples/pangeo_catalog.json).
+            catalogs: A list of strings referencing available catalog modules (options include 'pangeo', 'esgf'). Each included catalog will be available to search in the Viewer UI.
         """
         if builder is None:
             builder = DatasetBuilder()
@@ -67,13 +66,12 @@ class DatasetViewer:
         if state:
             self.state.update(state)
 
-        self._pangeo = pangeo
-        self._esgf = esgf
-        if pangeo:
+        print(catalogs)
+        if "pangeo" in catalogs:
             from pan3d.pangeo_forge import get_catalog
 
             self.state.available_catalogs.append(get_catalog())
-        if esgf:
+        if "esgf" in catalogs:
             from pan3d.esgf import get_catalog
 
             self.state.available_catalogs.append(get_catalog())

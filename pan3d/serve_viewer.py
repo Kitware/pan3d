@@ -10,8 +10,7 @@ def serve():
 
     parser.add_argument("-C", "--config_path")
     parser.add_argument("-D", "--dataset")
-    parser.add_argument("-P", "--pangeo", action=BooleanOptionalAction)
-    parser.add_argument("-E", "--esgf", action=BooleanOptionalAction)
+    parser.add_argument("-c", "--catalogs", nargs="+")
     parser.add_argument("-S", "--server", action=BooleanOptionalAction)
     parser.add_argument("-d", "--debug", action=BooleanOptionalAction)
 
@@ -19,8 +18,7 @@ def serve():
 
     builder = DatasetBuilder(
         dataset=args.dataset,
-        pangeo=args.pangeo,
-        esgf=args.esgf,
+        catalogs=args.catalogs,
     )
     if args.config_path:
         builder.import_config(args.config_path)

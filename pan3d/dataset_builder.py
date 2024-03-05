@@ -17,16 +17,14 @@ class DatasetBuilder:
         dataset: str = None,
         server: Any = None,
         viewer: bool = False,
-        pangeo: bool = False,
-        esgf: bool = False,
+        catalogs: List[str] = [],
     ) -> None:
         """Create an instance of the DatasetBuilder class.
 
         Parameters:
             dataset: A path or URL referencing a dataset readable by xarray.open_dataset()
             server: Trame server name or instance.
-            pangeo: If true, use a list of example datasets from Pangeo Forge (examples/pangeo_catalog.json).
-            esgf: If true, use a list of example datasets from ESGF (examples/esgf_catalog.json).
+            catalogs: A list of strings referencing available catalog modules (options include 'pangeo', 'esgf'). Each included catalog will be available to search in the Viewer UI.
         """
         self._algorithm = PyVistaXarraySource()
         self._viewer = None
@@ -35,8 +33,7 @@ class DatasetBuilder:
         self._da_name = None
 
         self._server = server
-        self._pangeo = pangeo
-        self._esgf = esgf
+        self._catalogs = catalogs
 
         if viewer:
             # Access to instantiate
@@ -63,8 +60,7 @@ class DatasetBuilder:
             self._viewer = DatasetViewer(
                 builder=self,
                 server=self._server,
-                pangeo=self._pangeo,
-                esgf=self._esgf,
+                catalogs=self._catalogs,
                 state=dict(
                     dataset_info=self.dataset_info,
                     da_active=self.data_array_name,
