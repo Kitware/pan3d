@@ -11,7 +11,7 @@ For more information about this dataset, visit [the C3S Catalog](https://surfobs
 To follow along this tutorial, install Pan3D.
 
 ```
-pip install pan3d
+pip install pan3d[viewer]
 ```
 
 Run the viewer as a local python server with the following command.
