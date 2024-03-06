@@ -66,10 +66,11 @@ class DatasetViewer:
         if state:
             self.state.update(state)
 
-        self.state.available_catalogs = [
-            self.builder._call_catalog_function(catalog_name, "get_catalog")
-            for catalog_name in catalogs
-        ]
+        if catalogs:
+            self.state.available_catalogs = [
+                self.builder._call_catalog_function(catalog_name, "get_catalog")
+                for catalog_name in catalogs
+            ]
 
         self._force_local_rendering = not has_gpu_rendering()
         if self._force_local_rendering:
