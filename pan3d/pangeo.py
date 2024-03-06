@@ -1,10 +1,6 @@
 import intake
 from datetime import datetime
 
-from botocore.exceptions import NoCredentialsError
-from rasterio.errors import RasterioIOError
-
-
 CATALOG_URL = "https://raw.githubusercontent.com/pangeo-data/pangeo-datastore/master/intake-catalogs/master.yaml"
 
 
@@ -120,11 +116,9 @@ def informative_error(e, **kwargs):
         e, ValueError
     ) and "User project specified in the request is invalid" in str(e):
         return "Dataset has requester pays policy and no billable Google Cloud Project was specified. See https://github.com/pangeo-data/pangeo-datastore?tab=readme-ov-file#accessing-requester-pays-data for more info."
-    elif isinstance(
-        e, RasterioIOError
-    ) and "GS_SECRET_ACCESS_KEY+GS_ACCESS_KEY_ID" in str(e):
+    elif "GS_SECRET_ACCESS_KEY+GS_ACCESS_KEY_ID" in str(e):
         return "Dataset requires Google Cloud authentication. See https://cloud.google.com/sdk/gcloud/reference/auth/login for more info."
-    elif isinstance(e, NoCredentialsError) and "Unable to locate credentials" in str(e):
+    elif "Unable to locate credentials" in str(e):
         return "Dataset requires AWS authentication. See https://docs.aws.amazon.com/signin/latest/userguide/command-line-sign-in.html for more info."
 
     return f'Failed to load dataset {kwargs.get("dataset")} - {str(e)}'
