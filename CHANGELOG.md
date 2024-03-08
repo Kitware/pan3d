@@ -2,11 +2,84 @@
 
 
 
+## v0.4.0 (2024-03-08)
+
+### Feature
+
+* feat: add `viewer` kwarg to Builder constructor to instantiate Viewer ([`a2ed1f4`](https://github.com/Kitware/pan3d/commit/a2ed1f4423e5a78c798ab5668d4c4148efd700d3))
+
+### Fix
+
+* fix: guard against a None `catalogs` value in `DatasetViewer` constructor ([`6898faf`](https://github.com/Kitware/pan3d/commit/6898fafaa88cf61401bf3a206ba15feaf505d59c))
+
+* fix: reset search and message when catalog changes ([`9c65ad3`](https://github.com/Kitware/pan3d/commit/9c65ad3fb074e0b556fbe50b84d9afb51229b367))
+
+* fix: reduce sleep time in `run_as_async` ([`a1d0904`](https://github.com/Kitware/pan3d/commit/a1d09044bc3c9be0dafccfff09e9f0dd58f83606))
+
+* fix: Use try-catch for catalog module imports ([`e820d80`](https://github.com/Kitware/pan3d/commit/e820d8084596b80c231f817b3938518f229a2783))
+
+### Refactor
+
+* refactor: remove class-checking for specific pangeo catalog errors (avoid importing auxiliary libraries directly) ([`066f8e6`](https://github.com/Kitware/pan3d/commit/066f8e6ef584573ab52139a169d357eaf9c48e72))
+
+* refactor: replace branching if logic for catalogs with `builder._call_catalog_function` ([`0d37c51`](https://github.com/Kitware/pan3d/commit/0d37c5161ba190afdd20a7231e70ae105c758d83))
+
+* refactor: use catalogs list kwarg instead of multiple boolean catalog flags ([`36683c2`](https://github.com/Kitware/pan3d/commit/36683c226871adcb2d6da6dc9792177390ac21f8))
+
+* refactor: separate default load dataset function for paths and urls ([`de7da40`](https://github.com/Kitware/pan3d/commit/de7da401c1168aab528270ca75cbcdadf9db192c))
+
+### Style
+
+* style: reformat with black ([`84e2ffd`](https://github.com/Kitware/pan3d/commit/84e2ffd51da3fac58cae3d808ffb65858ea600f4))
+
+* style: remove print statement ([`9c893a1`](https://github.com/Kitware/pan3d/commit/9c893a1abd4812320770177ac71c7d98ab45da5d))
+
+* style: fix automatic formatting of list by removing comma ([`2be407c`](https://github.com/Kitware/pan3d/commit/2be407cd60a2818d990443271416b24aee94f34c))
+
+### Unknown
+
+* Merge pull request #67 from Kitware/esgf-data
+
+Catalog modules: Pangeo &amp; ESGF data ([`0208640`](https://github.com/Kitware/pan3d/commit/0208640315e0e34ef0d366b033871b8dd2d39fb1))
+
+* Merge branch &#39;main&#39; into esgf-data ([`23d5474`](https://github.com/Kitware/pan3d/commit/23d547442daed98013fe1b3d76ccac4ceae67e5d))
+
+
 ## v0.3.1 (2024-03-01)
+
+### Documentation
+
+* docs: update examples ([`ed3f200`](https://github.com/Kitware/pan3d/commit/ed3f200cf7713c834a6d1b5acc2eb450531d65e2))
+
+### Feature
+
+* feat: implement Pangeo module functions using intake ([`6dd201f`](https://github.com/Kitware/pan3d/commit/6dd201f99e4c67c02f8fa0a507f3242b4d50a90f))
+
+* feat: add a catalog search dialog ([`3bd0d95`](https://github.com/Kitware/pan3d/commit/3bd0d955edea731afa6de30657079e4214aa0bc1))
 
 ### Fix
 
 * fix: update binder requirements.txt ([`aaa890d`](https://github.com/Kitware/pan3d/commit/aaa890d6a6d9ec0d4cda8e4398346f830869e68e))
+
+* fix: use correct exception imports in `pangeo_forge.py` ([`395ff46`](https://github.com/Kitware/pan3d/commit/395ff465712261a00b5e1eaae96ffbf943a7070b))
+
+* fix: remove unnecessary values from exported state ([`6a86276`](https://github.com/Kitware/pan3d/commit/6a862763abb9eefb4778c7b65efd25fb681848d5))
+
+* fix: loading and error states should be handled only by `run_as_async` method ([`56f36a6`](https://github.com/Kitware/pan3d/commit/56f36a6dacb1d54118be7c8d27e3945cf4a2c623))
+
+* fix: improve compatibility with more pangeo datasets with timedelta dtypes ([`b94a0fd`](https://github.com/Kitware/pan3d/commit/b94a0fda08ca2b93a0888adfa4d45283ceeaf1c0))
+
+* fix: consolidate asynchronous viewer behavior with helper function `run_as_async` ([`adfe751`](https://github.com/Kitware/pan3d/commit/adfe75171393d9c1c211209fc9421ab4d93fa1c4))
+
+* fix: Update Builder and Viewer to use Pangeo module ([`4171046`](https://github.com/Kitware/pan3d/commit/41710461fb5c5393db2b03dfa696f1288fbf830f))
+
+* fix: add missing parenthesis in async callback ([`0cebdd5`](https://github.com/Kitware/pan3d/commit/0cebdd5c1d644b123c724bbedc3a88d061a9d794))
+
+### Style
+
+* style: reformatting with black ([`b1cf493`](https://github.com/Kitware/pan3d/commit/b1cf493d3f21b641f09c5952b8160a86f6796136))
+
+* style: update style via black ([`6ba5d00`](https://github.com/Kitware/pan3d/commit/6ba5d00b4b8e899e540b8c46b04dd632da9f4606))
 
 ### Unknown
 
@@ -14,10 +87,22 @@
 
 Update Binder Requirements ([`f10dec3`](https://github.com/Kitware/pan3d/commit/f10dec33249228db876aad86c283465f9104b50c))
 
+* tests: remove check for loading state in export ([`0fd8a8d`](https://github.com/Kitware/pan3d/commit/0fd8a8d4c70be117caedaa79b7db35ef5ba56ffe))
+
+* ui: Adjustments to main drawer and catalog search components ([`b8c63b1`](https://github.com/Kitware/pan3d/commit/b8c63b187ca86f6674427290605653fbd3b71f20))
+
+* setup: Add Pangeo section to optional dependencies ([`0eb185b`](https://github.com/Kitware/pan3d/commit/0eb185b42fa576f543f4684cdffcb1db27f56e32))
+
+* wip: update Pangeo module with congruent API to ESGF module; functions still need implementation ([`b825f70`](https://github.com/Kitware/pan3d/commit/b825f70dcdf7c6031389725061bf186203c6bcbe))
+
+* wip: update Pangeo module; needs catalog search functions ([`4b82c45`](https://github.com/Kitware/pan3d/commit/4b82c451c130c9eaf857f37fc37644716e2f8e19))
+
 
 ## v0.3.0 (2024-02-21)
 
 ### Documentation
+
+* docs: add example config file with ESGF dataset ([`6adc7f5`](https://github.com/Kitware/pan3d/commit/6adc7f5ea7a6ff473d43fd81965b3b867857f4df))
 
 * docs: Add `site` to .gitignore ([`cafc96e`](https://github.com/Kitware/pan3d/commit/cafc96ef76f0b303cf14e60df7423baa41d6e4a9))
 
@@ -39,6 +124,12 @@ Co-authored by: @johnkit ([`effbc94`](https://github.com/Kitware/pan3d/commit/ef
 
 ### Feature
 
+* feat: add group selector to UI in `main_drawer` ([`7b580b5`](https://github.com/Kitware/pan3d/commit/7b580b5008055cdb107bbfed7ff9570940605ef8))
+
+* feat: add `--esgf` argument to `pan3d-viewer` ([`78cf8df`](https://github.com/Kitware/pan3d/commit/78cf8df89027ff2703a216f374fc55645ddb3001))
+
+* feat: add esgf module, which uses intake-esgf ([`b57b0a4`](https://github.com/Kitware/pan3d/commit/b57b0a49027ce091a5b45c0cb636e7021c42434f))
+
 * feat: add automatic rendering, enabled by default ([`4f20e39`](https://github.com/Kitware/pan3d/commit/4f20e397fa83838f301fb1e95a16cfbf6fbf1ea4))
 
 * feat: more extensive automatic coordinate selection ([`e3a54cc`](https://github.com/Kitware/pan3d/commit/e3a54ccd2968bcdda706a22e7b7babdee485e50d))
@@ -46,6 +137,8 @@ Co-authored by: @johnkit ([`effbc94`](https://github.com/Kitware/pan3d/commit/ef
 * feat: add more xarray examples to default dataset list ([`f533334`](https://github.com/Kitware/pan3d/commit/f5333343e3d1388c13e1cf00dacdff7fd58283ad))
 
 ### Fix
+
+* fix: protect against NoSearchResults exceptions from intake_esgf ([`09687f7`](https://github.com/Kitware/pan3d/commit/09687f75b4895975bf5f06f0e00dc5378222f9c6))
 
 * fix: remove broken pangeo-forge links from catalog ([`bcec69e`](https://github.com/Kitware/pan3d/commit/bcec69e66e7bdcd6f70a76b6c73cdedc110b6fa3))
 
@@ -64,6 +157,10 @@ Co-authored by: @johnkit ([`effbc94`](https://github.com/Kitware/pan3d/commit/ef
 * fix(threading): use `call_soon_threadsafe` for plotting mesh ([`9b2d652`](https://github.com/Kitware/pan3d/commit/9b2d652cdce75be01067effde36a3512b036d1c1))
 
 ### Refactor
+
+* refactor: replace `dataset_path` with `dataset_info`;  value for `source` can determine which `load_dataset` method to use ([`c324ba4`](https://github.com/Kitware/pan3d/commit/c324ba41b175d6c74523d1e2ddf0b8ea514d1d53))
+
+* refactor(pangeo): use methods similar to esgf module ([`bbd6b84`](https://github.com/Kitware/pan3d/commit/bbd6b8495c8aa7bb35718be9f89b486612ba0748))
 
 * refactor: suggested changes from @jourdain ([`b87a945`](https://github.com/Kitware/pan3d/commit/b87a9450a989c0c672d41afe7d852b030323d219))
 
@@ -84,6 +181,8 @@ Co-authored by: @johnkit ([`effbc94`](https://github.com/Kitware/pan3d/commit/ef
 * style(css): hide scroll bar by default ([`e4d32e9`](https://github.com/Kitware/pan3d/commit/e4d32e9a0827b4e28cd2440f9085e5edccd90b8e))
 
 ### Test
+
+* test: update tests with `dataset_info` values instead of `dataset_path` values ([`68bf50b`](https://github.com/Kitware/pan3d/commit/68bf50bca28abacc34d6a3d6e19bb57a562af250))
 
 * test: update expected state with new default expanded coordinates ([`61bcff5`](https://github.com/Kitware/pan3d/commit/61bcff51ee2c0414e7013dead5ba975d98773d06))
 
