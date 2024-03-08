@@ -19,3 +19,4 @@ docs/images/9a.png filter=lfs diff=lfs merge=lfs -text
 docs/images/0.png filter=lfs diff=lfs merge=lfs -text
 docs/images/11.png filter=lfs diff=lfs merge=lfs -text
 docs/images/12a.png filter=lfs diff=lfs merge=lfs -text
+examples/esgf_catalog.json filter=lfs diff=lfs merge=lfs -text

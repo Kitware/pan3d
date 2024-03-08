@@ -37,6 +37,16 @@ viewer = [
     "trame-vtk>=2.6",
     "trame-vuetify>=2.4",
 ]
+esgf = [
+    "intake-esgf>=2024.1",
+]
+pangeo = [
+    "intake==0.7.0",  # latest has plugin errors
+    "intake-xarray>=0.7",
+    "intake-esm>=2023.11",
+    "s3fs>=2024.2",
+    "gcsfs>=2024.2",
+]
 
 [project.scripts]
 pan3d-viewer = "pan3d.serve_viewer:serve"

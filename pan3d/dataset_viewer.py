@@ -4,7 +4,7 @@ import json
 import pandas
 import pyvista
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 
 from trame.decorators import TrameApp, change
 from trame.app import get_server
@@ -35,7 +35,7 @@ class DatasetViewer:
         builder: Optional[DatasetBuilder] = None,
         server: Union[Server, str] = None,
         state: dict = None,
-        pangeo: bool = False,
+        catalogs: List[str] = [],
     ) -> None:
         """Create an instance of the DatasetViewer class.
 
@@ -43,7 +43,7 @@ class DatasetViewer:
             builder: Pan3D DatasetBuilder instance.
             server: Trame server name or instance.
             state:  A dictionary of initial state values.
-            pangeo: If true, use a list of example datasets from Pangeo Forge (examples/pangeo_catalog.json).
+            catalogs: A list of strings referencing available catalog modules (options include 'pangeo', 'esgf'). Each included catalog will be available to search in the Viewer UI.
         """
         if builder is None:
             builder = DatasetBuilder()
@@ -65,9 +65,12 @@ class DatasetViewer:
         self.state.ready()
         if state:
             self.state.update(state)
-        if pangeo:
-            with open(Path(BASE_DIR, "../examples/pangeo_catalog.json")) as f:
-                self.state.available_datasets += json.load(f)
+
+        if catalogs:
+            self.state.available_catalogs = [
+                self.builder._call_catalog_function(catalog_name, "get_catalog")
+                for catalog_name in catalogs
+            ]
 
         self._force_local_rendering = not has_gpu_rendering()
         if self._force_local_rendering:
@@ -114,18 +117,25 @@ class DatasetViewer:
                     self._submit_import,
                     self.builder.export_config,
                 )
-                MainDrawer()
+                MainDrawer(
+                    update_catalog_search_term_function=self._update_catalog_search_term,
+                    catalog_search_function=self._catalog_search,
+                    catalog_term_search_function=self._catalog_term_option_search,
+                    switch_data_group_function=self._switch_data_group,
+                )
                 AxisDrawer(
                     coordinate_select_axis_function=self._coordinate_select_axis,
                     coordinate_change_slice_function=self._coordinate_change_slice,
                     coordinate_toggle_expansion_function=self._coordinate_toggle_expansion,
                 )
-                with vuetify.VMain(v_if=("da_active",)):
+                with vuetify.VMain():
                     vuetify.VBanner(
                         "{{ ui_error_message }}",
                         v_show=("ui_error_message",),
                     )
-                    with html.Div(style="height: 100%; position: relative"):
+                    with html.Div(
+                        v_if=("da_active",), style="height: 100%; position: relative"
+                    ):
                         RenderOptions()
                         with pyvista.trame.ui.plotter_ui(
                             self.ctrl.get_plotter(),
@@ -141,6 +151,80 @@ class DatasetViewer:
     # -----------------------------------------------------
     # UI bound methods
     # -----------------------------------------------------
+    def _update_catalog_search_term(self, term_key, term_value):
+        self.state.catalog_current_search[term_key] = term_value
+        self.state.dirty("catalog_current_search")
+
+    def _catalog_search(self):
+        def load_results():
+            catalog_id = self.state.catalog.get("id")
+            results, group_name, message = self.builder._call_catalog_function(
+                catalog_id, "search_catalog", **self.state.catalog_current_search
+            )
+
+            if len(results) > 0:
+                self.state.available_data_groups.append(
+                    {"name": group_name, "value": group_name}
+                )
+                self.state.available_datasets[group_name] = results
+                self.state.ui_catalog_search_message = message
+                self.state.dirty("available_data_groups", "available_datasets")
+            else:
+                self.state.ui_catalog_search_message = (
+                    "No results found for current search criteria."
+                )
+
+        self.run_as_async(
+            load_results,
+            loading_state="ui_catalog_term_search_loading",
+            error_state="ui_catalog_search_message",
+            unapplied_changes_state=None,
+        )
+
+    def _catalog_term_option_search(self):
+        def load_terms():
+            catalog_id = self.state.catalog.get("id")
+            search_options = self.builder._call_catalog_function(
+                catalog_id, "get_catalog_search_options"
+            )
+            self.state.available_catalogs = [
+                {
+                    **catalog,
+                    "search_terms": [
+                        {"key": k, "options": v} for k, v in search_options.items()
+                    ],
+                }
+                if catalog.get("id") == catalog_id
+                else catalog
+                for catalog in self.state.available_catalogs
+            ]
+            for catalog in self.state.available_catalogs:
+                if catalog.get("id") == catalog_id:
+                    self.state.catalog = catalog
+
+        self.run_as_async(
+            load_terms,
+            loading_state="ui_catalog_term_search_loading",
+            error_state="ui_catalog_search_message",
+            unapplied_changes_state=None,
+        )
+
+    def _switch_data_group(self):
+        # Setup from previous group needs to be cleared
+        self.state.dataset_info = None
+        self.state.da_attrs = {}
+        self.state.da_vars = {}
+        self.state.da_vars_attrs = {}
+        self.state.da_coordinates = []
+        self.state.ui_expanded_coordinates = []
+        self.state.da_active = None
+        self.state.da_x = None
+        self.state.da_y = None
+        self.state.da_z = None
+        self.state.da_t = None
+        self.state.da_t_index = 0
+        self.plotter.clear()
+        self.plotter.view_isometric()
 
     def _coordinate_select_axis(
         self, coordinate_name, current_axis, new_axis, **kwargs
@@ -183,20 +267,19 @@ class DatasetViewer:
         self.state.dirty("ui_expanded_coordinates")
 
     def _submit_import(self):
-        async def submit():
+        def submit():
             files = self.state["ui_action_config_file"]
             if files and len(files) > 0:
                 file_content = files[0]["content"]
                 self.plotter.clear()
-                with self.state:
-                    self.state["ui_import_loading"] = True
-                await asyncio.sleep(1)
+                self.plotter.view_isometric()
 
                 self.builder.import_config(json.loads(file_content.decode()))
-                await asyncio.sleep(1)
                 self._mesh_changed()
 
-        asyncio.run_coroutine_threadsafe(submit(), self.current_event_loop)
+        self.run_as_async(
+            submit, loading_state="ui_import_loading", unapplied_changes_state=None
+        )
 
     # -----------------------------------------------------
     # Rendering methods
@@ -249,56 +332,76 @@ class DatasetViewer:
         if self.builder.mesh is not None and self.builder.data_array is not None:
             self.apply_and_render()
 
-    async def plot_mesh(self) -> None:
+    def plot_mesh(self) -> None:
         """Render current cached mesh in viewer's plotter."""
-        if self.state.ui_loading:
+        if self.builder.data_array is None:
             return
 
-        with self.state:
-            self.state.ui_error_message = None
-            self.state.ui_loading = True
-            self.state.ui_unapplied_changes = False
+        self.plotter.clear()
+        args = dict(
+            cmap=self.state.render_colormap,
+            clim=self.builder.data_range,
+            scalar_bar_args=dict(interactive=True),
+        )
+        if self.state.render_transparency:
+            args["opacity"] = self.state.render_transparency_function
 
-        await asyncio.sleep(1)
+        mesh = self.builder.mesh
 
-        with self.state:
-            self.plotter.clear()
-            args = dict(
-                cmap=self.state.render_colormap,
-                clim=self.builder.data_range,
-                scalar_bar_args=dict(interactive=True),
-            )
-            if self.state.render_transparency:
-                args["opacity"] = self.state.render_transparency_function
+        if self.state.render_scalar_warp:
+            mesh = mesh.warp_by_scalar()
+        self.actor = self.plotter.add_mesh(
+            mesh,
+            **args,
+        )
+        if len(self.builder.data_array.shape) > 2:
+            self.plotter.view_isometric()
+        else:
+            self.plotter.view_xy()
 
-            try:
-                mesh = self.builder.mesh
-            except Exception as exception:
-                self.state.ui_error_message = str(exception)
-                self.state.ui_loading = False
-                return
-
-            if self.state.render_scalar_warp:
-                mesh = mesh.warp_by_scalar()
-            self.actor = self.plotter.add_mesh(
-                mesh,
-                **args,
-            )
-            if len(self.builder.data_array.shape) > 2:
-                self.plotter.view_isometric()
-            else:
-                self.plotter.view_xy()
-
-            if self.plot_view:
-                self.ctrl.push_camera()
-                self.ctrl.view_update()
-
-            self.state.ui_loading = False
+        if self.plot_view:
+            self.ctrl.push_camera()
+            self.ctrl.view_update()
 
     def apply_and_render(self, **kwargs) -> None:
         """Asynchronously reset and update cached mesh and render to viewer's plotter."""
 
-        asyncio.run_coroutine_threadsafe(self.plot_mesh(), self.current_event_loop)
+        self.run_as_async(self.plot_mesh)
+
+    def run_as_async(
+        self,
+        function,
+        loading_state="ui_loading",
+        error_state="ui_error_message",
+        unapplied_changes_state="ui_unapplied_changes",
+    ):
+        async def run():
+            with self.state:
+                if loading_state is not None:
+                    self.state[loading_state] = True
+                if error_state is not None:
+                    self.state[error_state] = None
+                if unapplied_changes_state is not None:
+                    self.state[unapplied_changes_state] = False
+
+            await asyncio.sleep(0.001)
+
+            with self.state:
+                try:
+                    function()
+                except Exception as e:
+                    if error_state is not None:
+                        self.state[error_state] = str(e)
+                    else:
+                        raise e
+                if loading_state is not None:
+                    self.state[loading_state] = False
+
+        if self.current_event_loop.is_running():
+            asyncio.run_coroutine_threadsafe(run(), self.current_event_loop)
+        else:
+            # Pytest environment needs synchronous execution
+            function()
 
     # -----------------------------------------------------
     # State sync with Builder
@@ -309,27 +412,11 @@ class DatasetViewer:
         self.state.da_vars = {}
         self.state.da_vars_attrs = {}
 
-        dataset_path = self.builder.dataset_path
         dataset = self.builder.dataset
         if dataset:
-            self.state.ui_loading = True
             if self._ui is not None:
                 self.state.ui_main_drawer = True
-            if not any(d["url"] == dataset_path for d in self.state.available_datasets):
-                self.state.available_datasets = [
-                    {
-                        "url": dataset_path,
-                        "name": dataset_path,
-                    },
-                    *self.state.available_datasets,
-                ]
-            else:
-                for available_dataset in self.state.available_datasets:
-                    if (
-                        available_dataset["url"] == dataset_path
-                        and "more_info" in available_dataset
-                    ):
-                        self.state.ui_more_info_link = available_dataset["more_info"]
+
             self.state.da_attrs = [
                 {"key": str(k), "value": str(v)} for k, v in dataset.attrs.items()
             ]
@@ -375,7 +462,7 @@ class DatasetViewer:
             array_max = current_coord.values.max()
 
             # make content serializable by its type
-            if d.kind in ["m", "M", "O"]:  # is timedelta or datetime
+            if d.kind in ["O", "M"]:  # is datetime
                 if not hasattr(array_min, "strftime"):
                     array_min = pandas.to_datetime(array_min)
                 if not hasattr(array_max, "strftime"):
@@ -383,6 +470,13 @@ class DatasetViewer:
                 array_min = array_min.strftime("%b %d %Y %H:%M")
                 array_max = array_max.strftime("%b %d %Y %H:%M")
                 numeric = False
+            elif d.kind in ["m"]:  # is timedelta
+                if not hasattr(array_min, "total_seconds"):
+                    array_min = pandas.to_timedelta(array_min)
+                if not hasattr(array_max, "total_seconds"):
+                    array_max = pandas.to_timedelta(array_max)
+                array_min = array_min.total_seconds()
+                array_max = array_max.total_seconds()
             elif d.kind in ["i", "u"]:
                 array_min = int(array_min)
                 array_max = int(array_max)
@@ -445,18 +539,25 @@ class DatasetViewer:
             and dataset[da_name] is not None
             and dataset[da_name][t] is not None
         ):
+            d = dataset[da_name].coords[t].dtype
             time_steps = dataset[da_name][t]
             current_time = time_steps.values[t_index]
-            if not hasattr(current_time, "strftime"):
-                current_time = pandas.to_datetime(current_time)
-            self.state.ui_current_time_string = current_time.strftime("%b %d %Y %H:%M")
+
+            if d.kind in ["O", "M"]:  # is datetime
+                if not hasattr(current_time, "strftime"):
+                    current_time = pandas.to_datetime(current_time)
+                current_time = current_time.strftime("%b %d %Y %H:%M")
+            elif d.kind in ["m"]:  # is timedelta
+                if not hasattr(current_time, "total_seconds"):
+                    current_time = pandas.to_timedelta(current_time)
+                current_time = f"{current_time.total_seconds()} seconds"
+            self.state.ui_current_time_string = str(current_time)
 
     def _mesh_changed(self) -> None:
         da = self.builder.data_array
         if da is None:
             self.state.da_size = 0
             self.state.ui_unapplied_changes = False
-            self.state.ui_loading = False
             return
         total_bytes = da.size * da.dtype.itemsize
         exponents_map = {0: "bytes", 1: "KB", 2: "MB", 3: "GB"}
@@ -466,9 +567,7 @@ class DatasetViewer:
             if total_bytes > divisor:
                 self.state.da_size = f"{round(total_bytes / divisor)} {suffix}"
                 break
-        self.state.ui_error_message = None
         self.state.ui_unapplied_changes = True
-        self.state.ui_loading = False
 
         if self.state.render_auto:
             self.apply_and_render()
@@ -476,9 +575,48 @@ class DatasetViewer:
     # -----------------------------------------------------
     # State change callbacks
     # -----------------------------------------------------
-    @change("dataset_path")
-    def _on_change_dataset_path(self, dataset_path, **kwargs):
-        self.builder.dataset_path = dataset_path
+    @change("ui_search_catalogs")
+    def _on_change_ui_search_catalogs(self, ui_search_catalogs, **kwargs):
+        if ui_search_catalogs:
+            self.state.catalog = self.state.available_catalogs[0]
+        else:
+            self.state.catalog = None
+
+    @change("catalog")
+    def _on_change_catalog(self, catalog, **kwargs):
+        self.state.catalog_current_search = {}
+        self.state.ui_catalog_search_message = None
+
+    @change("dataset_info")
+    def _on_change_dataset_info(self, dataset_info, **kwargs):
+        self.plotter.clear()
+        self.plotter.view_isometric()
+
+        if dataset_info is not None:
+            dataset_exists = False
+            for dataset_group in self.state.available_datasets.values():
+                for d in dataset_group:
+                    if d["value"] == dataset_info:
+                        dataset_exists = True
+                        self.state.ui_more_info_link = d.get("link")
+            if not dataset_exists:
+                self.state.available_data_groups = [
+                    "default",
+                    *self.state.available_data_groups,
+                ]
+                self.state.data_group = "default"
+                self.state.available_datasets["default"] = [
+                    {
+                        "value": dataset_info,
+                        "name": dataset_info["id"],
+                    }
+                ]
+                self.state.dirty("available_datasets")
+
+        def load_dataset():
+            self.builder.dataset_info = dataset_info
+
+        self.run_as_async(load_dataset, unapplied_changes_state=None)
 
     @change("da_active")
     def _on_change_da_active(self, da_active, **kwargs):

@@ -1,0 +1,55 @@
+{
+    "data_origin": {
+        "source": "pangeo",
+        "id": "MITgcm_channel_flatbottom_02km_run01_phys_snap15D"
+    },
+    "data_array": {
+        "name": "T",
+        "x": "YC",
+        "y": "XC",
+        "z": "Z",
+        "t": "time",
+        "t_index": 0
+    },
+    "data_slices": {
+        "time": [
+            142560000,
+            171072000,
+            1
+        ],
+        "Z": [
+            -2912.67,
+            -0.5,
+            1
+        ],
+        "YC": [
+            1000,
+            1999000,
+            1
+        ],
+        "XC": [
+            1000,
+            999000,
+            1
+        ]
+    },
+    "ui": {
+        "main_drawer": false,
+        "axis_drawer": false,
+        "unapplied_changes": false,
+        "error_message": null,
+        "more_info_link": null,
+        "expanded_coordinates": [],
+        "current_time_string": "139968000.0 seconds"
+    },
+    "render": {
+        "auto": true,
+        "x_scale": 1,
+        "y_scale": 1,
+        "z_scale": 100,
+        "scalar_warp": false,
+        "transparency": false,
+        "transparency_function": "linear",
+        "colormap": "viridis"
+    }
+}

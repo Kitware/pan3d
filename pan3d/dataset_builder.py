@@ -1,5 +1,6 @@
 import os
 import json
+import importlib
 import pyvista
 import xarray
 
@@ -14,27 +15,36 @@ class DatasetBuilder:
 
     def __init__(
         self,
-        dataset_path: str = None,
+        dataset: str = None,
         server: Any = None,
-        pangeo: bool = False,
+        viewer: bool = False,
+        catalogs: List[str] = [],
     ) -> None:
         """Create an instance of the DatasetBuilder class.
 
         Parameters:
-            dataset_path: A path or URL referencing a dataset readable by xarray.open_dataset()
+            dataset: A path or URL referencing a dataset readable by xarray.open_dataset()
             server: Trame server name or instance.
-            pangeo: If true, use a list of example datasets from Pangeo Forge (examples/pangeo_catalog.json).
+            catalogs: A list of strings referencing available catalog modules (options include 'pangeo', 'esgf'). Each included catalog will be available to search in the Viewer UI.
         """
         self._algorithm = PyVistaXarraySource()
         self._viewer = None
         self._dataset = None
-        self._dataset_path = None
+        self._dataset_info = None
         self._da_name = None
 
         self._server = server
-        self._pangeo = pangeo
+        self._catalogs = catalogs
 
-        self.dataset_path = dataset_path
+        if viewer:
+            # Access to instantiate
+            self.viewer
+
+        if dataset:
+            self.dataset_info = {
+                "source": "default",
+                "id": dataset,
+            }
 
     # -----------------------------------------------------
     # Properties
@@ -51,9 +61,9 @@ class DatasetBuilder:
             self._viewer = DatasetViewer(
                 builder=self,
                 server=self._server,
-                pangeo=self._pangeo,
+                catalogs=self._catalogs,
                 state=dict(
-                    dataset_path=self.dataset_path,
+                    dataset_info=self.dataset_info,
                     da_active=self.data_array_name,
                     da_x=self.x,
                     da_y=self.y,
@@ -65,51 +75,40 @@ class DatasetBuilder:
         return self._viewer
 
     @property
-    def dataset_path(self) -> Optional[str]:
-        """A string referencing the current dataset, which may be a local path or remote URL.
-        Value must be readable with xarray.open_dataset().
+    def dataset_info(self) -> Optional[Dict]:
+        """A dictionary referencing the current dataset.
+        This dictionary should adhere to the following schema:
+
+        | Key | Required? | Default | Type | Value Description |
+        |-----|-----------|---------|------|-------------------|
+        | `id` | Yes |  | string | A unique identifier that will be used to load the dataset
+        |`source`| No | "default" | string | Name of a module to load the dataset (options: "default", "xarray", "pangeo", "esgf")
+
+        With the default source, the id value must be readable with xarray.open_dataset().
         """
-        return self._dataset_path
+        return self._dataset_info
 
-    @dataset_path.setter
-    def dataset_path(self, dataset_path: Optional[str]) -> None:
-        if dataset_path != self._dataset_path:
-            self._dataset_path = dataset_path
-            self._set_state_values(dataset_path=dataset_path)
-            ds = None
-            if dataset_path is not None:
-                self._set_state_values(ui_loading=True)
-
-                if "https://" in dataset_path or os.path.exists(dataset_path):
-                    engine = None
-                    if ".zarr" in dataset_path:
-                        engine = "zarr"
-                    if ".nc" in dataset_path:
-                        engine = "netcdf4"
-                    try:
-                        ds = xarray.open_dataset(dataset_path, engine=engine, chunks={})
-                    except Exception as e:
-                        if self._viewer:
-                            self._set_state_values(ui_error_message=str(e))
-                        else:
-                            raise e
-                        return
-                else:
-                    # Assume it is a named tutorial dataset
-                    ds = xarray.tutorial.load_dataset(dataset_path)
-            self.dataset = ds
-            self._set_state_values(ui_loading=False)
+    @dataset_info.setter
+    def dataset_info(self, dataset_info: Optional[Dict]) -> None:
+        if dataset_info != self._dataset_info:
+            self._dataset_info = dataset_info
+            self._set_state_values(dataset_info=dataset_info)
+            self._load_dataset(dataset_info)
 
     @property
     def dataset(self) -> Optional[xarray.Dataset]:
-        """Xarray.Dataset object read from the current dataset_path."""
+        """Xarray.Dataset object read from the current dataset_info."""
         return self._dataset
 
     @dataset.setter
     def dataset(self, dataset: Optional[xarray.Dataset]) -> None:
         self._dataset = dataset
         if dataset is not None:
-            vars = list(dataset.data_vars.keys())
+            vars = list(
+                k
+                for k in dataset.data_vars.keys()
+                if not k.endswith("_bnds") and not k.endswith("_bounds")
+            )
             if len(vars) > 0:
                 self.data_array_name = vars[0]
         else:
@@ -257,6 +256,47 @@ class DatasetBuilder:
     # Internal methods
     # -----------------------------------------------------
 
+    def _call_catalog_function(self, catalog_name, function_name, **kwargs):
+        try:
+            module = importlib.import_module(f"pan3d.{catalog_name}")
+            func = getattr(module, function_name)
+            return func(**kwargs)
+        except ImportError:
+            raise ValueError(
+                f"{catalog_name} catalog module not enabled. Install pan3d[{catalog_name}] to load this catalog."
+            )
+        except AttributeError:
+            raise ValueError(f"{catalog_name} is not a valid catalog module.")
+
+    def _load_dataset(self, dataset_info):
+        ds = None
+        if dataset_info is not None:
+            source = dataset_info.get("source")
+            if source in ["pangeo", "esgf"]:
+                ds = self._call_catalog_function(
+                    source, "load_dataset", id=dataset_info["id"]
+                )
+            elif source == "xarray":
+                ds = xarray.tutorial.load_dataset(dataset_info["id"])
+            else:
+                ds = self._load_dataset_default(dataset_info)
+
+        if ds is not None:
+            self.dataset = ds
+
+    def _load_dataset_default(self, dataset_info):
+        # Assume 'id' in dataset_info is a path or url
+        if "https://" in dataset_info["id"] or os.path.exists(dataset_info["id"]):
+            engine = None
+            if ".zarr" in dataset_info["id"]:
+                engine = "zarr"
+            if ".nc" in dataset_info["id"]:
+                engine = "netcdf4"
+            ds = xarray.open_dataset(dataset_info["id"], engine=engine, chunks={})
+            return ds
+        else:
+            raise ValueError(f'Could not find dataset at {dataset_info["id"]}')
+
     def _set_state_values(self, **kwargs):
         if self._viewer is not None:
             for k, v in kwargs.items():
@@ -324,14 +364,14 @@ class DatasetBuilder:
         array_config = config.get("data_array")
 
         if not origin_config or not array_config:
-            error_message = "Invalid format of import file."
-            if self._viewer is not None:
-                self._set_state_values(ui_action_message=error_message)
-            else:
-                raise ValueError(error_message)
-            return
+            raise ValueError("Invalid format of import file.")
 
-        self.dataset_path = origin_config
+        if isinstance(origin_config, str):
+            origin_config = {
+                "source": "default",
+                "id": origin_config,
+            }
+        self.dataset_info = origin_config
         self.data_array_name = array_config.pop("name")
         for key, value in array_config.items():
             setattr(self, key, value)
@@ -345,7 +385,6 @@ class DatasetBuilder:
             self._set_state_values(
                 **ui_config,
                 **render_config,
-                ui_import_loading=False,
                 ui_action_name=None,
             )
 
@@ -357,8 +396,11 @@ class DatasetBuilder:
                 If None, a dictionary containing the current configuration will be returned.
                 For details, see Configuration Files documentation.
         """
+        data_origin = self.dataset_info
+        if data_origin.get("source") == "default":
+            data_origin = data_origin.get("id")
         config = {
-            "data_origin": self.dataset_path,
+            "data_origin": data_origin,
             "data_array": {
                 "name": self.data_array_name,
                 **{
@@ -374,7 +416,10 @@ class DatasetBuilder:
             config["ui"] = {
                 k.replace("ui_", ""): v
                 for k, v in state_items
-                if k.startswith("ui_") and "action_" not in k
+                if k.startswith("ui_")
+                and "action" not in k
+                and "loading" not in k
+                and "catalog" not in k
             }
             config["render"] = {
                 k.replace("render_", ""): v

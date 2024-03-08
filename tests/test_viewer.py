@@ -3,7 +3,7 @@ from pan3d import DatasetViewer
 
 
 def push_builder_state(builder):
-    builder.dataset_path = "eraint_uvz"
+    builder.dataset_info = {"source": "xarray", "id": "eraint_uvz"}
     builder.z = "level"
     builder.t = "month"
     builder.t_index = 1
@@ -15,7 +15,7 @@ def push_viewer_state(viewer):
     # Ensure the callbacks occur in the correct order
     viewer.state.update(
         dict(
-            dataset_path="eraint_uvz",
+            dataset_info={"source": "xarray", "id": "eraint_uvz"},
         )
     )
     viewer.state.flush()
@@ -36,7 +36,7 @@ def push_viewer_state(viewer):
 
 
 def assert_builder_state(builder):
-    assert builder.dataset_path == "eraint_uvz"
+    assert builder.dataset_info == {"source": "xarray", "id": "eraint_uvz"}
     assert builder.dataset is not None
     assert builder.data_array_name == "z"
     assert builder.x == "longitude"
@@ -47,7 +47,7 @@ def assert_builder_state(builder):
 
 
 def assert_viewer_state(viewer):
-    assert viewer.state.dataset_path == "eraint_uvz"
+    assert viewer.state.dataset_info == {"source": "xarray", "id": "eraint_uvz"}
     assert viewer.state.dataset_ready
     assert viewer.state.da_active == "z"
     assert viewer.state.da_x == "longitude"
@@ -76,7 +76,7 @@ def test_ui_state():
     assert viewer.state.ui_unapplied_changes
     assert viewer.state.ui_error_message is None
     assert viewer.state.ui_more_info_link is None
-    assert viewer.state.ui_current_time_string == "Jan 01 1970 00:00"
+    assert viewer.state.ui_current_time_string == "7"
     assert viewer.state.ui_expanded_coordinates == ["month", "level"]
 
 
@@ -117,7 +117,10 @@ def test_viewer_export():
     assert viewer.state.ui_action_message is None
     assert viewer.state.ui_action_config_file is None
 
-    assert viewer.state.state_export["data_origin"] == "eraint_uvz"
+    assert viewer.state.state_export["data_origin"] == {
+        "source": "xarray",
+        "id": "eraint_uvz",
+    }
     assert viewer.state.state_export["data_array"]["name"] == "z"
     assert viewer.state.state_export["data_array"]["x"] == "longitude"
     assert viewer.state.state_export["data_array"]["y"] == "latitude"
@@ -128,14 +131,13 @@ def test_viewer_export():
     assert viewer.state.state_export["data_slices"]["latitude"] == [-90.0, 90.0, 1]
     assert viewer.state.state_export["data_slices"]["level"] == [200, 850, 1]
     assert viewer.state.state_export["data_slices"]["month"] == [1, 7, 1]
-    assert not viewer.state.state_export["ui"]["loading"]
     assert not viewer.state.state_export["ui"]["main_drawer"]
     assert not viewer.state.state_export["ui"]["axis_drawer"]
     assert viewer.state.state_export["ui"]["unapplied_changes"]
     assert viewer.state.state_export["ui"]["error_message"] is None
     assert viewer.state.state_export["ui"]["more_info_link"] is None
     assert viewer.state.state_export["ui"]["expanded_coordinates"] == []
-    assert viewer.state.state_export["ui"]["current_time_string"] == "Jan 01 1970 00:00"
+    assert viewer.state.state_export["ui"]["current_time_string"] == "7"
 
 
 def test_layout():
