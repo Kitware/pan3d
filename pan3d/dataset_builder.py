@@ -1,10 +1,10 @@
 import os
 import json
-import importlib
 import pyvista
 import xarray
 
 from pan3d.utils import coordinate_auto_selection
+from pan3d.catalogs import call_catalog_function
 from pathlib import Path
 from pvxarray.vtk_source import PyVistaXarraySource
 from typing import Any, Dict, List, Optional, Union, Tuple
@@ -256,24 +256,12 @@ class DatasetBuilder:
     # Internal methods
     # -----------------------------------------------------
 
-    def _call_catalog_function(self, catalog_name, function_name, **kwargs):
-        try:
-            module = importlib.import_module(f"pan3d.catalogs.{catalog_name}")
-            func = getattr(module, function_name)
-            return func(**kwargs)
-        except ImportError:
-            raise ValueError(
-                f"{catalog_name} catalog module not enabled. Install pan3d[{catalog_name}] to load this catalog."
-            )
-        except AttributeError:
-            raise ValueError(f"{catalog_name} is not a valid catalog module.")
-
     def _load_dataset(self, dataset_info):
         ds = None
         if dataset_info is not None:
             source = dataset_info.get("source")
             if source in ["pangeo", "esgf"]:
-                ds = self._call_catalog_function(
+                ds = call_catalog_function(
                     source, "load_dataset", id=dataset_info["id"]
                 )
             elif source == "xarray":
