@@ -56,7 +56,12 @@ def get_all_entries():
 
 def entry_filter_match(entry, filters):
     for filter_key, selected_values in filters.items():
+        if filter_key == 'id':
+            # name is the unique identifier
+            filter_key = 'name'
         entry_value = entry.get(filter_key)
+        if entry_value is None:
+            return False
         if isinstance(entry_value, str):
             entry_value = [entry_value]
         if len(selected_values) and not any(v in selected_values for v in entry_value):
