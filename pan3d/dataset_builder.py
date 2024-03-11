@@ -258,7 +258,7 @@ class DatasetBuilder:
 
     def _call_catalog_function(self, catalog_name, function_name, **kwargs):
         try:
-            module = importlib.import_module(f"pan3d.{catalog_name}")
+            module = importlib.import_module(f"pan3d.catalogs.{catalog_name}")
             func = getattr(module, function_name)
             return func(**kwargs)
         except ImportError:
