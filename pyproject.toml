@@ -47,6 +47,9 @@ pangeo = [
     "s3fs>=2024.2",
     "gcsfs>=2024.2",
 ]
+all = [
+    "pan3d[viewer,esgf,pangeo]",
+]
 
 [project.scripts]
 pan3d-viewer = "pan3d.serve_viewer:serve"

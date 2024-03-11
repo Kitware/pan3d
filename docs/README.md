@@ -21,7 +21,7 @@ To install requirements for the DatasetBuilder class only:
 
     pip install pan3d
 
-**Recommended**: to install requirements for the DatasetViewer user interface:
+To install requirements for the DatasetViewer user interface:
 
     pip install pan3d[viewer]
 
@@ -30,6 +30,10 @@ To install requirements for the DatasetBuilder class only:
     pip install pan3d[pangeo]
 
     pip install pan3d[esgf]
+
+**Recommended**: To install all requirements, including optional packages:
+
+    pip install pan3d[all]
 
 ## Quick Start
 
