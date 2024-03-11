@@ -56,9 +56,9 @@ def get_all_entries():
 
 def entry_filter_match(entry, filters):
     for filter_key, selected_values in filters.items():
-        if filter_key == 'id':
+        if filter_key == "id":
             # name is the unique identifier
-            filter_key = 'name'
+            filter_key = "name"
         entry_value = entry.get(filter_key)
         if entry_value is None:
             return False
