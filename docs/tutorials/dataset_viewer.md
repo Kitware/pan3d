@@ -39,7 +39,8 @@ You can open the left drawer by clicking on the dataset configuration icon in th
 
 Inside this panel, you will find the following information:
 
-- A dataset selection box. Its current value is the url we passed as an argument. There are more datasets available in the dropdown; these are examples from Xarray.
+- A group selection box. Its current value is "default". The only dataset in the default group is the one we passed as an argument. There is one more available group option in this selection box: the "xarray" group contains example Xarray datasets to explore. More groups can be added with the Catalog Search (See the [Catalog Search tutorial](tutorials/catalog_search.md) for details).
+- A dataset selection box. This selection box contains all the datasets available in the currently selected group. Its current value is the url we passed as an argument, which is the only dataset available in the default group.
 - A button to view the attributes of the current dataset. Click the three-dots icon next to "Attributes" to open a dialog table of metadata available on the dataset.
 
     ![](../images/3.png)
@@ -52,7 +53,7 @@ You can select any array from this list by clicking on the name. For this tutori
 
 When a new data array is selected, the axis drawer on the right will open for further data configuration. This drawer allows us to change the default axis assignments and slicing. This drawer can be toggled with the axis info icon in the top right corner.
 
-By default, "longitude" is assigned to X, "latitude" is assigned to Y, and "time" is assigned to T. This data does not have a Z coordinate, so our rendered meshes are all planes. We will explore a 3D dataset later.
+By default, "longitude" is assigned to X, "latitude" is assigned to Y, and "time" is assigned to T. This data does not have a Z coordinate, so our rendered meshes are all planes. We will explore a dataset with a Z axis later.
 
 ![](../images/5.png)
 
@@ -217,11 +218,11 @@ Once the file has been selected, another "Import" button will appear. After clic
 
 After a moment to load, Pan3D will render the replicated scene.
 
-These configuration files can be used as arguments in the local server startup command (see [Local Python Server tutorial](./local_server.md) for details) or can be used in a Jupyter notebook environment (see [Jupyter Notebook tutorial](./jupyter_notebook.md) for details).
+These configuration files can be used as arguments in the local server startup command (see [Command Line instructions](tutorials/command_line.md) for details) or can be used in a Jupyter notebook environment (see [Jupyter Notebook tutorial](tutorials/jupyter_notebook.md) for details).
 
 #### Viewing other data
 
-Open the left drawer again and look at the list of datasets available in the dataset selection dropdown. You can look at any of these examples from Xarray and try out the configuration options we have reviewed.
+Open the left drawer again and select "xarray" in the Group selection box. The current dataset will be cleared and the Dataset selection box will be populated with seven example datasets from Xarray. You can look at any of these examples from Xarray and try out the configuration options we have reviewed.
 
 There is one dataset among these with 4D data, which means we can select a time slice and get a 3D render. Select "Xarray Examples - ERA-Interim analysis" to experiment with these options on a 3D mesh.
 
