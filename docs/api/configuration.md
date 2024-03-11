@@ -52,7 +52,12 @@ For more example configuration files, visit our [Examples on Github](https://git
 
 
 ## `data_origin` (Required)
-The value for this key should be a string containing a local path or remote URL, referencing a target dataset readable by `xarray.open_dataset`. This value will be passed to `DatasetBuilder.set_dataset_path`.
+The value for this key may be a string or dictionary. If this value is a string, it should contain a local path or remote URL referencing a target dataset readable by `xarray.open_dataset`. If this value is a dictionary, it should adhere to the following schema.
+
+| Key | Required? | Type | Value Description |
+|-----|-----------|------|-------------------|
+| `source` | NO (default="default") | `str` | A string specifying a module to interpret the value for `id`. Options include "default", "xarray", "pangeo", "esgf". |
+| `id` | YES | `str` | A unique identifier of the target dataset. Depending on the value for `source`, this may be a path, url, name, or other unique id. |
 
 ## `data_array` (Required)
 The value for this key should be a mapping specifying how to interpret the information in the target dataset. The following table describes keys available in this mapping schema.

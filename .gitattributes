@@ -20,3 +20,13 @@ docs/images/0.png filter=lfs diff=lfs merge=lfs -text
 docs/images/11.png filter=lfs diff=lfs merge=lfs -text
 docs/images/12a.png filter=lfs diff=lfs merge=lfs -text
 examples/esgf_catalog.json filter=lfs diff=lfs merge=lfs -text
+docs/images/22.png filter=lfs diff=lfs merge=lfs -text
+docs/images/15.png filter=lfs diff=lfs merge=lfs -text
+docs/images/16.png filter=lfs diff=lfs merge=lfs -text
+docs/images/17.png filter=lfs diff=lfs merge=lfs -text
+docs/images/20.png filter=lfs diff=lfs merge=lfs -text
+docs/images/21.png filter=lfs diff=lfs merge=lfs -text
+docs/images/18.png filter=lfs diff=lfs merge=lfs -text
+docs/images/19.png filter=lfs diff=lfs merge=lfs -text
+docs/images/23.png filter=lfs diff=lfs merge=lfs -text
+docs/images/24.png filter=lfs diff=lfs merge=lfs -text

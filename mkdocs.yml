@@ -7,8 +7,9 @@ nav:
   - Home: README.md
   - Tutorials:
     - Pan3D Viewer: tutorials/dataset_viewer.md
-    - Pan3D Command Line: tutorials/local_server.md
+    - Pan3D Command Line: tutorials/command_line.md
     - Jupyter Notebooks: tutorials/jupyter_notebook.md
+    - Catalog Search: tutorials/catalogs.md
   - API:
     - Dataset Builder: api/dataset_builder.md
     - Dataset Viewer: api/dataset_viewer.md

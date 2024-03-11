@@ -2,7 +2,7 @@
 
 Running Pan3D in a Jupyter notebook allows data scientists to incorporate the tool into their existing workflows and can facilitate greater collaboration between teammates. This tutorial assumes you have a running Jupyter notebook. You can find examples at [notebook examples][notebook-examples-link] in the Pan3D code repository. You can run these examples on Binder [here][binder-link].
 
-
+![](../images/14.png)
 
 1. In your current kernel, install Pan3D:
 
@@ -14,7 +14,7 @@ Running Pan3D in a Jupyter notebook allows data scientists to incorporate the to
         builder = DatasetBuilder()
         viewer = builder.viewer
 
-3. Prepare a configuration for the builder to import. This can come from a previously exported configuration file from Pan3D. An example of this is shown in [`import_config_xarray.ipynb`][config-xarray-link]:
+3. Prepare a configuration for the builder to import. This can come from a previously exported configuration file from Pan3D. An example of this is shown in [`example_config_xarray.json`][config-xarray-link]:
 
         from pan3d import DatasetBuilder
         config_path = '../example_config_xarray.json'
@@ -59,7 +59,6 @@ Running Pan3D in a Jupyter notebook allows data scientists to incorporate the to
 
 7. If you’d like to do more advanced rendering than the Pan3D viewer allows, you can still use the DatasetBuilder class for mesh preparation. You can access the mesh with `builder.mesh` and use it in a PyVista rendering pipeline. Refer to `advanced_pyvista_rendering.ipynb` for an example of this technique, which leverages PyVista plotting to generate an animated GIF of timesteps in the dataset.
 
-![](../images/14.png)
 
 [notebook-examples-link]: https://github.com/Kitware/pan3d/tree/main/examples/jupyter
 [binder-link]: https://mybinder.org/v2/gh/Kitware/pan3d/main?labpath=examples%2Fjupyter

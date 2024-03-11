@@ -17,8 +17,19 @@ For an introduction to this project, check out our [blog post][blog-post-link].
 
 ## Installation
 
+To install requirements for the DatasetBuilder class only:
+
+    pip install pan3d
+
+**Recommended**: to install requirements for the DatasetViewer user interface:
+
     pip install pan3d[viewer]
 
+**Optional**: to install requirements for Pangeo and ESGF catalogs, respectively:
+
+    pip install pan3d[pangeo]
+
+    pip install pan3d[esgf]
 
 ## Quick Start
 
@@ -28,21 +39,27 @@ To launch Pan3D without a target dataset to browse XArray examples:
 
     pan3d-viewer
 
-To launch Pan3D without a target dataset to browse Pangeo Forge examples:
-
-    pan3d-viewer --pangeo
-
 To launch Pan3D with a local path to a target dataset:
 
     pan3d-viewer --dataset=/path/to/dataset.zarr
 
-To launch Pan3D with a link to a target dataset:
+To launch Pan3D with a remote URL to a target dataset:
 
     pan3d-viewer --dataset=https://host.org/link/to/dataset.zarr
 
 To launch Pan3D with a compatible configuration file (see [examples][examples-link]):
 
     pan3d-viewer --config_path=/path/to/pan3d_state.json
+
+To launch Pan3D with the option to browse the Pangeo and ESGF Dataset Catalogs:
+
+    pan3d-viewer --catalogs pangeo esgf
+
+Or you may specify only one catalog:
+
+    pan3d-viewer --catalogs pangeo
+
+    pan3d-viewer --catalogs esgf
 
 
 > The `pan3d-viewer` entrypoint will automatically launch your default browser to open `localhost:8080`.
