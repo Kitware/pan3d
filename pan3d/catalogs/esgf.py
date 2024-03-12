@@ -12,7 +12,7 @@ def get_catalog():
     }
 
 
-def get_catalog_search_options():
+def get_search_options():
     catalog = ESGFCatalog()
     # perform unfiltered search and get unique values for each column
     results = catalog.search()
@@ -22,7 +22,7 @@ def get_catalog_search_options():
     return search_options
 
 
-def search_catalog(**kwargs):
+def search(**kwargs):
     group_name = "/".join([f'{k}:{",".join(v)}' for k, v in kwargs.items()])
     if not group_name:
         group_name = "All ESGF Datasets"
