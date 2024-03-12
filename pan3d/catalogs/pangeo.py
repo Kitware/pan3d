@@ -70,7 +70,7 @@ def entry_filter_match(entry, filters):
     return True
 
 
-def get_catalog_search_options():
+def get_search_options():
     all_entries = get_all_entries()
     search_options = {
         "name": [],
@@ -93,7 +93,7 @@ def get_catalog_search_options():
     return search_options
 
 
-def search_catalog(**kwargs):
+def search(**kwargs):
     group_name = "/".join([f'{k}:{",".join(v)}' for k, v in kwargs.items()])
     if not group_name:
         group_name = "All Pangeo Datasets"
