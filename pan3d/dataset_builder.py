@@ -4,7 +4,7 @@ import pyvista
 import xarray
 
 from pan3d.utils import coordinate_auto_selection
-from pan3d import catalogs
+from pan3d import catalogs as pan3d_catalogs
 from pathlib import Path
 from pvxarray.vtk_source import PyVistaXarraySource
 from typing import Any, Dict, List, Optional, Union, Tuple
@@ -261,7 +261,7 @@ class DatasetBuilder:
         if dataset_info is not None:
             source = dataset_info.get("source")
             if source in ["pangeo", "esgf"]:
-                ds = catalogs.load_dataset(source, id=dataset_info["id"])
+                ds = pan3d_catalogs.load_dataset(source, id=dataset_info["id"])
             elif source == "xarray":
                 ds = xarray.tutorial.load_dataset(dataset_info["id"])
             else:
