@@ -15,6 +15,7 @@ from trame_server.state import State
 from trame_server.controller import Controller
 from trame_vuetify.ui.vuetify3 import VAppLayout
 
+from pan3d import catalogs as pan3d_catalogs
 from pan3d.dataset_builder import DatasetBuilder
 from pan3d.ui import AxisDrawer, MainDrawer, Toolbar, RenderOptions
 from pan3d.utils import (
@@ -68,8 +69,7 @@ class DatasetViewer:
 
         if catalogs:
             self.state.available_catalogs = [
-                self.builder._call_catalog_function(catalog_name, "get_catalog")
-                for catalog_name in catalogs
+                pan3d_catalogs.get(catalog_name) for catalog_name in catalogs
             ]
 
         self._force_local_rendering = not has_gpu_rendering()
@@ -158,8 +158,8 @@ class DatasetViewer:
     def _catalog_search(self):
         def load_results():
             catalog_id = self.state.catalog.get("id")
-            results, group_name, message = self.builder._call_catalog_function(
-                catalog_id, "search_catalog", **self.state.catalog_current_search
+            results, group_name, message = pan3d_catalogs.search(
+                catalog_id, **self.state.catalog_current_search
             )
 
             if len(results) > 0:
@@ -184,9 +184,7 @@ class DatasetViewer:
     def _catalog_term_option_search(self):
         def load_terms():
             catalog_id = self.state.catalog.get("id")
-            search_options = self.builder._call_catalog_function(
-                catalog_id, "get_catalog_search_options"
-            )
+            search_options = pan3d_catalogs.get_search_options(catalog_id)
             self.state.available_catalogs = [
                 {
                     **catalog,
