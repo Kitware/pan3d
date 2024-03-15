@@ -2,6 +2,45 @@
 
 
 
+## v0.4.1 (2024-03-15)
+
+### Documentation
+
+* docs: update docs images ([`3ad51b6`](https://github.com/Kitware/pan3d/commit/3ad51b6f0cc17b1de906333f2b5a8d6527a9315a))
+
+* docs: add new tutorial page for catalog search dialog ([`8f00699`](https://github.com/Kitware/pan3d/commit/8f006996817d6ddc775c8e4db518b58fb0df4e6c))
+
+* docs: adjust existing pages to catalogs changes ([`94f1f77`](https://github.com/Kitware/pan3d/commit/94f1f773c6b57f4648d16364b0f55e2b811d1612))
+
+### Fix
+
+* fix: prevent name conflict by renaming catalogs module import ([`72ca343`](https://github.com/Kitware/pan3d/commit/72ca343c90132105a8d0885578f03d3840205999))
+
+* fix: add catalogs folder to setuptools packages list ([`4edb6c3`](https://github.com/Kitware/pan3d/commit/4edb6c3c281a4f357e877215f6d75b4980308e45))
+
+* fix: prevent &#34;NoneType is not iterable&#34; error in Pangeo search by ID ([`27873e8`](https://github.com/Kitware/pan3d/commit/27873e8f14f43821c68ef56be6fbf8a5acd1f68b))
+
+### Refactor
+
+* refactor(catalogs): create base methods in catalogs module that dynamically import relevant submodules ([`9bb4cfd`](https://github.com/Kitware/pan3d/commit/9bb4cfdb065ac676a7ac12cb9777706161b56794))
+
+* refactor: move `call_catalog_function` to `pan3d.catalogs.__init__.py` ([`0cc5c57`](https://github.com/Kitware/pan3d/commit/0cc5c578b33a48fbe4968f9f147e61f81cb0152f))
+
+* refactor: move catalog modules to new `pan3d/catalogs` folder ([`75a1deb`](https://github.com/Kitware/pan3d/commit/75a1debdd4e1497e97c9c429662736fc96076f28))
+
+### Style
+
+* style: reformat with black ([`627c41a`](https://github.com/Kitware/pan3d/commit/627c41a29b31cbf55cc94a04ef1d75d23305cadb))
+
+### Unknown
+
+* Merge pull request #69 from Kitware/catalog-docs
+
+Catalog Docs ([`6f946b1`](https://github.com/Kitware/pan3d/commit/6f946b14c02c2334c327fbb278cc36f5ddca79e2))
+
+* setup(install): add `all` requirements group ([`86d19d1`](https://github.com/Kitware/pan3d/commit/86d19d129439582f084e4f4305591a5730b28d62))
+
+
 ## v0.4.0 (2024-03-08)
 
 ### Feature
