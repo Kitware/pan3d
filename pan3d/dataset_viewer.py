@@ -642,14 +642,17 @@ class DatasetViewer:
 
     @change("da_coordinates")
     def _on_change_da_coordinates(self, da_coordinates, **kwargs):
-        self.builder.slicing = {
-            coord["name"]: [
-                coord["start"],
-                coord["stop"],
-                coord["step"],
-            ]
-            for coord in da_coordinates
-        }
+        if len(da_coordinates) == 0:
+            self.builder.slicing = None
+        else:
+            self.builder.slicing = {
+                coord["name"]: [
+                    coord["start"],
+                    coord["stop"],
+                    coord["step"],
+                ]
+                for coord in da_coordinates
+            }
 
     @change("ui_action_name")
     def _on_change_action_name(self, ui_action_name, **kwargs):
