@@ -148,8 +148,8 @@ class DatasetBuilder:
                 raise ValueError(
                     "Cannot set data array name without setting dataset info first."
                 )
-            acceptable_values = list(self.dataset.data_vars.keys())
-            if data_array_name not in acceptable_values:
+            if data_array_name not in self.dataset.data_vars:
+                acceptable_values = list(self.dataset.data_vars.keys())
                 raise ValueError(
                     f"{data_array_name} does not exist on dataset. Must be one of {acceptable_values}."
                 )
