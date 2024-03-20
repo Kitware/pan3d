@@ -2,6 +2,31 @@
 
 
 
+## v0.5.0 (2024-03-20)
+
+### Feature
+
+* feat: Add value checking on DatasetBuilder setters ([`fb97573`](https://github.com/Kitware/pan3d/commit/fb97573b154d718a533c55f979807aa7f4bb2172))
+
+### Fix
+
+* fix: Set DatasetBuilder slicing to None when DatasetViewer coordinates are blank ([`38de031`](https://github.com/Kitware/pan3d/commit/38de03182da22932b1b838737459652bee7a752a))
+
+### Refactor
+
+* refactor: apply suggested change from review ([`5f50f0f`](https://github.com/Kitware/pan3d/commit/5f50f0fc6933a64ba02249514e0150bf121d2acf))
+
+### Test
+
+* test(builder): Add test to cover invalid values to DatasetBuilder setters ([`b08eff2`](https://github.com/Kitware/pan3d/commit/b08eff2a800d4f8264f201d367d647889301071f))
+
+### Unknown
+
+* Merge pull request #70 from Kitware/builder-unexpected-inputs
+
+Validate inputs to DatasetBuilder setters ([`977d1c0`](https://github.com/Kitware/pan3d/commit/977d1c034141736992677ed9e2c3e00e992c597e))
+
+
 ## v0.4.1 (2024-03-15)
 
 ### Documentation
@@ -555,7 +580,7 @@ Examples &amp; Packaging ([`762748e`](https://github.com/Kitware/pan3d/commit/76
 Fix release job ([`b082319`](https://github.com/Kitware/pan3d/commit/b082319dc6acfaae57f3155c3f33283482dd42cc))
 
 
-## v0.0.0 (2023-11-17)
+## v0.0.0 (2023-11-16)
 
 ### Unknown
 
