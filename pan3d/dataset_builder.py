@@ -90,6 +90,21 @@ class DatasetBuilder:
 
     @dataset_info.setter
     def dataset_info(self, dataset_info: Optional[Dict]) -> None:
+        if dataset_info is not None:
+            if not isinstance(dataset_info, dict):
+                raise TypeError("Type of dataset_info must be Dict or None.")
+            source = dataset_info.get("source")
+            id = dataset_info.get("id")
+            if not isinstance(id, str):
+                raise ValueError(
+                    'Dataset info must contain key "id" with string value.'
+                )
+            if source is None:
+                dataset_info["source"] = "default"
+            elif source not in ["default", "xarray", "pangeo", "esgf"]:
+                raise ValueError(
+                    "Invalid source value. Must be one of [default, xarray, pangeo, esgf]."
+                )
         if dataset_info != self._dataset_info:
             self._dataset_info = dataset_info
             self._set_state_values(dataset_info=dataset_info)
@@ -102,6 +117,8 @@ class DatasetBuilder:
 
     @dataset.setter
     def dataset(self, dataset: Optional[xarray.Dataset]) -> None:
+        if dataset is not None and not isinstance(dataset, xarray.Dataset):
+            raise TypeError("Type of dataset must be xarray.Dataset or None.")
         self._dataset = dataset
         if dataset is not None:
             vars = list(
@@ -124,6 +141,18 @@ class DatasetBuilder:
 
     @data_array_name.setter
     def data_array_name(self, data_array_name: Optional[str]) -> None:
+        if data_array_name is not None:
+            if not isinstance(data_array_name, str):
+                raise TypeError("Type of data_array_name must be str or None.")
+            if self.dataset is None:
+                raise ValueError(
+                    "Cannot set data array name without setting dataset info first."
+                )
+            if data_array_name not in self.dataset.data_vars:
+                acceptable_values = list(self.dataset.data_vars.keys())
+                raise ValueError(
+                    f"{data_array_name} does not exist on dataset. Must be one of {acceptable_values}."
+                )
         if data_array_name != self._da_name:
             self._da_name = data_array_name
             self._set_state_values(da_active=data_array_name)
@@ -163,6 +192,16 @@ class DatasetBuilder:
 
     @x.setter
     def x(self, x: Optional[str]) -> None:
+        if x is not None:
+            if not isinstance(x, str):
+                raise TypeError("Type of x must be str or None.")
+            if self.data_array_name is None:
+                raise ValueError("Cannot set x without setting data array name first.")
+            acceptable_values = self.dataset[self.data_array_name].dims
+            if x not in acceptable_values:
+                raise ValueError(
+                    f"{x} does not exist on data array. Must be one of {acceptable_values}."
+                )
         if self._algorithm.x != x:
             self._algorithm.x = x
             self._set_state_values(da_x=x)
@@ -177,6 +216,16 @@ class DatasetBuilder:
 
     @y.setter
     def y(self, y: Optional[str]) -> None:
+        if y is not None:
+            if not isinstance(y, str):
+                raise TypeError("Type of y must be str or None.")
+            if self.data_array_name is None:
+                raise ValueError("Cannot set y without setting data array name first.")
+            acceptable_values = self.dataset[self.data_array_name].dims
+            if y not in acceptable_values:
+                raise ValueError(
+                    f"{y} does not exist on data array. Must be one of {acceptable_values}."
+                )
         if self._algorithm.y != y:
             self._algorithm.y = y
             self._set_state_values(da_y=y)
@@ -191,6 +240,16 @@ class DatasetBuilder:
 
     @z.setter
     def z(self, z: Optional[str]) -> None:
+        if z is not None:
+            if not isinstance(z, str):
+                raise TypeError("Type of z must be str or None.")
+            if self.data_array_name is None:
+                raise ValueError("Cannot set z without setting data array name first.")
+            acceptable_values = self.dataset[self.data_array_name].dims
+            if z not in acceptable_values:
+                raise ValueError(
+                    f"{z} does not exist on data array. Must be one of {acceptable_values}."
+                )
         if self._algorithm.z != z:
             self._algorithm.z = z
             self._set_state_values(da_z=z)
@@ -206,6 +265,16 @@ class DatasetBuilder:
 
     @t.setter
     def t(self, t: Optional[str]) -> None:
+        if t is not None:
+            if not isinstance(t, str):
+                raise TypeError("Type of t must be str or None.")
+            if self.data_array_name is None:
+                raise ValueError("Cannot set t without setting data array name first.")
+            acceptable_values = self.dataset[self.data_array_name].dims
+            if t not in acceptable_values:
+                raise ValueError(
+                    f"{t} does not exist on data array. Must be one of {acceptable_values}."
+                )
         if self._algorithm.time != t:
             self._algorithm.time = t
             self._set_state_values(da_t=t)
@@ -220,6 +289,20 @@ class DatasetBuilder:
 
     @t_index.setter
     def t_index(self, t_index: int) -> None:
+        if not isinstance(t_index, int):
+            raise TypeError("Type of t_index must be int.")
+        if t_index < 0:
+            raise ValueError("Time index must be a positive integer.")
+        if t_index > 0:
+            if not self.t:
+                raise ValueError(
+                    "Cannot set time index > 0 without setting t array first."
+                )
+            max_value = self.dataset[self.data_array_name].coords[self.t].size
+            if t_index >= max_value:
+                raise ValueError(
+                    f"Time index must be less than size of t coordinate ({max_value})."
+                )
         if self._algorithm.time_index != t_index:
             self._algorithm.time_index = int(t_index)
             self._set_state_values(da_t_index=t_index)
@@ -238,6 +321,38 @@ class DatasetBuilder:
 
     @slicing.setter
     def slicing(self, slicing: Dict[str, List]) -> None:
+        if slicing is not None:
+            if not isinstance(slicing, Dict):
+                raise TypeError("Type of slicing must be Dict or None.")
+            if self.data_array_name is None:
+                raise ValueError(
+                    "Cannot set slicing without setting data array name first."
+                )
+            for key, value in slicing.items():
+                if not isinstance(key, str):
+                    raise ValueError("Keys in slicing must be strings.")
+                if (
+                    not isinstance(value, list)
+                    or len(value) != 3
+                    or any(
+                        not isinstance(v, int) and not isinstance(v, float)
+                        for v in value
+                    )
+                ):
+                    raise ValueError(
+                        "Values in slicing must be lists of three integers ([start, stop, step])."
+                    )
+                acceptable_coords = self.dataset[self.data_array_name].coords
+                if key not in acceptable_coords:
+                    raise ValueError(
+                        f"Key {key} not found in data array. Must be one of {list(acceptable_coords.keys())}."
+                    )
+                key_coord = acceptable_coords[key]
+
+                if value[2] > key_coord.size:
+                    raise ValueError(
+                        f"Value {value} not applicable for Key {key}. Step value must be <= {key_coord.size}."
+                    )
         self._algorithm.slicing = slicing
         if self._viewer:
             self._viewer._data_slicing_changed()
