@@ -94,6 +94,7 @@ def test_render_options_state():
         transparency=True,
         transparency_function="linear_r",
         scalar_warp=True,
+        cartographic=True,
     )
 
     assert viewer.state.render_x_scale == 2
@@ -103,6 +104,7 @@ def test_render_options_state():
     assert viewer.state.render_transparency
     assert viewer.state.render_transparency_function == "linear_r"
     assert viewer.state.render_scalar_warp
+    assert viewer.state.render_cartographic
 
 
 def test_viewer_export():

@@ -309,6 +309,7 @@ class DatasetViewer:
         transparency: bool = False,
         transparency_function: str = None,
         scalar_warp: bool = False,
+        cartographic: bool = False,
     ) -> None:
         """Set available options for rendering data.
 
@@ -317,6 +318,7 @@ class DatasetViewer:
             transparency: If true, enable transparency and use transparency_function.
             transparency_function: One of PyVista's opacity transfer functions (https://docs.pyvista.org/version/stable/examples/02-plot/opacity.html#transfer-functions)
             scalar_warp: If true, warp the mesh proportional to its scalars.
+            cartographic: If true, wrap the mesh around an earth sphere.
         """
         if self.state.render_colormap != colormap:
             self.state.render_colormap = colormap
@@ -326,6 +328,8 @@ class DatasetViewer:
             self.state.render_transparency_function = transparency_function
         if self.state.render_scalar_warp != scalar_warp:
             self.state.render_scalar_warp = scalar_warp
+        if self.state.render_cartographic != cartographic:
+            self.state.render_cartographic = cartographic
 
         if self.builder.mesh is not None and self.builder.data_array is not None:
             self.apply_and_render()
@@ -348,6 +352,8 @@ class DatasetViewer:
 
         if self.state.render_scalar_warp:
             mesh = mesh.warp_by_scalar()
+        if self.state.render_cartographic:
+            pass
         self.actor = self.plotter.add_mesh(
             mesh,
             **args,
@@ -674,6 +680,7 @@ class DatasetViewer:
         "render_transparency",
         "render_transparency_function",
         "render_scalar_warp",
+        "render_cartographic",
     )
     def _on_change_render_options(
         self,
@@ -681,6 +688,7 @@ class DatasetViewer:
         render_transparency,
         render_transparency_function,
         render_scalar_warp,
+        render_cartographic,
         **kwargs,
     ):
         self.set_render_options(
@@ -688,4 +696,5 @@ class DatasetViewer:
             transparency=render_transparency,
             transparency_function=render_transparency_function,
             scalar_warp=render_scalar_warp,
+            cartographic=render_cartographic,
         )
