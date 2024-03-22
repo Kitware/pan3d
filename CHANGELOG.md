@@ -2,6 +2,19 @@
 
 
 
+## v0.5.1 (2024-03-22)
+
+### Fix
+
+* fix(examples): Update example notebooks with catalogs argument ([`8d21be7`](https://github.com/Kitware/pan3d/commit/8d21be779c19da8c9c176f4f97842e0a585093a2))
+
+### Unknown
+
+* Merge pull request #71 from Kitware/fix-examples
+
+Update example notebooks with catalogs argument ([`01ee2be`](https://github.com/Kitware/pan3d/commit/01ee2bec06cda8a18c5f11870a7b7a41932b82be))
+
+
 ## v0.5.0 (2024-03-20)
 
 ### Feature
