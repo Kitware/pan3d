@@ -41,6 +41,7 @@ There are five sections available in the configuration file format: `data_origin
         "y_scale": 1,
         "z_scale": 1,
         "scalar_warp": false,
+        "cartographic": false,
         "transparency": false,
         "transparency_function": "linear",
         "colormap": "viridis"
@@ -106,6 +107,7 @@ The value for this key should be a mapping of any number of render state values.
 |`y_scale`|NO (default=1)|`int`|The relative scale of the Y axis in the rendered scene.|
 |`z_scale`|NO (default=1)|`int`|The relative scale of the Z axis in the rendered scene.|
 |`scalar_warp`|NO (default=False)|`bool`|If true, Apply scalar warping to the rendered mesh (extrude values in z-axis proportional to their magnitude).|
+|`cartographic`|NO (default=False)|`bool`|If true, render the data wrapped around an earth sphere.|
 |`transparency`|NO (default=False)|`bool`|If true, enable transparency mode for the rendered mesh, applying the current transparency function.|
 |`transparency_function`|NO (default="linear")|`str`|The name of the transparency function to apply when transparency is enabled. Options are "linear", "linear_r", "geom", "geom_r", "sigmoid", and "sigmoid_r".|
 |`colormap`|NO (default="viridis")|`str`|The name of the colormap to apply to the rendered mesh. Any matplotlib colormap name is a valid value.|
