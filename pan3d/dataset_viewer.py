@@ -355,7 +355,7 @@ class DatasetViewer:
             mesh = geovista.Transform.from_1d(
                 da[self.builder.x],  # lon coordinates
                 da[self.builder.y],  # lat coordinates
-                da
+                da,
             )
             mesh = mesh.threshold()  # make NaN values transparent
         else:
