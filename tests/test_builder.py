@@ -183,7 +183,7 @@ def test_setters_invalid_values():
         builder.slicing = {"foo": []}
     assert (
         str(e.value)
-        == "Values in slicing must be lists of three integers ([start, stop, step])."
+        == "Values in slicing must be lists of length 3 ([start, stop, step])."
     )
     with pytest.raises(ValueError) as e:
         builder.slicing = {"foo": [0, 1, 1]}

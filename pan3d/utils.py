@@ -83,6 +83,7 @@ initial_state = {
     "render_y_scale": 1,
     "render_z_scale": 1,
     "render_scalar_warp": False,
+    "render_cartographic": False,
     "render_transparency": False,
     "render_transparency_function": "linear",
     "render_transparency_function_options": [

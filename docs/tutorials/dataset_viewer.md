@@ -197,6 +197,7 @@ For our configuration, the contents of the exported file appear as follows:
         "y_scale": 2,
         "z_scale": 1,
         "scalar_warp": true,
+        "cartographic": false,
         "transparency": true,
         "transparency_function": "linear_r",
         "colormap": "plasma"
