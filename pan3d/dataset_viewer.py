@@ -311,6 +311,7 @@ class DatasetViewer:
         transparency_function: str = None,
         scalar_warp: bool = False,
         cartographic: bool = False,
+        render: bool = True,
     ) -> None:
         """Set available options for rendering data.
 
@@ -320,6 +321,7 @@ class DatasetViewer:
             transparency_function: One of PyVista's opacity transfer functions (https://docs.pyvista.org/version/stable/examples/02-plot/opacity.html#transfer-functions)
             scalar_warp: If true, warp the mesh proportional to its scalars.
             cartographic: If true, wrap the mesh around an earth sphere.
+            render: If true, update current render with new values (default=True)
         """
         if self.state.render_colormap != colormap:
             self.state.render_colormap = colormap
@@ -332,7 +334,11 @@ class DatasetViewer:
         if self.state.render_cartographic != cartographic:
             self.state.render_cartographic = cartographic
 
-        if self.builder.mesh is not None and self.builder.data_array is not None:
+        if (
+            render
+            and self.builder.mesh is not None
+            and self.builder.data_array is not None
+        ):
             self.apply_and_render()
 
     def plot_mesh(self) -> None:
