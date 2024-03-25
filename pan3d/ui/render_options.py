@@ -50,11 +50,18 @@ class RenderOptions(vuetify.VMenu):
                     items=(transparency_function_options,),
                     density="compact",
                 )
+                # Scalar warp mode and cartographic mode are mutually exclusive
                 vuetify.VCheckbox(
-                    label="Warp by Scalars", v_model=(scalar_warp,), density="compact"
+                    label="Warp by Scalars",
+                    v_model=(scalar_warp,),
+                    disabled=(cartographic,),
+                    density="compact",
                 )
                 vuetify.VCheckbox(
-                    label="Cartographic", v_model=(cartographic,), density="compact"
+                    label="Cartographic",
+                    v_model=(cartographic,),
+                    disabled=(scalar_warp,),
+                    density="compact",
                 )
                 with vuetify.VContainer(classes="d-flex pa-0", style="column-gap: 3px"):
                     vuetify.VTextField(

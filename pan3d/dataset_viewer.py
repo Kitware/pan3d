@@ -3,6 +3,7 @@ import concurrent.futures
 import json
 import pandas
 import pyvista
+import geovista
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
@@ -55,7 +56,7 @@ class DatasetViewer:
         self.pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         self._ui = None
 
-        self.plotter = pyvista.Plotter(off_screen=True, notebook=False)
+        self.plotter = geovista.GeoPlotter(off_screen=True, notebook=False)
         self.plotter.set_background("lightgrey")
         self.plot_view = None
         self.actor = None
@@ -348,12 +349,20 @@ class DatasetViewer:
         if self.state.render_transparency:
             args["opacity"] = self.state.render_transparency_function
 
-        mesh = self.builder.mesh
+        if self.state.render_cartographic:
+            self.plotter.add_base_layer(texture=geovista.blue_marble())
+            da = self.builder.data_array  # slicing already applied
+            mesh = geovista.Transform.from_1d(
+                da[self.builder.x],  # lon coordinates
+                da[self.builder.y],  # lat coordinates
+                da
+            )
+            mesh = mesh.threshold()  # make NaN values transparent
+        else:
+            mesh = self.builder.mesh
 
         if self.state.render_scalar_warp:
             mesh = mesh.warp_by_scalar()
-        if self.state.render_cartographic:
-            pass
         self.actor = self.plotter.add_mesh(
             mesh,
             **args,
@@ -361,7 +370,10 @@ class DatasetViewer:
         if len(self.builder.data_array.shape) > 2:
             self.plotter.view_isometric()
         else:
-            self.plotter.view_xy()
+            if self.state.render_cartographic:
+                self.plotter.view_xz()
+            else:
+                self.plotter.view_xy()
 
         if self.plot_view:
             self.ctrl.push_camera()
