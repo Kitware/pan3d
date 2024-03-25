@@ -331,16 +331,9 @@ class DatasetBuilder:
             for key, value in slicing.items():
                 if not isinstance(key, str):
                     raise ValueError("Keys in slicing must be strings.")
-                if (
-                    not isinstance(value, list)
-                    or len(value) != 3
-                    or any(
-                        not isinstance(v, int) and not isinstance(v, float)
-                        for v in value
-                    )
-                ):
+                if not isinstance(value, list) or len(value) != 3:
                     raise ValueError(
-                        "Values in slicing must be lists of three integers ([start, stop, step])."
+                        "Values in slicing must be lists of length 3 ([start, stop, step])."
                     )
                 acceptable_coords = self.dataset[self.data_array_name].coords
                 if key not in acceptable_coords:
