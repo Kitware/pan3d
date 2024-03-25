@@ -36,6 +36,7 @@ viewer = [
     "trame>=3.5",
     "trame-vtk>=2.6",
     "trame-vuetify>=2.4",
+    "geovista>=0.4",
 ]
 esgf = [
     "intake-esgf>=2024.1",
