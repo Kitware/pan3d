@@ -94,7 +94,7 @@ def test_render_options_state():
         transparency=True,
         transparency_function="linear_r",
         scalar_warp=True,
-        cartographic=True,
+        cartographic=False,  # not compatible with this 4D data
     )
 
     assert viewer.state.render_x_scale == 2
