@@ -422,6 +422,8 @@ class DatasetViewer:
                 if loading_state is not None:
                     self.state[loading_state] = False
 
+            await asyncio.sleep(0.001)
+
         if self.current_event_loop.is_running():
             asyncio.run_coroutine_threadsafe(run(), self.current_event_loop)
         else:
