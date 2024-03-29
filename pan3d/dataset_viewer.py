@@ -364,6 +364,12 @@ class DatasetViewer:
                 da,
             )
             mesh = mesh.threshold()  # make NaN values transparent
+
+            # position camera
+            camera = self.plotter.camera
+            camera.focal_point = [0, 0, 0]
+            camera.position = mesh.center
+            self.plotter.reset_camera(bounds=mesh.bounds)
         else:
             mesh = self.builder.mesh
 
@@ -375,11 +381,8 @@ class DatasetViewer:
         )
         if len(self.builder.data_array.shape) > 2:
             self.plotter.view_isometric()
-        else:
-            if self.state.render_cartographic:
-                self.plotter.view_xz()
-            else:
-                self.plotter.view_xy()
+        elif not self.state.render_cartographic:
+            self.plotter.view_xy()
 
         if self.plot_view:
             self.ctrl.push_camera()
