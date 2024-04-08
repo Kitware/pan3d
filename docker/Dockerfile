@@ -1,4 +1,4 @@
-FROM kitware/trame
+FROM kitware/trame:py3.9
 
 RUN apt-get update && \
     apt-get install --no-install-recommends --yes \
