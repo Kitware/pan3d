@@ -2,6 +2,45 @@
 
 
 
+## v0.6.0 (2024-04-09)
+
+### Feature
+
+* feat: add camera positioning to cartographic rendering ([`b493f31`](https://github.com/Kitware/pan3d/commit/b493f31c90147d8bd50b45ce065b82f8765d9de8))
+
+* feat: Use GeoVista to map data onto earth sphere ([`caca1ef`](https://github.com/Kitware/pan3d/commit/caca1efe8a722d31df3ba7f6049a5803c4e42fed))
+
+* feat: Add &#34;render_cartographic&#34; state var and relevant management/docs ([`66730bc`](https://github.com/Kitware/pan3d/commit/66730bc9582718742c1f17da17b77e53d29b3d42))
+
+### Fix
+
+* fix: update files in `docker` folder ([`f402fb6`](https://github.com/Kitware/pan3d/commit/f402fb65d70926996c80a3bdade2ace954e1c4e4))
+
+* fix: show import loading bar during import ([`9e664f4`](https://github.com/Kitware/pan3d/commit/9e664f4ce465b6b819b098d08c7e9a5104f5b90f))
+
+* fix(test): add a flag to disable render in `set_render_options`; geovista GeoPlotter raises exception when no GPU found ([`247ea75`](https://github.com/Kitware/pan3d/commit/247ea7551deb60bedb719666ac2bbb586f6a25f6))
+
+* fix(test): allow non-numeric slicing values (for time axis) ([`3d347ac`](https://github.com/Kitware/pan3d/commit/3d347acc044cd71f990b764f76e41f46ff40405b))
+
+* fix(test): don&#39;t enable cartographic mode on 4D test data ([`23261e2`](https://github.com/Kitware/pan3d/commit/23261e2db226f125668a02ea6b90f0f4a8c76432))
+
+### Style
+
+* style: add trailing comma ([`fd074b1`](https://github.com/Kitware/pan3d/commit/fd074b16bd8444b41d2511cdc61e99274f804640))
+
+### Unknown
+
+* Merge pull request #74 from Kitware/update-docker
+
+Update files in `docker` folder ([`68504e8`](https://github.com/Kitware/pan3d/commit/68504e8eab5d056a9437b4f27c27bcd2dcec5499))
+
+* Merge pull request #73 from Kitware/cartographic
+
+Add cartographic rendering mode ([`b1144de`](https://github.com/Kitware/pan3d/commit/b1144de0c959ae225d8758098aae198593a396da))
+
+* examples: add cartographic mode to noaa example ([`9cf3eb3`](https://github.com/Kitware/pan3d/commit/9cf3eb329799e81fc03b6d44e20d38c4a4c3dac6))
+
+
 ## v0.5.1 (2024-03-22)
 
 ### Fix
