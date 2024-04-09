@@ -13,11 +13,7 @@ def push_builder_state(builder):
 def push_viewer_state(viewer):
     # For state updates with callbacks,
     # Ensure the callbacks occur in the correct order
-    viewer.state.update(
-        dict(
-            dataset_info={"source": "xarray", "id": "eraint_uvz"},
-        )
-    )
+    viewer.state.update(dict(dataset_info={"source": "xarray", "id": "eraint_uvz"}))
     viewer.state.flush()
     viewer.state.update(
         dict(
@@ -94,6 +90,10 @@ def test_render_options_state():
         transparency=True,
         transparency_function="linear_r",
         scalar_warp=True,
+        cartographic=False,  # not compatible with this 4D data
+        # geovista GeoPlotter includes a check for GPU availability,
+        # which fails on GH Actions. Disable render in this function.
+        render=False,
     )
 
     assert viewer.state.render_x_scale == 2
@@ -103,6 +103,7 @@ def test_render_options_state():
     assert viewer.state.render_transparency
     assert viewer.state.render_transparency_function == "linear_r"
     assert viewer.state.render_scalar_warp
+    assert not viewer.state.render_cartographic
 
 
 def test_viewer_export():

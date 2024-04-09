@@ -23,5 +23,8 @@
         "main_drawer": false,
         "axis_drawer": false,
         "expanded_coordinates": []
+    },
+    "render": {
+        "cartographic": true
     }
 }

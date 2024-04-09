@@ -48,6 +48,7 @@
         "y_scale": 1,
         "z_scale": 100,
         "scalar_warp": false,
+        "cartographic": false,
         "transparency": false,
         "transparency_function": "linear",
         "colormap": "viridis"

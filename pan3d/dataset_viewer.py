@@ -3,6 +3,7 @@ import concurrent.futures
 import json
 import pandas
 import pyvista
+import geovista
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
@@ -55,7 +56,7 @@ class DatasetViewer:
         self.pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         self._ui = None
 
-        self.plotter = pyvista.Plotter(off_screen=True, notebook=False)
+        self.plotter = geovista.GeoPlotter(off_screen=True, notebook=False)
         self.plotter.set_background("lightgrey")
         self.plot_view = None
         self.actor = None
@@ -309,6 +310,8 @@ class DatasetViewer:
         transparency: bool = False,
         transparency_function: str = None,
         scalar_warp: bool = False,
+        cartographic: bool = False,
+        render: bool = True,
     ) -> None:
         """Set available options for rendering data.
 
@@ -317,6 +320,8 @@ class DatasetViewer:
             transparency: If true, enable transparency and use transparency_function.
             transparency_function: One of PyVista's opacity transfer functions (https://docs.pyvista.org/version/stable/examples/02-plot/opacity.html#transfer-functions)
             scalar_warp: If true, warp the mesh proportional to its scalars.
+            cartographic: If true, wrap the mesh around an earth sphere.
+            render: If true, update current render with new values (default=True)
         """
         if self.state.render_colormap != colormap:
             self.state.render_colormap = colormap
@@ -326,8 +331,14 @@ class DatasetViewer:
             self.state.render_transparency_function = transparency_function
         if self.state.render_scalar_warp != scalar_warp:
             self.state.render_scalar_warp = scalar_warp
+        if self.state.render_cartographic != cartographic:
+            self.state.render_cartographic = cartographic
 
-        if self.builder.mesh is not None and self.builder.data_array is not None:
+        if (
+            render
+            and self.builder.mesh is not None
+            and self.builder.data_array is not None
+        ):
             self.apply_and_render()
 
     def plot_mesh(self) -> None:
@@ -344,7 +355,23 @@ class DatasetViewer:
         if self.state.render_transparency:
             args["opacity"] = self.state.render_transparency_function
 
-        mesh = self.builder.mesh
+        if self.state.render_cartographic:
+            self.plotter.add_base_layer(texture=geovista.blue_marble())
+            da = self.builder.data_array  # slicing already applied
+            mesh = geovista.Transform.from_1d(
+                da[self.builder.x],  # lon coordinates
+                da[self.builder.y],  # lat coordinates
+                da,
+            )
+            mesh = mesh.threshold()  # make NaN values transparent
+
+            # position camera
+            camera = self.plotter.camera
+            camera.focal_point = [0, 0, 0]
+            camera.position = mesh.center
+            self.plotter.reset_camera(bounds=mesh.bounds)
+        else:
+            mesh = self.builder.mesh
 
         if self.state.render_scalar_warp:
             mesh = mesh.warp_by_scalar()
@@ -354,7 +381,7 @@ class DatasetViewer:
         )
         if len(self.builder.data_array.shape) > 2:
             self.plotter.view_isometric()
-        else:
+        elif not self.state.render_cartographic:
             self.plotter.view_xy()
 
         if self.plot_view:
@@ -394,6 +421,8 @@ class DatasetViewer:
                         raise e
                 if loading_state is not None:
                     self.state[loading_state] = False
+
+            await asyncio.sleep(0.001)
 
         if self.current_event_loop.is_running():
             asyncio.run_coroutine_threadsafe(run(), self.current_event_loop)
@@ -674,6 +703,7 @@ class DatasetViewer:
         "render_transparency",
         "render_transparency_function",
         "render_scalar_warp",
+        "render_cartographic",
     )
     def _on_change_render_options(
         self,
@@ -681,6 +711,7 @@ class DatasetViewer:
         render_transparency,
         render_transparency_function,
         render_scalar_warp,
+        render_cartographic,
         **kwargs,
     ):
         self.set_render_options(
@@ -688,4 +719,5 @@ class DatasetViewer:
             transparency=render_transparency,
             transparency_function=render_transparency_function,
             scalar_warp=render_scalar_warp,
+            cartographic=render_cartographic,
         )

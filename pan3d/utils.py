@@ -65,6 +65,7 @@ initial_state = {
     "da_t_index": 0,
     "da_size": None,
     "ui_loading": False,
+    "ui_import_loading": False,
     "ui_main_drawer": False,
     "ui_axis_drawer": False,
     "ui_unapplied_changes": False,
@@ -83,6 +84,7 @@ initial_state = {
     "render_y_scale": 1,
     "render_z_scale": 1,
     "render_scalar_warp": False,
+    "render_cartographic": False,
     "render_transparency": False,
     "render_transparency_function": "linear",
     "render_transparency_function_options": [
