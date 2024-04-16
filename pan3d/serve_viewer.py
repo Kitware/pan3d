@@ -8,11 +8,11 @@ def serve():
         description="Launch the Pan3D Dataset Viewer",
     )
 
-    parser.add_argument("-C", "--config_path")
-    parser.add_argument("-D", "--dataset")
-    parser.add_argument("-c", "--catalogs", nargs="+")
-    parser.add_argument("-S", "--server", action=BooleanOptionalAction)
-    parser.add_argument("-d", "--debug", action=BooleanOptionalAction)
+    parser.add_argument("--config_path")
+    parser.add_argument("--dataset")
+    parser.add_argument("--catalogs", nargs="+")
+    parser.add_argument("--server", action=BooleanOptionalAction)
+    parser.add_argument("--debug", action=BooleanOptionalAction)
 
     args = parser.parse_args()
 
