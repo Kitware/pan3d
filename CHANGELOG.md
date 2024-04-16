@@ -2,6 +2,19 @@
 
 
 
+## v0.6.1 (2024-04-16)
+
+### Fix
+
+* fix: remove cmdline arg shorthand notations to avoid conflicts ([`7c39a4e`](https://github.com/Kitware/pan3d/commit/7c39a4e63758c43350cd63f16e4b3ff8954025f2))
+
+### Unknown
+
+* Merge pull request #76 from Kitware/remove-shorthand-args
+
+Remove shorthand notations of cmdline args ([`350ba63`](https://github.com/Kitware/pan3d/commit/350ba63a6b2f043f4d048c85e1a493db8ae492a0))
+
+
 ## v0.6.0 (2024-04-09)
 
 ### Feature
