@@ -9,7 +9,7 @@ on:
 
 
 jobs:
-  build-and-publish-pan3d-viewer:
+  pan3d-viewer:
     runs-on: ubuntu-latest
     env:
       REGISTRY: ghcr.io
@@ -35,7 +35,7 @@ jobs:
           push: ${{ github.actor != 'dependabot[bot]' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-  build-and-publish-pan3d-cloud:
+  pan3d-cloud:
     runs-on: ubuntu-latest
     env:
       REGISTRY: ghcr.io
