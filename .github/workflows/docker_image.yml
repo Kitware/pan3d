@@ -1,4 +1,4 @@
-name: Docker Package
+name: Publish Docker Packages
 on:
   workflow_dispatch:
   push:
@@ -7,14 +7,14 @@ on:
       - main
   pull_request:
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: Kitware/pan3d-viewer # ${{ github.repository }}
 
 jobs:
-  build-and-publish:
+  build-and-publish-pan3d-viewer:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository )
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: Kitware/pan3d-viewer
     steps:
       - uses: actions/checkout@v3
       - name: Log into the Container registry
@@ -33,6 +33,34 @@ jobs:
         with:
           context: .
           file: docker/Dockerfile
+          push: ${{ github.actor != 'dependabot[bot]' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+  build-and-publish-pan3d-cloud:
+    runs-on: ubuntu-latest
+    # Put this back before merging, commented for PR testing
+    # if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository )
+    env:
+      REGISTRY: ghcr.io
+      IMAGE_NAME: Kitware/pan3d-cloud
+    steps:
+      - uses: actions/checkout@v3
+      - name: Log into the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: token
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata for the Docker image
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      - name: Build and push the Docker image
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          file: docker/cloud.Dockerfile
           push: ${{ github.actor != 'dependabot[bot]' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
