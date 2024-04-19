@@ -11,7 +11,6 @@ on:
 jobs:
   build-and-publish-pan3d-viewer:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository )
     env:
       REGISTRY: ghcr.io
       IMAGE_NAME: Kitware/pan3d-viewer
@@ -38,8 +37,6 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
   build-and-publish-pan3d-cloud:
     runs-on: ubuntu-latest
-    # Put this back before merging, commented for PR testing
-    # if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || ( github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository )
     env:
       REGISTRY: ghcr.io
       IMAGE_NAME: Kitware/pan3d-cloud
