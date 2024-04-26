@@ -1,5 +1,6 @@
 import os
 import json
+import pandas
 import pyvista
 import xarray
 
@@ -335,17 +336,41 @@ class DatasetBuilder:
                     raise ValueError(
                         "Values in slicing must be lists of length 3 ([start, stop, step])."
                     )
-                acceptable_coords = self.dataset[self.data_array_name].coords
+                da = self.dataset[self.data_array_name]
+                acceptable_coords = da.dims
                 if key not in acceptable_coords:
                     raise ValueError(
                         f"Key {key} not found in data array. Must be one of {list(acceptable_coords.keys())}."
                     )
-                key_coord = acceptable_coords[key]
+                key_coord = da[key]
 
-                if value[2] > key_coord.size:
+                step = value[2]
+                if step > key_coord.size:
                     raise ValueError(
                         f"Value {value} not applicable for Key {key}. Step value must be <= {key_coord.size}."
                     )
+
+                start_value = value[0]
+                end_value = value[1]
+                if key_coord.dtype.kind in ['O', 'M']:
+                    start_value = pandas.to_datetime(start_value)
+                    end_value = pandas.to_datetime(end_value)
+                elif key_coord.dtype.kind in ['m']:
+                    start_value = pandas.to_timedelta(start_value).total_seconds()
+                    end_value = pandas.to_timedelta(end_value).total_seconds()
+                start_index = None
+                end_index = None
+                for i, c in enumerate(key_coord.to_series()):
+                    if key_coord.dtype.kind in ['O', 'M']:
+                        c = pandas.to_datetime(str(c))
+                    elif key_coord.dtype.kind in ['m']:
+                        c = pandas.to_timedelta(c).total_seconds()
+                    if c >= start_value and start_index is None:
+                        start_index = i
+                    if c <= end_value:
+                        end_index = i
+                slicing[key] = [start_index, end_index, step]
+
         self._algorithm.slicing = slicing
         if self._viewer:
             self._viewer._data_slicing_changed()
