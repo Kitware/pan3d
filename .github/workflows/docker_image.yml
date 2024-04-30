@@ -25,7 +25,7 @@ jobs:
           context: .
           file: docker/Dockerfile
           push: ${{ github.actor != 'dependabot[bot]' }}
-          tags: kitware/geotrame-viewer
+          tags: kitware/trame:geotrame-viewer
 
   geotrame-cloud:
     runs-on: ubuntu-latest
@@ -44,4 +44,4 @@ jobs:
           context: .
           file: docker/cloud.Dockerfile
           push: ${{ github.actor != 'dependabot[bot]' }}
-          tags: kitware/geotrame-cloud
+          tags: kitware/trame:geotrame-cloud
