@@ -18,7 +18,7 @@ from trame_vuetify.ui.vuetify3 import VAppLayout
 
 from pan3d import catalogs as pan3d_catalogs
 from pan3d.dataset_builder import DatasetBuilder
-from pan3d.ui import AxisDrawer, MainDrawer, Toolbar, RenderOptions
+from pan3d.ui import AxisDrawer, MainDrawer, Toolbar, RenderOptions, BoundsConfigure
 from pan3d.utils import (
     initial_state,
     has_gpu_rendering,
@@ -58,6 +58,7 @@ class DatasetViewer:
 
         self.plotter = geovista.GeoPlotter(off_screen=True, notebook=False)
         self.plotter.set_background("lightgrey")
+        self.reset_camera = True
         self.plot_view = None
         self.actor = None
         self.ctrl.get_plotter = lambda: self.plotter
@@ -137,6 +138,9 @@ class DatasetViewer:
                     with html.Div(
                         v_if=("da_active",), style="height: 100%; position: relative"
                     ):
+                        BoundsConfigure(
+                            coordinate_change_bounds_function=self._coordinate_change_bounds,
+                        )
                         RenderOptions()
                         with pyvista.trame.ui.plotter_ui(
                             self.ctrl.get_plotter(),
@@ -232,31 +236,28 @@ class DatasetViewer:
             self.state[current_axis] = None
         if new_axis and new_axis != "undefined":
             self.state[new_axis] = coordinate_name
+        self.reset_camera = True
 
     def _coordinate_change_slice(self, coordinate_name, slice_attribute_name, value):
-        try:
-            value = float(value)
-            coordinate_matches = [
-                (index, coordinate)
-                for index, coordinate in enumerate(self.state.da_coordinates)
-                if coordinate["name"] == coordinate_name
-            ]
-            if len(coordinate_matches) > 0:
-                coord_i, coordinate = coordinate_matches[0]
-                if slice_attribute_name == "step":
-                    if value > 0 and value < coordinate["size"]:
-                        coordinate[slice_attribute_name] = value
-                else:
-                    if (
-                        value >= coordinate["range"][0]
-                        and value <= coordinate["range"][1]
-                    ):
-                        coordinate[slice_attribute_name] = value
-
-                self.state.da_coordinates[coord_i] = coordinate
+        value = float(value)
+        for coord in self.state.da_coordinates:
+            if coord['name'] == coordinate_name:
+                bounds = coord.get('bounds')
+                if slice_attribute_name == 'start':
+                    bounds[0] = value
+                elif slice_attribute_name == 'stop':
+                    bounds[1] = value
+                elif slice_attribute_name == 'step':
+                    coord.update(dict(step=value))
+                coord.update(dict(bounds=bounds))
                 self.state.dirty("da_coordinates")
-        except Exception:
-            pass
+
+
+    def _coordinate_change_bounds(self, coordinate_name, bounds):
+        for coord in self.state.da_coordinates:
+            if coord['name'] == coordinate_name:
+                coord.update(dict(bounds=bounds))
+                self.state.dirty("da_coordinates")
 
     def _coordinate_toggle_expansion(self, coordinate_name):
         if coordinate_name in self.state.ui_expanded_coordinates:
@@ -275,6 +276,7 @@ class DatasetViewer:
 
                 self.builder.import_config(json.loads(file_content.decode()))
                 self._mesh_changed()
+                self.reset_camera = True
 
         self.run_as_async(
             submit, loading_state="ui_import_loading", unapplied_changes_state=None
@@ -379,10 +381,12 @@ class DatasetViewer:
             mesh,
             **args,
         )
-        if len(self.builder.data_array.shape) > 2:
-            self.plotter.view_isometric()
-        elif not self.state.render_cartographic:
-            self.plotter.view_xy()
+        if self.reset_camera:
+            if len(self.builder.data_array.shape) > 2:
+                self.plotter.view_vector([1, 1, -1], [0, 1, 0])
+            elif not self.state.render_cartographic:
+                self.plotter.view_xy()
+            self.reset_camera = False
 
         if self.plot_view:
             self.ctrl.push_camera()
@@ -475,72 +479,42 @@ class DatasetViewer:
         da_name = self.builder.data_array_name
         self.state.da_coordinates = []
         self.state.ui_expanded_coordinates = []
+        self.reset_camera = True
 
         if dataset is None or da_name is None:
             return
         da = dataset[da_name]
-        if len(da.dims) > 0 and self._ui is not None:
-            self.state.ui_axis_drawer = True
         for key in da.dims:
-            current_coord = da.coords[key]
-            d = current_coord.dtype
-            numeric = True
-            array_min = current_coord.values.min()
-            array_max = current_coord.values.max()
-
-            # make content serializable by its type
-            if d.kind in ["O", "M"]:  # is datetime
-                if not hasattr(array_min, "strftime"):
-                    array_min = pandas.to_datetime(array_min)
-                if not hasattr(array_max, "strftime"):
-                    array_max = pandas.to_datetime(array_max)
-                array_min = array_min.strftime("%b %d %Y %H:%M")
-                array_max = array_max.strftime("%b %d %Y %H:%M")
-                numeric = False
-            elif d.kind in ["m"]:  # is timedelta
-                if not hasattr(array_min, "total_seconds"):
-                    array_min = pandas.to_timedelta(array_min)
-                if not hasattr(array_max, "total_seconds"):
-                    array_max = pandas.to_timedelta(array_max)
-                array_min = array_min.total_seconds()
-                array_max = array_max.total_seconds()
-            elif d.kind in ["i", "u"]:
-                array_min = int(array_min)
-                array_max = int(array_max)
-            elif d.kind in ["f", "c"]:
-                array_min = round(float(array_min), 2)
-                array_max = round(float(array_max), 2)
-
-            coord_attrs = [
-                {"key": str(k), "value": str(v)}
-                for k, v in da.coords[key].attrs.items()
-            ]
-            coord_attrs.append({"key": "dtype", "value": str(da.coords[key].dtype)})
-            coord_attrs.append({"key": "length", "value": int(da.coords[key].size)})
-            coord_attrs.append(
-                {
-                    "key": "range",
-                    "value": [array_min, array_max],
-                }
-            )
             if key not in [c["name"] for c in self.state.da_coordinates]:
-                coord_info = {
+                current_coord = da.coords[key]
+                values = current_coord.values
+                size = current_coord.size
+                coord_range = [
+                    str(round(v)) if isinstance(v, float) else str(v)
+                    for v in [values.item(0), values.item(size-1)]
+                ]
+                dtype = current_coord.dtype
+
+                coord_attrs = [
+                    {"key": str(k), "value": str(v)}
+                    for k, v in da.coords[key].attrs.items()
+                ]
+                coord_attrs.append({"key": "dtype", "value": str(dtype)})
+                coord_attrs.append({"key": "length", "value": int(size)})
+                coord_attrs.append({"key": "range", "value": coord_range})
+                bounds = [0, size - 1]
+                if self.builder.slicing:
+                    slicing = self.builder.slicing.get(key)
+                    if slicing:
+                        bounds = [values.item(slicing[0]), values.item(slicing[1])]
+                self.state.da_coordinates.append({
                     "name": key,
-                    "numeric": numeric,
                     "attrs": coord_attrs,
-                    "size": da.coords[key].size,
-                    "range": [array_min, array_max],
-                }
-                coord_slicing = {
-                    "start": array_min,
-                    "stop": array_max,
+                    "labels": [str(round(v)) if isinstance(v, float) else str(v) for v in values],
+                    "full_bounds": bounds,
+                    "bounds": bounds,
                     "step": 1,
-                }
-                if self.builder.slicing and self.builder.slicing.get(key):
-                    coord_slicing = dict(
-                        zip(["start", "stop", "step"], self.builder.slicing.get(key))
-                    )
-                self.state.da_coordinates.append(dict(**coord_info, **coord_slicing))
+                })
 
             self.state.dirty("da_coordinates")
             self.plotter.clear()
@@ -552,7 +526,10 @@ class DatasetViewer:
         for coord in self.state.da_coordinates:
             slicing = self.builder.slicing.get(coord["name"])
             if slicing:
-                coord.update(dict(zip(["start", "stop", "step"], slicing)))
+                bounds = [slicing[0], slicing[1]]
+                if bounds != coord.get('bounds'):
+                    coord.update(dict(bounds=bounds))
+                    self.state.dirty("da_coordinates")
 
     def _time_index_changed(self) -> None:
         dataset = self.builder.dataset
@@ -671,17 +648,8 @@ class DatasetViewer:
 
     @change("da_coordinates")
     def _on_change_da_coordinates(self, da_coordinates, **kwargs):
-        if len(da_coordinates) == 0:
-            self.builder.slicing = None
-        else:
-            self.builder.slicing = {
-                coord["name"]: [
-                    coord["start"],
-                    coord["stop"],
-                    coord["step"],
-                ]
-                for coord in da_coordinates
-            }
+        bounds = {c.get('name'): c.get('bounds') for c in da_coordinates}
+        self.builder._auto_select_slicing(bounds)
 
     @change("ui_action_name")
     def _on_change_action_name(self, ui_action_name, **kwargs):

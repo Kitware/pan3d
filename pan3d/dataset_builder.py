@@ -1,4 +1,5 @@
 import os
+import math
 import json
 import pandas
 import pyvista
@@ -20,6 +21,7 @@ class DatasetBuilder:
         server: Any = None,
         viewer: bool = False,
         catalogs: List[str] = [],
+        resolution: int = 2 ** 7,
     ) -> None:
         """Create an instance of the DatasetBuilder class.
 
@@ -33,6 +35,7 @@ class DatasetBuilder:
         self._dataset = None
         self._dataset_info = None
         self._da_name = None
+        self._resolution = resolution
 
         self._server = server
         self._catalogs = catalogs
@@ -172,6 +175,7 @@ class DatasetBuilder:
                 self._viewer._data_array_changed()
                 self._viewer._mesh_changed()
             self._auto_select_coordinates()
+            self._auto_select_slicing()
 
     @property
     def data_array(self) -> Optional[xarray.DataArray]:
@@ -350,27 +354,6 @@ class DatasetBuilder:
                         f"Value {value} not applicable for Key {key}. Step value must be <= {key_coord.size}."
                     )
 
-                start_value = value[0]
-                end_value = value[1]
-                if key_coord.dtype.kind in ['O', 'M']:
-                    start_value = pandas.to_datetime(start_value)
-                    end_value = pandas.to_datetime(end_value)
-                elif key_coord.dtype.kind in ['m']:
-                    start_value = pandas.to_timedelta(start_value).total_seconds()
-                    end_value = pandas.to_timedelta(end_value).total_seconds()
-                start_index = None
-                end_index = None
-                for i, c in enumerate(key_coord.to_series()):
-                    if key_coord.dtype.kind in ['O', 'M']:
-                        c = pandas.to_datetime(str(c))
-                    elif key_coord.dtype.kind in ['m']:
-                        c = pandas.to_timedelta(c).total_seconds()
-                    if c >= start_value and start_index is None:
-                        start_index = i
-                    if c <= end_value:
-                        end_index = i
-                slicing[key] = [start_index, end_index, step]
-
         self._algorithm.slicing = slicing
         if self._viewer:
             self._viewer._data_slicing_changed()
@@ -436,6 +419,9 @@ class DatasetBuilder:
         if self.dataset is not None and self.data_array_name is not None:
             da = self.dataset[self.data_array_name]
             assigned_coords = []
+            unassigned_axes = [
+                a for a in ["x", "y", "z", "t"] if getattr(self, a) is None
+            ]
             # Prioritize assignment by known names
             for coord_name in da.dims:
                 name = coord_name.lower()
@@ -447,17 +433,28 @@ class DatasetBuilder:
                         if (len(accepted) == 1 and accepted == name)
                         or (len(accepted) > 1 and accepted in name)
                     ]
-                    if len(name_match) > 0:
+                    if len(name_match) > 0 and coord_name in unassigned_axes:
                         setattr(self, axis, coord_name)
                         assigned_coords.append(coord_name)
             # Then assign any remaining by index
-            unassigned_axes = [
-                a for a in ["x", "y", "z", "t"] if getattr(self, a) is None
-            ]
             unassigned_coords = [d for d in da.dims if d not in assigned_coords]
             for i, d in enumerate(unassigned_coords):
                 if i < len(unassigned_axes):
                     setattr(self, unassigned_axes[i], d)
+
+    def _auto_select_slicing(self, bounds: Optional[Dict] = None) -> None:
+        """Automatically select slicing for selected data array."""
+        if not bounds:
+            da = self.dataset[self.data_array_name]
+            bounds = {
+                k: [0, da[k].size]
+                for k in da.dims
+            }
+        self.slicing = {
+            k: [v[0], v[1], math.ceil((v[1] - v[0]) / self._resolution)]
+            for k, v in bounds.items()
+        }
+
 
     # -----------------------------------------------------
     # Config logic

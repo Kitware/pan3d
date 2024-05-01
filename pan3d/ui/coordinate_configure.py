@@ -49,7 +49,7 @@ class CoordinateConfigure(vuetify.VCard):
                             with vuetify.VSlider(
                                 v_model=(axis_info["index_var"],),
                                 min=0,
-                                max=(f"{coordinate_info}?.size - 1",),
+                                max=(f"{coordinate_info}?.length - 1",),
                                 step=(f"{coordinate_info}?.step",),
                                 classes="mx-5",
                             ):
@@ -59,7 +59,7 @@ class CoordinateConfigure(vuetify.VCard):
                                     vuetify.VTextField(
                                         v_model=(axis_info["index_var"],),
                                         min=0,
-                                        max=(f"{coordinate_info}?.size - 1",),
+                                        max=(f"{coordinate_info}?.length - 1",),
                                         step=(f"{coordinate_info}?.step",),
                                         hide_details=True,
                                         density="compact",
@@ -70,47 +70,45 @@ class CoordinateConfigure(vuetify.VCard):
 
                         else:
                             vuetify.VCardSubtitle(
-                                "Select values",
-                                v_if=(f"{coordinate_info}?.numeric",),
+                                "Select slicing",
                                 classes="mt-3",
                             )
                             with vuetify.VContainer(
                                 classes="d-flex pa-0",
                                 style="column-gap: 3px",
-                                v_if=(f"{coordinate_info}?.numeric",),
                             ):
                                 vuetify.VTextField(
-                                    model_value=(f"{coordinate_info}?.start",),
+                                    model_value=(f"{coordinate_info}?.bounds[0]",),
                                     label="Start",
                                     hide_details=True,
                                     density="compact",
                                     type="number",
-                                    min=(f"{coordinate_info}?.range[0]",),
-                                    max=(f"{coordinate_info}?.range[1]",),
-                                    step="0.01",
+                                    min=(f"{coordinate_info}.full_bounds[0]",),
+                                    max=(f"{coordinate_info}.full_bounds[1]",),
+                                    step="1",
                                     __properties=["min", "max", "step"],
-                                    change_prevent=(
+                                    update=(
                                         coordinate_change_slice_function,
-                                        f"[{coordinate_info}.name, 'start', $event.target.value]",
+                                        f"[{coordinate_info}.name, 'start', $event]",
                                     ),
-                                    __events=[("change_prevent", "change.prevent")],
+                                    __events=[("update", "update:modelValue")],
                                     style="flex-grow: 1",
                                 )
                                 vuetify.VTextField(
-                                    model_value=(f"{coordinate_info}?.stop",),
+                                    model_value=(f"{coordinate_info}?.bounds[1]",),
                                     label="Stop",
                                     hide_details=True,
                                     density="compact",
                                     type="number",
-                                    min=(f"{coordinate_info}?.range[0]",),
-                                    max=(f"{coordinate_info}?.range[1]",),
-                                    step="0.01",
+                                    min=(f"{coordinate_info}.full_bounds[0]",),
+                                    max=(f"{coordinate_info}.full_bounds[1]",),
+                                    step="1",
                                     __properties=["min", "max", "step"],
-                                    change_prevent=(
+                                    update=(
                                         coordinate_change_slice_function,
-                                        f"[{coordinate_info}.name, 'stop', $event.target.value]",
+                                        f"[{coordinate_info}.name, 'stop', $event]",
                                     ),
-                                    __events=[("change_prevent", "change.prevent")],
+                                    __events=[("update", "update:modelValue")],
                                     style="flex-grow: 1",
                                 )
                                 vuetify.VTextField(
@@ -120,13 +118,14 @@ class CoordinateConfigure(vuetify.VCard):
                                     density="compact",
                                     type="number",
                                     min="1",
-                                    max=(f"{coordinate_info}?.size",),
-                                    __properties=["min", "max"],
-                                    change_prevent=(
+                                    max=(f"{coordinate_info}?.length",),
+                                    step="1",
+                                    __properties=["min", "max", "step"],
+                                    update=(
                                         coordinate_change_slice_function,
-                                        f"[{coordinate_info}.name, 'step', $event.target.value]",
+                                        f"[{coordinate_info}.name, 'step', $event]",
                                     ),
-                                    __events=[("change_prevent", "change.prevent")],
+                                    __events=[("update", "update:modelValue")],
                                     style="flex-grow: 1",
                                 )
 
