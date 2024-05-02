@@ -7,7 +7,7 @@ class BoundsConfigure(vuetify.VMenu):
         self,
         coordinate_change_bounds_function,
         da_coordinates="da_coordinates",
-        da_auto_slicing="da_auto_slicing"
+        da_auto_slicing="da_auto_slicing",
     ):
         super().__init__(
             v_if=(da_auto_slicing,),
@@ -40,14 +40,11 @@ class BoundsConfigure(vuetify.VMenu):
                     max=("coord.full_bounds[1]",),
                     thumb_label=True,
                     style="width: 250px",
-                    end=(
-                        coordinate_change_bounds_function,
-                        f"[coord.name, $event]"
-                    ),
+                    end=(coordinate_change_bounds_function, "[coord.name, $event]"),
                     __events=[("end", "end")],
                 ):
                     with vuetify.Template(v_slot_thumb_label=("{ modelValue }",)):
                         html.Span(
                             ("{{ coord.labels[modelValue] }}",),
-                            style="white-space: nowrap"
+                            style="white-space: nowrap",
                         )

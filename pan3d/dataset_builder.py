@@ -1,7 +1,6 @@
 import os
 import math
 import json
-import pandas
 import pyvista
 import xarray
 
@@ -21,7 +20,7 @@ class DatasetBuilder:
         server: Any = None,
         viewer: bool = False,
         catalogs: List[str] = [],
-        resolution: int = 2 ** 7,
+        resolution: int = 2**7,
     ) -> None:
         """Create an instance of the DatasetBuilder class.
 
@@ -74,7 +73,7 @@ class DatasetBuilder:
                     da_z=self.z,
                     da_t=self.t,
                     da_t_index=self.t_index,
-                    da_auto_slicing=self._resolution > 1
+                    da_auto_slicing=self._resolution > 1,
                 ),
             )
         return self._viewer
@@ -447,18 +446,17 @@ class DatasetBuilder:
         """Automatically select slicing for selected data array."""
         if not bounds:
             da = self.dataset[self.data_array_name]
-            bounds = {
-                k: [0, da[k].size]
-                for k in da.dims
-            }
+            bounds = {k: [0, da[k].size] for k in da.dims}
         self.slicing = {
             k: [
-                v[0], v[1],
-                math.ceil((v[1] - v[0]) / self._resolution) if self._resolution > 1 else 1
+                v[0],
+                v[1],
+                math.ceil((v[1] - v[0]) / self._resolution)
+                if self._resolution > 1
+                else 1,
             ]
             for k, v in bounds.items()
         }
-
 
     # -----------------------------------------------------
     # Config logic

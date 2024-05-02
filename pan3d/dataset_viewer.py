@@ -241,21 +241,20 @@ class DatasetViewer:
     def _coordinate_change_slice(self, coordinate_name, slice_attribute_name, value):
         value = float(value)
         for coord in self.state.da_coordinates:
-            if coord['name'] == coordinate_name:
-                bounds = coord.get('bounds')
-                if slice_attribute_name == 'start':
+            if coord["name"] == coordinate_name:
+                bounds = coord.get("bounds")
+                if slice_attribute_name == "start":
                     bounds[0] = value
-                elif slice_attribute_name == 'stop':
+                elif slice_attribute_name == "stop":
                     bounds[1] = value
-                elif slice_attribute_name == 'step':
+                elif slice_attribute_name == "step":
                     coord.update(dict(step=value))
                 coord.update(dict(bounds=bounds))
                 self.state.dirty("da_coordinates")
 
-
     def _coordinate_change_bounds(self, coordinate_name, bounds):
         for coord in self.state.da_coordinates:
-            if coord['name'] == coordinate_name:
+            if coord["name"] == coordinate_name:
                 coord.update(dict(bounds=bounds))
                 self.state.dirty("da_coordinates")
 
@@ -491,7 +490,7 @@ class DatasetViewer:
                 size = current_coord.size
                 coord_range = [
                     str(round(v)) if isinstance(v, float) else str(v)
-                    for v in [values.item(0), values.item(size-1)]
+                    for v in [values.item(0), values.item(size - 1)]
                 ]
                 dtype = current_coord.dtype
 
@@ -507,14 +506,19 @@ class DatasetViewer:
                     slicing = self.builder.slicing.get(key)
                     if slicing:
                         bounds = [values.item(slicing[0]), values.item(slicing[1])]
-                self.state.da_coordinates.append({
-                    "name": key,
-                    "attrs": coord_attrs,
-                    "labels": [str(round(v)) if isinstance(v, float) else str(v) for v in values],
-                    "full_bounds": bounds,
-                    "bounds": bounds,
-                    "step": 1,
-                })
+                self.state.da_coordinates.append(
+                    {
+                        "name": key,
+                        "attrs": coord_attrs,
+                        "labels": [
+                            str(round(v)) if isinstance(v, float) else str(v)
+                            for v in values
+                        ],
+                        "full_bounds": bounds,
+                        "bounds": bounds,
+                        "step": 1,
+                    }
+                )
 
             self.state.dirty("da_coordinates")
             self.plotter.clear()
@@ -527,7 +531,7 @@ class DatasetViewer:
             slicing = self.builder.slicing.get(coord["name"])
             if slicing:
                 bounds = [slicing[0], slicing[1]]
-                if bounds != coord.get('bounds'):
+                if bounds != coord.get("bounds"):
                     coord.update(dict(bounds=bounds))
                     self.state.dirty("da_coordinates")
 
@@ -648,7 +652,7 @@ class DatasetViewer:
 
     @change("da_coordinates")
     def _on_change_da_coordinates(self, da_coordinates, **kwargs):
-        bounds = {c.get('name'): c.get('bounds') for c in da_coordinates}
+        bounds = {c.get("name"): c.get("bounds") for c in da_coordinates}
         self.builder._auto_select_slicing(bounds)
 
     @change("ui_action_name")
