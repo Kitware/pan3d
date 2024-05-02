@@ -6,6 +6,7 @@ class CoordinateConfigure(vuetify.VCard):
         self,
         axes,
         da_coordinates,
+        da_auto_slicing,
         coordinate_info,
         ui_expanded_coordinates,
         ui_current_time_string,
@@ -71,9 +72,11 @@ class CoordinateConfigure(vuetify.VCard):
                         else:
                             vuetify.VCardSubtitle(
                                 "Select slicing",
+                                v_if=(f"!{da_auto_slicing}",),
                                 classes="mt-3",
                             )
                             with vuetify.VContainer(
+                                v_if=(f"!{da_auto_slicing}",),
                                 classes="d-flex pa-0",
                                 style="column-gap: 3px",
                             ):

@@ -74,6 +74,7 @@ class DatasetBuilder:
                     da_z=self.z,
                     da_t=self.t,
                     da_t_index=self.t_index,
+                    da_auto_slicing=self._resolution > 1
                 ),
             )
         return self._viewer
@@ -451,7 +452,10 @@ class DatasetBuilder:
                 for k in da.dims
             }
         self.slicing = {
-            k: [v[0], v[1], math.ceil((v[1] - v[0]) / self._resolution)]
+            k: [
+                v[0], v[1],
+                math.ceil((v[1] - v[0]) / self._resolution) if self._resolution > 1 else 1
+            ]
             for k, v in bounds.items()
         }
 

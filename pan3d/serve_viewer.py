@@ -10,6 +10,7 @@ def serve():
 
     parser.add_argument("--config_path")
     parser.add_argument("--dataset")
+    parser.add_argument("--resolution", type=int)
     parser.add_argument("--catalogs", nargs="+")
     parser.add_argument("--server", action=BooleanOptionalAction)
     parser.add_argument("--debug", action=BooleanOptionalAction)
@@ -19,6 +20,7 @@ def serve():
     builder = DatasetBuilder(
         dataset=args.dataset,
         catalogs=args.catalogs,
+        resolution=args.resolution,
     )
     if args.config_path:
         builder.import_config(args.config_path)

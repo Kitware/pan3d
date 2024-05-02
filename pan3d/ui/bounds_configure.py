@@ -7,8 +7,10 @@ class BoundsConfigure(vuetify.VMenu):
         self,
         coordinate_change_bounds_function,
         da_coordinates="da_coordinates",
+        da_auto_slicing="da_auto_slicing"
     ):
         super().__init__(
+            v_if=(da_auto_slicing,),
             location="start",
             transition="slide-y-transition",
             close_on_content_click=False,

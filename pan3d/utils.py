@@ -64,6 +64,7 @@ initial_state = {
     "da_t": None,
     "da_t_index": 0,
     "da_size": None,
+    "da_auto_slicing": True,
     "ui_loading": False,
     "ui_import_loading": False,
     "ui_main_drawer": False,
