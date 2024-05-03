@@ -9,8 +9,8 @@ from pan3d import DatasetBuilder
 def test_import_config():
     builder = DatasetBuilder()
     builder.import_config("examples/example_config_noaa.json")
-    # With slicing, data_array has shape (180, 360)
-    assert builder.data_array.size == 64800
+    # With slicing, data_array has shape (100, 100)
+    assert builder.data_array.size == 10000
 
 
 def test_export_config():
@@ -135,30 +135,31 @@ def test_setters_invalid_values():
     # Set a valid value to proceed
     builder.data_array_name = "v"
 
+    acceptable_coord_names = ["latitude", "level", "longitude", "month"]
     # Setting wrong values for x, y, z, t
     with pytest.raises(ValueError) as e:
         builder.x = "foo"
     assert (
         str(e.value)
-        == "foo does not exist on data array. Must be one of ('month', 'level', 'latitude', 'longitude')."
+        == f"foo does not exist on data array. Must be one of {acceptable_coord_names}."
     )
     with pytest.raises(ValueError) as e:
         builder.y = "foo"
     assert (
         str(e.value)
-        == "foo does not exist on data array. Must be one of ('month', 'level', 'latitude', 'longitude')."
+        == f"foo does not exist on data array. Must be one of {acceptable_coord_names}."
     )
     with pytest.raises(ValueError) as e:
         builder.z = "foo"
     assert (
         str(e.value)
-        == "foo does not exist on data array. Must be one of ('month', 'level', 'latitude', 'longitude')."
+        == f"foo does not exist on data array. Must be one of {acceptable_coord_names}."
     )
     with pytest.raises(ValueError) as e:
         builder.t = "foo"
     assert (
         str(e.value)
-        == "foo does not exist on data array. Must be one of ('month', 'level', 'latitude', 'longitude')."
+        == f"foo does not exist on data array. Must be one of {acceptable_coord_names}."
     )
 
     # Set valid values to proceed
@@ -183,13 +184,13 @@ def test_setters_invalid_values():
         builder.slicing = {"foo": []}
     assert (
         str(e.value)
-        == "Values in slicing must be lists of length 3 ([start, stop, step])."
+        == "Values in slicing must be lists of 3 integers ([start, stop, step])."
     )
     with pytest.raises(ValueError) as e:
         builder.slicing = {"foo": [0, 1, 1]}
     assert (
         str(e.value)
-        == "Key foo not found in data array. Must be one of ['longitude', 'latitude', 'level', 'month']."
+        == f"Key foo not found in data array. Must be one of {acceptable_coord_names}."
     )
     with pytest.raises(ValueError) as e:
         builder.slicing = {"month": [-1, 10, 10]}
