@@ -35,6 +35,8 @@ class DatasetBuilder:
         self._dataset_info = None
         self._da_name = None
         self._resolution = resolution
+        self._import_mode = False
+        self._import_viewer_state = {}
 
         self._server = server
         self._catalogs = catalogs
@@ -74,6 +76,7 @@ class DatasetBuilder:
                     da_t=self.t,
                     da_t_index=self.t_index,
                     da_auto_slicing=self._resolution > 1,
+                    **self._import_viewer_state,
                 ),
             )
         return self._viewer
@@ -174,8 +177,9 @@ class DatasetBuilder:
             if self._viewer:
                 self._viewer._data_array_changed()
                 self._viewer._mesh_changed()
-            self._auto_select_coordinates()
-            self._auto_select_slicing()
+            if not self._import_mode:
+                self._auto_select_coordinates()
+                self._auto_select_slicing()
 
     @property
     def data_array(self) -> Optional[xarray.DataArray]:
@@ -205,7 +209,7 @@ class DatasetBuilder:
             acceptable_values = self.dataset[self.data_array_name].dims
             if x not in acceptable_values:
                 raise ValueError(
-                    f"{x} does not exist on data array. Must be one of {acceptable_values}."
+                    f"{x} does not exist on data array. Must be one of {sorted(acceptable_values)}."
                 )
         if self._algorithm.x != x:
             self._algorithm.x = x
@@ -229,7 +233,7 @@ class DatasetBuilder:
             acceptable_values = self.dataset[self.data_array_name].dims
             if y not in acceptable_values:
                 raise ValueError(
-                    f"{y} does not exist on data array. Must be one of {acceptable_values}."
+                    f"{y} does not exist on data array. Must be one of {sorted(acceptable_values)}."
                 )
         if self._algorithm.y != y:
             self._algorithm.y = y
@@ -253,7 +257,7 @@ class DatasetBuilder:
             acceptable_values = self.dataset[self.data_array_name].dims
             if z not in acceptable_values:
                 raise ValueError(
-                    f"{z} does not exist on data array. Must be one of {acceptable_values}."
+                    f"{z} does not exist on data array. Must be one of {sorted(acceptable_values)}."
                 )
         if self._algorithm.z != z:
             self._algorithm.z = z
@@ -278,7 +282,7 @@ class DatasetBuilder:
             acceptable_values = self.dataset[self.data_array_name].dims
             if t not in acceptable_values:
                 raise ValueError(
-                    f"{t} does not exist on data array. Must be one of {acceptable_values}."
+                    f"{t} does not exist on data array. Must be one of {sorted(acceptable_values)}."
                 )
         if self._algorithm.time != t:
             self._algorithm.time = t
@@ -336,15 +340,19 @@ class DatasetBuilder:
             for key, value in slicing.items():
                 if not isinstance(key, str):
                     raise ValueError("Keys in slicing must be strings.")
-                if not isinstance(value, list) or len(value) != 3:
+                if (
+                    not isinstance(value, list)
+                    or len(value) != 3
+                    or any(not isinstance(v, int) for v in value)
+                ):
                     raise ValueError(
-                        "Values in slicing must be lists of length 3 ([start, stop, step])."
+                        "Values in slicing must be lists of 3 integers ([start, stop, step])."
                     )
                 da = self.dataset[self.data_array_name]
                 acceptable_coords = da.dims
                 if key not in acceptable_coords:
                     raise ValueError(
-                        f"Key {key} not found in data array. Must be one of {list(acceptable_coords.keys())}."
+                        f"Key {key} not found in data array. Must be one of {sorted(acceptable_coords)}."
                     )
                 key_coord = da[key]
 
@@ -433,7 +441,7 @@ class DatasetBuilder:
                         if (len(accepted) == 1 and accepted == name)
                         or (len(accepted) > 1 and accepted in name)
                     ]
-                    if len(name_match) > 0 and coord_name in unassigned_axes:
+                    if len(name_match) > 0 and axis in unassigned_axes:
                         setattr(self, axis, coord_name)
                         assigned_coords.append(coord_name)
             # Then assign any remaining by index
@@ -442,8 +450,14 @@ class DatasetBuilder:
                 if i < len(unassigned_axes):
                     setattr(self, unassigned_axes[i], d)
 
-    def _auto_select_slicing(self, bounds: Optional[Dict] = None) -> None:
+    def _auto_select_slicing(
+        self,
+        bounds: Optional[Dict] = None,
+        steps: Optional[Dict] = None,
+    ) -> None:
         """Automatically select slicing for selected data array."""
+        if not self.dataset or not self.data_array_name:
+            return
         if not bounds:
             da = self.dataset[self.data_array_name]
             bounds = {k: [0, da[k].size] for k in da.dims}
@@ -453,6 +467,8 @@ class DatasetBuilder:
                 v[1],
                 math.ceil((v[1] - v[0]) / self._resolution)
                 if self._resolution > 1
+                else steps.get(k, 1)
+                if steps is not None
                 else 1,
             ]
             for k, v in bounds.items()
@@ -489,21 +505,26 @@ class DatasetBuilder:
                 "source": "default",
                 "id": origin_config,
             }
+        self._import_mode = True
         self.dataset_info = origin_config
         self.data_array_name = array_config.pop("name")
         for key, value in array_config.items():
             setattr(self, key, value)
         self.slicing = config.get("data_slices")
+        self._import_mode = False
 
+        ui_config = {f"ui_{k}": v for k, v in config.get("ui", {}).items()}
+        render_config = {f"render_{k}": v for k, v in config.get("render", {}).items()}
         if self._viewer:
-            ui_config = {f"ui_{k}": v for k, v in config.get("ui", {}).items()}
-            render_config = {
-                f"render_{k}": v for k, v in config.get("render", {}).items()
-            }
             self._set_state_values(
                 **ui_config,
                 **render_config,
                 ui_action_name=None,
+            )
+        else:
+            self._import_viewer_state = dict(
+                **ui_config,
+                **render_config,
             )
 
     def export_config(self, config_file: Union[str, Path, None] = None) -> None:
@@ -527,8 +548,9 @@ class DatasetBuilder:
                     if getattr(self, key) is not None
                 },
             },
-            "data_slices": self.slicing,
         }
+        if self._algorithm.slicing:
+            config["data_slices"] = self._algorithm.slicing
         if self._viewer:
             state_items = list(self._viewer.state.to_dict().items())
             config["ui"] = {

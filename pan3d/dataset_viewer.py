@@ -85,6 +85,7 @@ class DatasetViewer:
 
     def _on_ready(self, **kwargs):
         self.state.render_auto = True
+        self.reset_camera = True
         self._mesh_changed()
 
     def start(self, **kwargs):
@@ -239,7 +240,7 @@ class DatasetViewer:
         self.reset_camera = True
 
     def _coordinate_change_slice(self, coordinate_name, slice_attribute_name, value):
-        value = float(value)
+        value = int(value)
         for coord in self.state.da_coordinates:
             if coord["name"] == coordinate_name:
                 bounds = coord.get("bounds")
@@ -501,11 +502,7 @@ class DatasetViewer:
                 coord_attrs.append({"key": "dtype", "value": str(dtype)})
                 coord_attrs.append({"key": "length", "value": int(size)})
                 coord_attrs.append({"key": "range", "value": coord_range})
-                bounds = [0, size - 1]
-                if self.builder.slicing:
-                    slicing = self.builder.slicing.get(key)
-                    if slicing:
-                        bounds = [values.item(slicing[0]), values.item(slicing[1])]
+                bounds = [0, size]
                 self.state.da_coordinates.append(
                     {
                         "name": key,
@@ -519,10 +516,9 @@ class DatasetViewer:
                         "step": 1,
                     }
                 )
-
-            self.state.dirty("da_coordinates")
-            self.plotter.clear()
-            self.plotter.view_isometric()
+        self.state.dirty("da_coordinates")
+        self.plotter.clear()
+        self.plotter.view_isometric()
 
     def _data_slicing_changed(self) -> None:
         if self.builder.slicing is None:
@@ -568,6 +564,8 @@ class DatasetViewer:
             self.state.ui_unapplied_changes = False
             return
         total_bytes = da.size * da.dtype.itemsize
+        if total_bytes == 0:
+            self.state.da_size = "0 bytes"
         exponents_map = {0: "bytes", 1: "KB", 2: "MB", 3: "GB"}
         for exponent in sorted(exponents_map.keys(), reverse=True):
             divisor = 1024**exponent
@@ -653,7 +651,8 @@ class DatasetViewer:
     @change("da_coordinates")
     def _on_change_da_coordinates(self, da_coordinates, **kwargs):
         bounds = {c.get("name"): c.get("bounds") for c in da_coordinates}
-        self.builder._auto_select_slicing(bounds)
+        steps = {c.get("name"): c.get("step") for c in da_coordinates}
+        self.builder._auto_select_slicing(bounds, steps)
 
     @change("ui_action_name")
     def _on_change_action_name(self, ui_action_name, **kwargs):
