@@ -4,20 +4,7 @@
         "name": "zos",
         "x": "i",
         "y": "j",
-        "t": "time",
-        "t_index": 0
-    },
-    "data_slices": {
-        "j": [
-            0,
-            290,
-            1
-        ],
-        "i": [
-            0,
-            359,
-            1
-        ]
+        "t": "time"
     },
     "ui": {
         "main_drawer": true,

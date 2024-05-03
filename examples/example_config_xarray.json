@@ -11,23 +11,6 @@
         "t": "month",
         "t_index": 0
     },
-    "data_slices": {
-        "level": [
-            200,
-            850,
-            1
-        ],
-        "latitude": [
-            -90,
-            0,
-            10
-        ],
-        "longitude": [
-            -180,
-            0,
-            10
-        ]
-    },
     "ui": {
         "main_drawer": true,
         "axis_drawer": true,
