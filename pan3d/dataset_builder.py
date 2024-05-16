@@ -20,7 +20,7 @@ class DatasetBuilder:
         server: Any = None,
         viewer: bool = False,
         catalogs: List[str] = [],
-        resolution: int = 2**7,
+        resolution: int = None,
     ) -> None:
         """Create an instance of the DatasetBuilder class.
 
@@ -34,7 +34,7 @@ class DatasetBuilder:
         self._dataset = None
         self._dataset_info = None
         self._da_name = None
-        self._resolution = resolution
+        self._resolution = resolution or 2**7
         self._import_mode = False
         self._import_viewer_state = {}
 
