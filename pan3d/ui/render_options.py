@@ -19,6 +19,8 @@ class RenderOptions(vuetify.VMenu):
             location="start",
             transition="slide-y-transition",
             close_on_content_click=False,
+            persistent=True,
+            no_click_animation=True,
         )
         with self:
             with vuetify.Template(

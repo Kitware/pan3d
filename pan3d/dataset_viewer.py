@@ -4,6 +4,10 @@ import json
 import pandas
 import pyvista
 import geovista
+import numpy
+import base64
+from io import BytesIO
+from PIL import Image
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 
@@ -152,6 +156,9 @@ class DatasetViewer:
                             self.ctrl.reset_camera = plot_view.reset_camera
                             self.ctrl.push_camera = plot_view.push_camera
                             self.plot_view = plot_view
+        # turn on axis orientation widget by default with state var from pyvista
+        # (typo in visibility is intentional, done to match pyvista)
+        self.state[f"{self.ctrl.get_plotter()._id_name}_axis_visiblity"] = True
         return self._ui
 
     # -----------------------------------------------------
@@ -530,6 +537,7 @@ class DatasetViewer:
                 if bounds != coord.get("bounds"):
                     coord.update(dict(bounds=bounds))
                     self.state.dirty("da_coordinates")
+        self._generate_preview()
 
     def _time_index_changed(self) -> None:
         dataset = self.builder.dataset
@@ -556,6 +564,75 @@ class DatasetViewer:
                     current_time = pandas.to_timedelta(current_time)
                 current_time = f"{current_time.total_seconds()} seconds"
             self.state.ui_current_time_string = str(current_time)
+            self._generate_preview()
+
+    def _generate_preview(self) -> None:
+        if (
+            self.builder.dataset is None
+            or self.builder.data_array_name is None
+            or self.builder.slicing is None
+        ):
+            return
+        preview_slicing = {}
+        if self.builder.t is not None and self.builder.t_index is not None:
+            preview_slicing[self.builder.t] = self.builder.t_index
+
+        face_options = []
+        if self.builder.z is not None:
+            face_options += ["+Z", "-Z"]
+        if self.builder.y is not None:
+            face_options += ["+Y", "-Y"]
+        if self.builder.x is not None:
+            face_options += ["+X", "-X"]
+        self.state.cube_preview_face_options = face_options
+        if self.state.cube_preview_face not in face_options and len(face_options):
+            self.state.cube_preview_face = face_options[0]
+
+        axis_name = None
+        if "X" in self.state.cube_preview_face:
+            self.state.cube_preview_axes = dict(
+                x=self.builder.y,
+                y=self.builder.z,
+            )
+            axis_name = self.builder.x
+        elif "Y" in self.state.cube_preview_face:
+            self.state.cube_preview_axes = dict(
+                x=self.builder.x,
+                y=self.builder.z,
+            )
+            axis_name = self.builder.y
+        elif "Z" in self.state.cube_preview_face:
+            self.state.cube_preview_axes = dict(
+                x=self.builder.x,
+                y=self.builder.y,
+            )
+            axis_name = self.builder.z
+
+        if axis_name is not None:
+            axis_slicing = self.builder.slicing.get(axis_name)
+            if axis_slicing is not None:
+                preview_slicing[axis_name] = (
+                    axis_slicing[0]
+                    if "+" in self.state.cube_preview_face
+                    else axis_slicing[1] - 1
+                )
+
+        data = (
+            self.builder.dataset[self.builder.data_array_name]
+            .isel(preview_slicing)
+            .to_numpy()
+        )
+        normalized_data = numpy.vectorize(
+            lambda x, x_min, x_max: (x - x_min) / (x_max - x_min) * 255
+        )(data, numpy.min(data), numpy.max(data)).astype(numpy.uint8)
+        img = Image.fromarray(normalized_data)
+        img = img.rotate(180)  # match default axis orientation
+        buffer = BytesIO()
+        img.save(buffer, format="PNG")
+        encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
+
+        # save encoded to state
+        self.state.cube_preview = f"data:image/png;base64,{encoded}"
 
     def _mesh_changed(self) -> None:
         da = self.builder.data_array
@@ -692,3 +769,7 @@ class DatasetViewer:
             scalar_warp=render_scalar_warp,
             cartographic=render_cartographic,
         )
+
+    @change("cube_preview_face")
+    def _on_change_cube_preview_face(self, cube_preview_face, **kwargs):
+        self._generate_preview()
