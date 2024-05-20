@@ -1,0 +1,42 @@
+{
+  "name": "pan3d-components",
+  "version": "0.0.0",
+  "description": "Vue component for pan3d",
+  "main": "./dist/pan3d-components.umd.js",
+  "unpkg": "./dist/pan3d-components.umd.js",
+  "exports": {
+    ".": {
+      "require": "./dist/pan3d-components.umd.js"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --emptyOutDir",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore --ignore-pattern public",
+    "semantic-release": "semantic-release"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "vue": "^2.7.0 || >=3.0.0"
+  },
+  "devDependencies": {
+    "@vue/eslint-config-prettier": "^7.0.0",
+    "eslint": "^8.33.0",
+    "eslint-plugin-vue": "^9.3.0",
+    "prettier": "^2.7.1",
+    "vite": "^4.1.0",
+    "vue": "^3.0.0"
+  },
+  "author": "Kitware Inc",
+  "license": "MIT",
+  "keywords": [
+    "Kitware",
+    "pan3d"
+  ],
+  "files": [
+    "dist/*",
+    "src/*",
+    "*.json",
+    "*.js"
+  ]
+}

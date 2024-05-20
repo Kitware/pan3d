@@ -1,6 +1,8 @@
 from trame.widgets import html
 from trame.widgets import vuetify3 as vuetify
 
+from .preview_bounds import PreviewBounds
+
 
 class BoundsConfigure(vuetify.VMenu):
     def __init__(
@@ -54,6 +56,16 @@ class BoundsConfigure(vuetify.VMenu):
                 vuetify.VCheckbox(
                     v_model=(cube_view_mode,), label="Cube View", hide_details=True
                 )
+                with html.Div(v_if=(cube_view_mode,)):
+                    PreviewBounds(
+                        preview=(cube_preview,),
+                        axes=(cube_preview_axes,),
+                        coordinates=(da_coordinates,),
+                        update_bounds=(
+                            coordinate_change_bounds_function,
+                            "[$event.name, $event.bounds]",
+                        ),
+                    )
                 with html.Div(
                     v_for=(f"coord in {da_coordinates}",),
                 ):
