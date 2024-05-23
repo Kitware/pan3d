@@ -55,6 +55,20 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Set up NPM
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+    - name: Install Vue component dependencies
+      run: npm install
+      working-directory: pan3d/ui/vue
+    - name: Lint Vue components
+      run: npm run lint
+      working-directory: pan3d/ui/vue
+    - name: Build Vue components
+      run: npm run build
+      working-directory: pan3d/ui/vue
+
     - name: Install and Run Tests
       run: |
         pip install .
