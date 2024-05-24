@@ -61,6 +61,7 @@ class DatasetViewer:
         self.current_event_loop = asyncio.get_event_loop()
         self.pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         self._ui = None
+        self._default_style = CSS_FILE.read_text()
 
         self.plotter = geovista.GeoPlotter(off_screen=True, notebook=False)
         self.plotter.set_background("lightgrey")
@@ -120,7 +121,8 @@ class DatasetViewer:
             # Build UI
             self._ui = VAppLayout(self.server)
             with self._ui:
-                client.Style(CSS_FILE.read_text())
+                with client.Style(self._default_style) as style:
+                    self.ctrl.update_style = style.update
                 Toolbar(
                     self.apply_and_render,
                     self._submit_import,
@@ -147,6 +149,7 @@ class DatasetViewer:
                     ):
                         BoundsConfigure(
                             coordinate_change_bounds_function=self._coordinate_change_bounds,
+                            snap_camera_function=self._snap_camera_view_face,
                         )
                         RenderOptions()
                         with pyvista.trame.ui.plotter_ui(
@@ -291,6 +294,21 @@ class DatasetViewer:
             submit, loading_state="ui_import_loading", unapplied_changes_state=None
         )
 
+    def _snap_camera_view_face(self):
+        face = self.state.cube_preview_face
+        if "X" in face:
+            viewUp = [0, 0, 1]
+            vector = [-1, -1, 1] if "+" in face else [1, 1, 1]
+            self.plotter.view_vector(vector, viewUp)
+        if "Y" in face:
+            viewUp = [0, 0, 1]
+            vector = [1, -1, 1] if "+" in face else [-1, 1, 1]
+            self.plotter.view_vector(vector, viewUp)
+        if "Z" in face:
+            viewUp = [0, 1, 0]
+            vector = [-1, 1, -1] if "+" in face else [-1, 1, 1]
+            self.plotter.view_vector(vector, viewUp)
+
     # -----------------------------------------------------
     # Rendering methods
     # -----------------------------------------------------
@@ -392,7 +410,7 @@ class DatasetViewer:
         )
         if self.reset_camera:
             if len(self.builder.data_array.shape) > 2:
-                self.plotter.view_vector([1, 1, -1], [0, 1, 0])
+                self.plotter.view_vector([1, 1, 1], [0, 1, 0])
             elif not self.state.render_cartographic:
                 self.plotter.view_xy()
             self.reset_camera = False
@@ -511,7 +529,7 @@ class DatasetViewer:
                 coord_attrs.append({"key": "dtype", "value": str(dtype)})
                 coord_attrs.append({"key": "length", "value": int(size)})
                 coord_attrs.append({"key": "range", "value": coord_range})
-                bounds = [0, size]
+                bounds = [0, size - 1]
                 self.state.da_coordinates.append(
                     {
                         "name": key,
@@ -573,7 +591,11 @@ class DatasetViewer:
             self.builder.dataset is None
             or self.builder.data_array_name is None
             or self.builder.slicing is None
+            or self._ui is None
         ):
+            return
+        if not self.state.cube_view_mode:
+            self.ctrl.update_style(self._default_style)
             return
         preview_slicing = {}
         if self.builder.t is not None and self.builder.t_index is not None:
@@ -616,8 +638,13 @@ class DatasetViewer:
                 preview_slicing[axis_name] = (
                     axis_slicing[0]
                     if "+" in self.state.cube_preview_face
-                    else axis_slicing[1] - 1
+                    else axis_slicing[1]
                 )
+
+            # update CSS to make blue slider thumb match preview outline
+            thumb_selector = f'.{axis_name}-slider .v-slider-thumb[aria-valuenow="{preview_slicing[axis_name]}"]'
+            thumb_style = thumb_selector + " { color: rgb(0, 100, 255) }"
+            self.ctrl.update_style(self._default_style + thumb_style)
 
         data = (
             self.builder.dataset[self.builder.data_array_name]
@@ -628,7 +655,10 @@ class DatasetViewer:
             lambda x, x_min, x_max: (x - x_min) / (x_max - x_min) * 255
         )(data, numpy.min(data), numpy.max(data)).astype(numpy.uint8)
         img = Image.fromarray(normalized_data)
-        img = img.rotate(180)  # match default axis orientation
+        # apply transposes to match rendering orientation
+        img = img.transpose(Image.FLIP_TOP_BOTTOM)
+        if "+" in self.state.cube_preview_face:
+            img = img.transpose(Image.FLIP_LEFT_RIGHT)
         buffer = BytesIO()
         img.save(buffer, format="PNG")
         encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
@@ -772,6 +802,6 @@ class DatasetViewer:
             cartographic=render_cartographic,
         )
 
-    @change("cube_preview_face")
-    def _on_change_cube_preview_face(self, cube_preview_face, **kwargs):
+    @change("cube_view_mode", "cube_preview_face")
+    def _on_change_cube_view(self, cube_view_mode, cube_preview_face, **kwargs):
         self._generate_preview()

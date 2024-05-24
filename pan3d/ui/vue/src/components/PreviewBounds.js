@@ -190,7 +190,8 @@ export default {
       onMouseMove,
       onMousePress,
       onMouseRelease,
-      color: "rgb(255,0,0)",
+      color: "rgb(255, 0, 0)",
+      outline: "4px solid rgb(0, 100, 255)",
       radius: 7,
     };
   },
@@ -202,7 +203,7 @@ export default {
     @mousemove="onMouseMove"
     @mouseup="onMouseRelease"
     @mouseleave="onMouseRelease"
-    style="cursor: pointer;"
+    :style="'cursor: pointer; outline:'+outline"
   >
     <image
       ref="previewImage"

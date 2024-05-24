@@ -8,6 +8,7 @@ class BoundsConfigure(vuetify.VMenu):
     def __init__(
         self,
         coordinate_change_bounds_function,
+        snap_camera_function,
         da_coordinates="da_coordinates",
         da_auto_slicing="da_auto_slicing",
         da_x="da_x",
@@ -45,19 +46,29 @@ class BoundsConfigure(vuetify.VMenu):
                 )
             with vuetify.VCard(classes="pa-3", style="width: 325px"):
                 vuetify.VCardTitle("Configure Bounds")
+                vuetify.VCheckbox(
+                    v_model=(cube_view_mode,),
+                    label="Interactive Preview",
+                    hide_details=True,
+                )
                 vuetify.VSelect(
                     v_if=(cube_view_mode,),
                     v_model=(cube_preview_face,),
                     items=(cube_preview_face_options, []),
                     label="Face",
                     hide_details=True,
-                    style="float:right",
+                    style="float:left",
                 )
-                vuetify.VCheckbox(
-                    v_model=(cube_view_mode,), label="Cube View", hide_details=True
+                vuetify.VBtn(
+                    v_if=(cube_view_mode,),
+                    size="small",
+                    icon="mdi-video-marker",
+                    click=snap_camera_function,
+                    style="float:right",
                 )
                 with html.Div(v_if=(cube_view_mode,)):
                     PreviewBounds(
+                        v_if=(cube_preview,),
                         preview=(cube_preview,),
                         axes=(cube_preview_axes,),
                         coordinates=(da_coordinates,),
@@ -69,7 +80,7 @@ class BoundsConfigure(vuetify.VMenu):
                 with html.Div(
                     v_for=(f"coord in {da_coordinates}",),
                 ):
-                    with vuetify.VRangeSlider(
+                    with html.Div(
                         v_if=(
                             f"""
                             ({da_x} === coord.name && (!{cube_view_mode} || {cube_preview_face}.includes('X'))) ||
@@ -77,37 +88,51 @@ class BoundsConfigure(vuetify.VMenu):
                             ({da_z} === coord.name && (!{cube_view_mode} || {cube_preview_face}.includes('Z')))
                         """,
                         ),
-                        model_value=("coord.bounds",),
-                        label=("coord.name",),
-                        strict=True,
-                        hide_details=True,
-                        step=1,
-                        min=("coord.full_bounds[0]",),
-                        max=("coord.full_bounds[1]",),
-                        thumb_label=True,
-                        style="width: 250px",
-                        end=(coordinate_change_bounds_function, "[coord.name, $event]"),
-                        __events=[("end", "end")],
+                        style="text-transform: capitalize",
                     ):
-                        with vuetify.Template(v_slot_thumb_label=("{ modelValue }",)):
-                            html.Span(
-                                ("{{ coord.labels[modelValue] }}",),
-                                style="white-space: nowrap",
-                            )
+                        html.Span("{{ coord.name.replaceAll('_', ' ') }}")
+                        with vuetify.VRangeSlider(
+                            model_value=("coord.bounds",),
+                            strict=True,
+                            hide_details=True,
+                            step=1,
+                            min=("coord.full_bounds[0]",),
+                            max=("coord.full_bounds[1]",),
+                            thumb_label=True,
+                            classes=("coord.name +'-slider px-3'",),
+                            end=(
+                                coordinate_change_bounds_function,
+                                "[coord.name, $event]",
+                            ),
+                            __events=[("end", "end")],
+                        ):
+                            with vuetify.Template(
+                                v_slot_thumb_label=("{ modelValue }",)
+                            ):
+                                html.Span(
+                                    ("{{ coord.labels[modelValue] }}",),
+                                    style="white-space: nowrap",
+                                )
                 with html.Div(
                     v_for=(f"coord in {da_coordinates}",),
                 ):
-                    with vuetify.VSlider(
-                        v_model=(da_t_index),
+                    with html.Div(
                         v_if=(f"{da_t} === coord.name",),
-                        label=("coord.name",),
-                        min=("coord.full_bounds[0]",),
-                        max=("coord.full_bounds[1] - 1",),
-                        step=1,
-                        thumb_label=True,
+                        style="text-transform: capitalize",
                     ):
-                        with vuetify.Template(v_slot_thumb_label=("{ modelValue }",)):
-                            html.Span(
-                                ("{{ coord.labels[modelValue] }}",),
-                                style="white-space: nowrap",
-                            )
+                        html.Span("{{ coord.name }}")
+                        with vuetify.VSlider(
+                            v_model=(da_t_index),
+                            min=("coord.full_bounds[0]",),
+                            max=("coord.full_bounds[1] - 1",),
+                            step=1,
+                            thumb_label=True,
+                            classes="px-3",
+                        ):
+                            with vuetify.Template(
+                                v_slot_thumb_label=("{ modelValue }",)
+                            ):
+                                html.Span(
+                                    ("{{ coord.labels[modelValue] }}",),
+                                    style="white-space: nowrap",
+                                )
