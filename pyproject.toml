@@ -63,7 +63,7 @@ requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["pan3d", "pan3d.ui", "pan3d.catalogs"]
+packages = ["pan3d", "pan3d.ui", "pan3d.ui.vue", "pan3d.ui.vue.module", "pan3d.catalogs"]
 
 [tool.semantic_release]
 version_variables = ["setup.py:__version__"]
