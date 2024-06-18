@@ -1,7 +1,7 @@
 from pathlib import Path
 
 # Compute local path to serve
-serve_path = str(Path("pan3d/ui/pan3d_components/module"))
+serve_path = str(Path(__file__).with_name("serve").resolve())
 
 # Serve directory for JS/CSS files
 serve = {"__pan3d_components": serve_path}
