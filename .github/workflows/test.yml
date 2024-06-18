@@ -29,51 +29,42 @@ jobs:
       matrix:
         python-version: [3.9]
         config:
-        - {
-            name: "Linux",
-            os: ubuntu-latest
-          }
-        - {
-            name: "MacOSX",
-            os: macos-latest
-          }
-        - {
-            name: "Windows",
-            os: windows-latest
-          }
+          - { name: "Linux", os: ubuntu-latest }
+          - { name: "MacOSX", os: macos-latest }
+          - { name: "Windows", os: windows-latest }
 
     defaults:
       run:
         shell: bash
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
+      - name: Checkout
+        uses: actions/checkout@v2
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Set up NPM
-      uses: actions/setup-node@v4
-      with:
-        node-version: 18
-    - name: Install Vue component dependencies
-      run: npm install
-      working-directory: pan3d/ui/vue
-    - name: Lint Vue components
-      run: npm run lint
-      working-directory: pan3d/ui/vue
-    - name: Build Vue components
-      run: npm run build
-      working-directory: pan3d/ui/vue
+      - name: Set up NPM
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install Vue component dependencies
+        run: npm install
+        working-directory: pan3d-js
+      - name: Lint Vue components
+        run: npm run lint
+        working-directory: pan3d-js
+      - name: Build Vue components
+        run: npm run build
+        working-directory: pan3d-js
 
-    - name: Install and Run Tests
-      run: |
-        pip install .
-        pip install -r tests/requirements.txt
-        pytest -s ./tests/test_builder.py
-        pip install .[viewer]
-        pytest -s ./tests/test_viewer.py
-      working-directory: .
+      - name: Install and Run Tests
+        run: |
+          pip install .
+          pip install -r tests/requirements.txt
+          pytest -s ./tests/test_builder.py
+          pip install .[viewer]
+          pytest -s ./tests/test_viewer.py
+        working-directory: .
