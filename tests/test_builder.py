@@ -8,9 +8,9 @@ from pan3d import DatasetBuilder
 
 def test_import_config():
     builder = DatasetBuilder()
-    builder.import_config("examples/example_config_noaa.json")
+    builder.import_config("examples/example_config_cmip.json")
     # With slicing, data_array has shape (180, 360)
-    assert builder.data_array.size == 64800
+    assert builder.data_array.size == 104110
 
 
 def test_export_config():

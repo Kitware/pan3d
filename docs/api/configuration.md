@@ -10,29 +10,29 @@ There are five sections available in the configuration file format: `data_origin
 
 ```
 {
-    "data_origin": "https://ncsa.osn.xsede.org/Pangeo/pangeo-forge/noaa-coastwatch-geopolar-sst-feedstock/noaa-coastwatch-geopolar-sst.zarr",
+    "data_origin": "https://ncsa.osn.xsede.org/Pangeo/pangeo-forge/cmip6-feedstock/test_surface.zarr",
     "data_array": {
-        "name": "analysed_sst",
-        "x": "lon",
-        "y": "lat",
+        "name": "zos",
+        "x": "i",
+        "y": "j",
         "t": "time",
-        "t_index": 5
+        "t_index": 0
     },
     "data_slices": {
-        "lat": [
-            -45,
-            45,
-            100
+        "j": [
+            0,
+            290,
+            1
         ],
-        "lon": [
-            -90,
-            90,
-            100
+        "i": [
+            0,
+            360,
+            1
         ]
     },
     "ui": {
-        "main_drawer": false,
-        "axis_drawer": false,
+        "main_drawer": true,
+        "axis_drawer": true,
         "expanded_coordinates": []
     },
     "render": {

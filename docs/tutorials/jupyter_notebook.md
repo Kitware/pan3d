@@ -21,21 +21,22 @@ Running Pan3D in a Jupyter notebook allows data scientists to incorporate the to
         builder = DatasetBuilder()
         builder.import_config(config_path)
 
-4. You can alternatively create a configuration dictionary. See [`pangeo_forge.ipynb`][pangeo-forge-notebook-link] for an example of this:
+4. You can alternatively create a configuration dictionary:
 
         from pan3d import DatasetBuilder
         config = {
-            'data_origin': 'https://ncsa.osn.xsede.org/Pangeo/pangeo-forge/noaa-coastwatch-geopolar-sst-feedstock/noaa-coastwatch-geopolar-sst.zarr',
-            'data_array': {
-                'name': 'analysed_sst',
-                'x': 'lon',
-                'y': 'lat',
-                't': 'time',
-            },
-            'data_slices': {
-                'lat': [-90, 90, 50],
-                'lon': [-180, 180, 50]
-            },
+                "data_origin": "https://ncsa.osn.xsede.org/Pangeo/pangeo-forge/cmip6-feedstock/test_surface.zarr",
+                "data_array": {
+                        "name": "zos",
+                        "x": "i",
+                        "y": "j",
+                        "t": "time",
+                        "t_index": 0
+                },
+                "data_slices": {
+                        "j": [0, 290, 1],
+                        "i": [0, 359, 1]
+                }
         }
         builder = DatasetBuilder()
         builder.import_config(config)
