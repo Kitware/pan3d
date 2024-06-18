@@ -4,6 +4,7 @@ node_modules
 
 examples/jupyter/*.gif
 site/*
+pan3d/ui/pan3d_components/serve
 
 # local env files
 .env.local

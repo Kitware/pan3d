@@ -15,7 +15,7 @@ export default {
         },
       },
     },
-    outDir: "serve",
+    outDir: "../pan3d/ui/pan3d_components/serve",
     assetsDir: ".",
   },
 };
