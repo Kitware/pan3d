@@ -1,7 +1,7 @@
 from trame.widgets import html
 from trame.widgets import vuetify3 as vuetify
 
-from .preview_bounds import PreviewBounds
+from .widgets import PreviewBounds
 
 
 class BoundsConfigure(vuetify.VMenu):
