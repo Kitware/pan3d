@@ -7,25 +7,7 @@
         "name": "sfcWind",
         "x": "lon",
         "y": "lat",
-        "t": "time",
-        "t_index": 0
-    },
-    "data_slices": {
-        "time": [
-            "Apr 01 2000 12:00",
-            "May 30 2001 12:00",
-            1
-        ],
-        "lat": [
-            -89.72,
-            89.72,
-            1
-        ],
-        "lon": [
-            0.42,
-            359.58,
-            1
-        ]
+        "z": "time"
     },
     "ui": {
         "main_drawer": false,

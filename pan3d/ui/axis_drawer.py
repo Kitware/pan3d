@@ -14,6 +14,7 @@ class AxisDrawer(vuetify.VNavigationDrawer):
         ui_current_time_string="ui_current_time_string",
         da_active="da_active",
         da_coordinates="da_coordinates",
+        da_auto_slicing="da_auto_slicing",
         da_x="da_x",
         da_y="da_y",
         da_z="da_z",
@@ -68,6 +69,7 @@ class AxisDrawer(vuetify.VNavigationDrawer):
                                     CoordinateConfigure(
                                         axes,
                                         da_coordinates,
+                                        da_auto_slicing,
                                         f"{da_coordinates}.find((c) => c.name === {axis['name_var']})",
                                         ui_expanded_coordinates,
                                         ui_current_time_string,
@@ -98,6 +100,7 @@ class AxisDrawer(vuetify.VNavigationDrawer):
                             CoordinateConfigure(
                                 axes,
                                 da_coordinates,
+                                da_auto_slicing,
                                 "coord",
                                 ui_expanded_coordinates,
                                 ui_current_time_string,

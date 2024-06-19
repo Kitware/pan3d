@@ -7,7 +7,7 @@ def push_builder_state(builder):
     builder.z = "level"
     builder.t = "month"
     builder.t_index = 1
-    builder.slicing = {"longitude": [0, 90, 2]}
+    builder.slicing = {"longitude": [0, 90, 1], "latitude": [0, 100, 1]}
 
 
 def push_viewer_state(viewer):
@@ -51,7 +51,7 @@ def assert_viewer_state(viewer):
     assert viewer.state.da_z == "level"
     assert viewer.state.da_t == "month"
     assert viewer.state.da_t_index == 1
-    assert viewer.state.da_size == "345 KB"
+    assert viewer.state.da_size == "211 KB"
     assert viewer.state.da_vars == [
         {"name": "z", "id": 0},
         {"name": "u", "id": 1},
@@ -128,10 +128,10 @@ def test_viewer_export():
     assert viewer.state.state_export["data_array"]["z"] == "level"
     assert viewer.state.state_export["data_array"]["t"] == "month"
     assert viewer.state.state_export["data_array"]["t_index"] == 1
-    assert viewer.state.state_export["data_slices"]["longitude"] == [-180.0, 179.25, 1]
-    assert viewer.state.state_export["data_slices"]["latitude"] == [-90.0, 90.0, 1]
-    assert viewer.state.state_export["data_slices"]["level"] == [200, 850, 1]
-    assert viewer.state.state_export["data_slices"]["month"] == [1, 7, 1]
+    assert viewer.state.state_export["data_slices"]["longitude"] == [0, 480, 4]
+    assert viewer.state.state_export["data_slices"]["latitude"] == [0, 241, 2]
+    assert viewer.state.state_export["data_slices"]["level"] == [0, 3, 1]
+    assert viewer.state.state_export["data_slices"]["month"] == [0, 2, 1]
     assert not viewer.state.state_export["ui"]["main_drawer"]
     assert not viewer.state.state_export["ui"]["axis_drawer"]
     assert viewer.state.state_export["ui"]["unapplied_changes"]
@@ -179,7 +179,7 @@ def test_sync_from_viewer_ui_functions():
     viewer._coordinate_select_axis("month", None, "da_t")
     viewer._coordinate_change_slice("longitude", "start", 0)
     viewer._coordinate_change_slice("longitude", "stop", 90)
-    viewer._coordinate_change_slice("longitude", "step", 2)
+    viewer._coordinate_change_bounds("latitude", [0, 100])
 
     viewer.state.flush()
     assert_builder_state(builder)
