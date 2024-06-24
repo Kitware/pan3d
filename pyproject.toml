@@ -55,9 +55,6 @@ all = [
 [project.scripts]
 pan3d-viewer = "pan3d.serve_viewer:serve"
 
-[project.entry-points.jupyter_serverproxy_servers]
-pan3d-viewer = "pan3d.jupyter:jupyter_proxy_info"
-
 [build-system]
 requires = ["setuptools>=61", "wheel"]
 build-backend = "setuptools.build_meta"
