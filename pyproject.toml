@@ -67,7 +67,7 @@ all = [
 ]
 
 [project.scripts]
-geotrame = "pan3d.serve_viewer:serve"
+geotrame = "pan3d.serve_geotrame:serve"
 
 [build-system]
 requires = ['setuptools', 'wheel']
