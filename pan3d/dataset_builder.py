@@ -460,7 +460,7 @@ class DatasetBuilder:
         steps: Optional[Dict] = None,
     ) -> None:
         """Automatically select slicing for selected data array."""
-        if not self.dataset or not self.data_array_name:
+        if not self.dataset or not self.data_array_name or self._resolution <= 1:
             return
         if not bounds:
             da = self.dataset[self.data_array_name]
@@ -516,7 +516,9 @@ class DatasetBuilder:
         self.data_array_name = array_config.pop("name")
         for key, value in array_config.items():
             setattr(self, key, value)
-        self.slicing = config.get("data_slices")
+        if config.get("data_slices"):
+            self._resolution = 1  # disable auto slicing
+            self.slicing = config.get("data_slices")
         self._import_mode = False
 
         ui_config = {f"ui_{k}": v for k, v in config.get("ui", {}).items()}
