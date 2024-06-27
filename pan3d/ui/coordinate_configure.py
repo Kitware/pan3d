@@ -72,11 +72,9 @@ class CoordinateConfigure(vuetify.VCard):
                         else:
                             vuetify.VCardSubtitle(
                                 "Select slicing",
-                                v_if=(f"!{da_auto_slicing}",),
                                 classes="mt-3",
                             )
                             with vuetify.VContainer(
-                                v_if=(f"!{da_auto_slicing}",),
                                 classes="d-flex pa-0",
                                 style="column-gap: 3px",
                             ):
@@ -117,6 +115,7 @@ class CoordinateConfigure(vuetify.VCard):
                                 vuetify.VTextField(
                                     model_value=(f"{coordinate_info}?.step",),
                                     label="Step",
+                                    disabled=(da_auto_slicing,),
                                     hide_details=True,
                                     density="compact",
                                     type="number",

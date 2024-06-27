@@ -10,7 +10,6 @@ class BoundsConfigure(vuetify.VMenu):
         coordinate_change_bounds_function,
         snap_camera_function,
         da_coordinates="da_coordinates",
-        da_auto_slicing="da_auto_slicing",
         da_x="da_x",
         da_y="da_y",
         da_z="da_z",
@@ -24,7 +23,6 @@ class BoundsConfigure(vuetify.VMenu):
         cube_preview_axes="cube_preview_axes",
     ):
         super().__init__(
-            v_if=(da_auto_slicing,),
             location="start",
             transition="slide-y-transition",
             close_on_content_click=False,

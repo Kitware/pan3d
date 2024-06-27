@@ -444,6 +444,10 @@ class DatasetBuilder:
                     if len(name_match) > 0 and axis in unassigned_axes:
                         setattr(self, axis, coord_name)
                         assigned_coords.append(coord_name)
+            # Update list of unassigned axes
+            unassigned_axes = [
+                a for a in ["x", "y", "z", "t"] if getattr(self, a) is None
+            ]
             # Then assign any remaining by index
             unassigned_coords = [d for d in da.dims if d not in assigned_coords]
             for i, d in enumerate(unassigned_coords):
@@ -473,6 +477,8 @@ class DatasetBuilder:
             ]
             for k, v in bounds.items()
         }
+        if self._viewer:
+            self._viewer._data_slicing_changed()
 
     # -----------------------------------------------------
     # Config logic

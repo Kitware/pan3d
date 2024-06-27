@@ -555,6 +555,10 @@ class DatasetViewer:
                 if bounds != coord.get("bounds"):
                     coord.update(dict(bounds=bounds))
                     self.state.dirty("da_coordinates")
+
+                if slicing[2] != coord.get('step'):
+                    coord.update(dict(step=slicing[2]))
+                    self.state.dirty("da_coordinates")
         self._generate_preview()
 
     def _time_index_changed(self) -> None:
