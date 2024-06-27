@@ -72,7 +72,6 @@ def test_ui_state():
     assert viewer.state.ui_unapplied_changes
     assert viewer.state.ui_error_message is None
     assert viewer.state.ui_more_info_link is None
-    assert viewer.state.ui_current_time_string == "7"
     assert viewer.state.ui_expanded_coordinates == ["month", "level"]
 
 

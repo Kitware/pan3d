@@ -515,28 +515,31 @@ class DatasetViewer:
                 current_coord = da.coords[key]
                 values = current_coord.values
                 size = current_coord.size
-                coord_range = [
-                    str(round(v)) if isinstance(v, float) else str(v)
-                    for v in [values.item(0), values.item(size - 1)]
-                ]
                 dtype = current_coord.dtype
-
+                labels = [
+                    (
+                        pandas.to_datetime(v).strftime("%b %d %Y %H:%M")
+                    ) if dtype.kind in ["O", "M"]  # is datetime
+                    else (
+                        f"{pandas.to_timedelta(v).total_seconds()} seconds"
+                    ) if dtype.kind in ["m"]  # is timedelta
+                    else str(round(v)) if isinstance(v, float)
+                    else str(v)
+                    for v in values
+                ]
                 coord_attrs = [
                     {"key": str(k), "value": str(v)}
                     for k, v in da.coords[key].attrs.items()
                 ]
                 coord_attrs.append({"key": "dtype", "value": str(dtype)})
                 coord_attrs.append({"key": "length", "value": int(size)})
-                coord_attrs.append({"key": "range", "value": coord_range})
+                coord_attrs.append({"key": "range", "value": f'{labels[0]} - {labels[-1]}'})
                 bounds = [0, size - 1]
                 self.state.da_coordinates.append(
                     {
                         "name": key,
                         "attrs": coord_attrs,
-                        "labels": [
-                            str(round(v)) if isinstance(v, float) else str(v)
-                            for v in values
-                        ],
+                        "labels": labels,
                         "full_bounds": bounds,
                         "bounds": bounds,
                         "step": 1,
@@ -563,31 +566,7 @@ class DatasetViewer:
         self._generate_preview()
 
     def _time_index_changed(self) -> None:
-        dataset = self.builder.dataset
-        da_name = self.builder.data_array_name
-        t = self.builder.t
-        t_index = self.builder.t_index
-        if (
-            dataset is not None
-            and da_name is not None
-            and t is not None
-            and dataset[da_name] is not None
-            and dataset[da_name][t] is not None
-        ):
-            d = dataset[da_name].coords[t].dtype
-            time_steps = dataset[da_name][t]
-            current_time = time_steps.values[t_index]
-
-            if d.kind in ["O", "M"]:  # is datetime
-                if not hasattr(current_time, "strftime"):
-                    current_time = pandas.to_datetime(current_time)
-                current_time = current_time.strftime("%b %d %Y %H:%M")
-            elif d.kind in ["m"]:  # is timedelta
-                if not hasattr(current_time, "total_seconds"):
-                    current_time = pandas.to_timedelta(current_time)
-                current_time = f"{current_time.total_seconds()} seconds"
-            self.state.ui_current_time_string = str(current_time)
-            self._generate_preview()
+        self._generate_preview()
 
     def _generate_preview(self) -> None:
         if (

@@ -15,7 +15,6 @@ class BoundsConfigure(vuetify.VMenu):
         da_z="da_z",
         da_t="da_t",
         da_t_index="da_t_index",
-        current_time="ui_current_time_string",
         cube_view_mode="cube_view_mode",
         cube_preview="cube_preview",
         cube_preview_face="cube_preview_face",

@@ -81,7 +81,6 @@ initial_state = {
     "ui_action_name": None,
     "ui_action_message": None,
     "ui_action_config_file": None,
-    "ui_current_time_string": "",
     "ui_search_catalogs": False,
     "ui_catalog_term_search_loading": False,
     "ui_catalog_search_message": None,
