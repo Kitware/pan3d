@@ -32,7 +32,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-viewer = [
+geotrame = [
     "trame>=3.6",
     "trame-vtk>=2.6",
     "trame-vuetify>=2.4",
@@ -67,7 +67,7 @@ all = [
 ]
 
 [project.scripts]
-pan3d-viewer = "pan3d.serve_viewer:serve"
+geotrame = "pan3d.serve_viewer:serve"
 
 [build-system]
 requires = ['setuptools', 'wheel']
