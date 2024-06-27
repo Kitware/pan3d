@@ -49,11 +49,11 @@ pangeo = [
     "gcsfs>=2024.2",
 ]
 all = [
-    "pan3d[viewer,esgf,pangeo]",
+    "pan3d[geotrame,esgf,pangeo]",
 ]
 
 [project.scripts]
-geotrame = "pan3d.serve_viewer:serve"
+geotrame = "pan3d.serve_geotrame:serve"
 
 [build-system]
 requires = ["setuptools>=61", "wheel"]
