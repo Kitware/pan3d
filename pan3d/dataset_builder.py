@@ -362,10 +362,10 @@ class DatasetBuilder:
                         f"Value {value} not applicable for Key {key}. Step value must be <= {key_coord.size}."
                     )
 
-        self._algorithm.slicing = slicing
         if self._viewer:
             self._viewer._data_slicing_changed()
             self._viewer._mesh_changed()
+        self._algorithm.slicing = slicing
 
     @property
     def mesh(
@@ -470,9 +470,9 @@ class DatasetBuilder:
                 v[0],
                 v[1],
                 math.ceil((v[1] - v[0]) / self._resolution)
-                if self._resolution > 1
+                if self._resolution > 1 and v[1] - v[0] > 0 and k != self.t
                 else steps.get(k, 1)
-                if steps is not None
+                if steps is not None and k != self.t
                 else 1,
             ]
             for k, v in bounds.items()
