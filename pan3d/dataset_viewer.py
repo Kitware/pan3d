@@ -555,7 +555,7 @@ class DatasetViewer:
         for coord in self.state.da_coordinates:
             slicing = self.builder.slicing.get(coord["name"])
             if slicing:
-                bounds = [slicing[0], slicing[1]]
+                bounds = [slicing[0], slicing[1] - 1]  # stop is exclusive
                 if bounds != coord.get("bounds"):
                     coord.update(dict(bounds=bounds))
                     self.state.dirty("da_coordinates")
@@ -620,7 +620,7 @@ class DatasetViewer:
                 preview_slicing[axis_name] = (
                     axis_slicing[0]
                     if "+" in self.state.cube_preview_face
-                    else axis_slicing[1]
+                    else axis_slicing[1] - 1  # stop is exclusive
                 )
 
             # update CSS to make blue slider thumb match preview outline
@@ -763,7 +763,10 @@ class DatasetViewer:
 
     @change("da_coordinates")
     def _on_change_da_coordinates(self, da_coordinates, **kwargs):
-        bounds = {c.get("name"): c.get("bounds") for c in da_coordinates}
+        bounds = {
+            c.get("name"): [c["bounds"][0], c["bounds"][1] + 1]  # stop is exclusive
+            for c in da_coordinates
+        }
         steps = {c.get("name"): c.get("step") for c in da_coordinates}
         self.builder._auto_select_slicing(bounds, steps)
 
