@@ -1,5 +1,6 @@
 import asyncio
 import concurrent.futures
+import itertools
 import json
 import pandas
 import pyvista
@@ -653,6 +654,28 @@ class DatasetViewer:
             .isel(preview_slicing)
             .to_numpy()
         )
+        # if any dimensions are too small, increase size with gradients between values
+        min_dim_length = 50
+        for axis_index in range(len(data.shape)):
+            length = data.shape[axis_index]
+            if length < min_dim_length:
+                gradient_steps = int(min_dim_length / (length - 1))
+                gradients = []
+                slices = list(itertools.product(*[
+                    [slice(None)] if i == axis_index else list(range(l))
+                    for i, l in enumerate(data.shape)
+                ]))
+                for s in slices:
+                    sdata = data[s]
+                    gradient = []
+                    for i in range(len(sdata) - 1):
+                        gradient_portion = list(numpy.linspace(sdata[i], sdata[i + 1], gradient_steps, endpoint=False))
+                        gradient += gradient_portion
+                    gradient.append(sdata[-1])
+                    gradients.append(gradient)
+                stack_axis = next(i for i in range(len(data.shape)) if i != axis_index)
+                data = numpy.stack(gradients, axis=stack_axis)
+
         normalized_data = numpy.vectorize(
             lambda x, x_min, x_max: (x - x_min) / (x_max - x_min) * 255
         )(data, numpy.min(data), numpy.max(data)).astype(numpy.uint8)
