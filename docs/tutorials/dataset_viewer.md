@@ -41,7 +41,7 @@ You can open the left drawer by clicking on the dataset configuration icon in th
 
 Inside this panel, you will find the following information:
 
-- A group selection box. Its current value is "default". The only dataset in the default group is the one we passed as an argument. There is one more available group option in this selection box: the "xarray" group contains example Xarray datasets to explore. More groups can be added with the Catalog Search (See the [Catalog Search tutorial](tutorials/catalog_search.md) for details).
+- A group selection box. Its current value is "default". The only dataset in the default group is the one we passed as an argument. There is one more available group option in this selection box: the "xarray" group contains example Xarray datasets to explore. More groups can be added with the Catalog Search (See the [Catalog Search tutorial](catalogs.md) for details).
 - A dataset selection box. This selection box contains all the datasets available in the currently selected group. Its current value is the url we passed as an argument, which is the only dataset available in the default group.
 - A button to view the attributes of the current dataset. Click the three-dots icon next to "Attributes" to open a dialog table of metadata available on the dataset.
 
@@ -234,7 +234,7 @@ Once the file has been selected, another "Import" button will appear. After clic
 
 After a moment to load, GeoTrame will render the replicated scene.
 
-These configuration files can be used as arguments in the local server startup command (see [Command Line instructions](/tutorials/command_line) for details) or can be used in a Jupyter notebook environment (see [Jupyter Notebook tutorial](/tutorials/jupyter_notebook) for details).
+These configuration files can be used as arguments in the local server startup command (see [Command Line instructions](command_line.md) for details) or can be used in a Jupyter notebook environment (see [Jupyter Notebook tutorial](jupyter_notebook.md) for details).
 
 #### Viewing other data
 
@@ -270,7 +270,7 @@ Selecting faces along other axes will change which sliders are visible. For exam
 
 ![](../images/19.png)
 
-This concludes the tutorial on how to use GeoTrame. Now you can try these features on your own data, or use [Catalogs](/tutorials/catalogs) to explore more public data.
+This concludes the tutorial on how to use GeoTrame. Now you can try these features on your own data, or use [Catalogs](catalogs.md) to explore more public data.
 
 <!-- Links -->
 [xarray-tutorials-link]: https://docs.xarray.dev/en/stable/generated/xarray.tutorial.open_dataset.html
