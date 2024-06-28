@@ -98,6 +98,14 @@ The bounds configuration menu displays range sliders for each coordinate. These 
 
 ![](../images/8b.png)
 
+When "Interactive Preview" is enabled, a greyscale preview of one face of the data will appear, replacing two of the spatial coordinate sliders. By default, the preview image is of the -Z face, so it replaces the sliders for X and Y.
+
+![](../images/8c.png)
+
+We can now adjust the bounds of the X and Y coordinates by manipulating the red box within the preview image. We can still use the time slider, and updating the time value will trigger an update of the preview image.
+
+![](../images/8d.png)
+
 The bounds configuration menu offers more features for 3D renders when three coordinates are assigned to X, Y, and Z. We'll revisit this panel with another dataset after this.
 
 #### Render configuration
