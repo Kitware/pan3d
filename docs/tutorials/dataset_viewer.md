@@ -262,7 +262,7 @@ Selecting faces along other axes will change which sliders are visible. For exam
 
 ![](../images/19.png)
 
-This concludes the tutorial on how to use GeoTrame. Now you can try these features on your own data, or use (Catalogs)[../catalogs.md] to explore more public data.
+This concludes the tutorial on how to use GeoTrame. Now you can try these features on your own data, or use [Catalogs](/tutorials/catalogs) to explore more public data.
 
 <!-- Links -->
 [xarray-tutorials-link]: https://docs.xarray.dev/en/stable/generated/xarray.tutorial.open_dataset.html
