@@ -61,6 +61,7 @@ class DatasetViewer:
         self.pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         self._ui = None
         self._default_style = CSS_FILE.read_text()
+        self._preview_slicing = None
 
         self.plotter = geovista.GeoPlotter(off_screen=True, notebook=False)
         self.plotter.set_background("lightgrey")
@@ -305,7 +306,7 @@ class DatasetViewer:
             self.plotter.view_vector(vector, viewUp)
         if "Z" in face:
             viewUp = [0, 1, 0]
-            vector = [-1, 1, -1] if "+" in face else [-1, 1, 1]
+            vector = [-1, 1, -1] if "+" in face else [1, 1, 1]
             self.plotter.view_vector(vector, viewUp)
 
     # -----------------------------------------------------
@@ -513,7 +514,8 @@ class DatasetViewer:
         for key in da.dims:
             if key not in [c["name"] for c in self.state.da_coordinates]:
                 current_coord = da.coords[key]
-                values = current_coord.values
+                values = list(current_coord.values)
+                reverse_order = values[0] > values[-1]
                 size = current_coord.size
                 dtype = current_coord.dtype
                 labels = [
@@ -543,6 +545,7 @@ class DatasetViewer:
                         "full_bounds": bounds,
                         "bounds": bounds,
                         "step": 1,
+                        "reverse_order": str(reverse_order)
                     }
                 )
         self.state.dirty("da_coordinates")
@@ -584,11 +587,11 @@ class DatasetViewer:
             preview_slicing[self.builder.t] = self.builder.t_index
 
         face_options = []
-        if self.builder.z is not None:
+        if self.builder.x is not None and self.builder.y is not None:
             face_options += ["+Z", "-Z"]
-        if self.builder.y is not None:
+        if self.builder.x is not None and self.builder.z is not None:
             face_options += ["+Y", "-Y"]
-        if self.builder.x is not None:
+        if self.builder.y is not None and self.builder.z is not None:
             face_options += ["+X", "-X"]
         self.state.cube_preview_face_options = face_options
         if self.state.cube_preview_face not in face_options and len(face_options):
@@ -628,7 +631,11 @@ class DatasetViewer:
             thumb_style = thumb_selector + " { color: rgb(0, 100, 255) }"
             self.ctrl.update_style(self._default_style + thumb_style)
 
-        data = (
+        if preview_slicing == self._preview_slicing:
+            return
+        self._preview_slicing = preview_slicing
+
+        data = numpy.nan_to_num(
             self.builder.dataset[self.builder.data_array_name]
             .isel(preview_slicing)
             .to_numpy()
@@ -659,10 +666,21 @@ class DatasetViewer:
             lambda x, x_min, x_max: (x - x_min) / (x_max - x_min) * 255
         )(data, numpy.min(data), numpy.max(data)).astype(numpy.uint8)
         img = Image.fromarray(normalized_data)
+
         # apply transposes to match rendering orientation
-        img = img.transpose(Image.FLIP_TOP_BOTTOM)
-        if "+" in self.state.cube_preview_face:
+        reverse_x = False
+        reverse_y = False
+        for coord in self.state.da_coordinates:
+            if coord.get('name') == self.state.cube_preview_axes['x']:
+                reverse_x = coord.get('reverse_order') == 'True'
+            if coord.get('name') == self.state.cube_preview_axes['y']:
+                reverse_y = coord.get('reverse_order') == 'True'
+        if not reverse_y:
+            img = img.transpose(Image.FLIP_TOP_BOTTOM)
+        if reverse_x != "+" in self.state.cube_preview_face:
             img = img.transpose(Image.FLIP_LEFT_RIGHT)
+
+        # encode image data
         buffer = BytesIO()
         img.save(buffer, format="PNG")
         encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
