@@ -362,10 +362,10 @@ class DatasetBuilder:
                         f"Value {value} not applicable for Key {key}. Step value must be <= {key_coord.size}."
                     )
 
+        self._algorithm.slicing = slicing
         if self._viewer:
             self._viewer._data_slicing_changed()
             self._viewer._mesh_changed()
-        self._algorithm.slicing = slicing
 
     @property
     def mesh(

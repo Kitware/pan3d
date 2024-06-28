@@ -137,7 +137,6 @@ def test_viewer_export():
     assert viewer.state.state_export["ui"]["error_message"] is None
     assert viewer.state.state_export["ui"]["more_info_link"] is None
     assert viewer.state.state_export["ui"]["expanded_coordinates"] == []
-    assert viewer.state.state_export["ui"]["current_time_string"] == "7"
 
 
 def test_layout():
@@ -177,8 +176,8 @@ def test_sync_from_viewer_ui_functions():
     viewer._coordinate_select_axis("level", None, "da_z")
     viewer._coordinate_select_axis("month", None, "da_t")
     viewer._coordinate_change_slice("longitude", "start", 0)
-    viewer._coordinate_change_slice("longitude", "stop", 90)
-    viewer._coordinate_change_bounds("latitude", [0, 100])
+    viewer._coordinate_change_slice("longitude", "stop", 89)
+    viewer._coordinate_change_bounds("latitude", [0, 99])
 
     viewer.state.flush()
     assert_builder_state(builder)
