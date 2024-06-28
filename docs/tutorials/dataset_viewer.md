@@ -244,29 +244,29 @@ There is one dataset among these with 4D data, which means we can select a time 
 
 ![](../images/13.png)
 
-As mentioned previously, there is a feature in the bounds configuration menu that is only available for data that has coordinates assigned to X, Y, and Z. A checkbox for "Interactive Preview" is now available.
+As mentioned previously, there is a feature in the bounds configuration menu that is only available for data that has coordinates assigned to X, Y, and Z. More options will be available in the face selection dropdown.
 
 ![](../images/14.png)
 
-When "Interactive Preview" is enabled, a greyscale preview of one face of the data will appear, replacing two of the spatial coordinate sliders. By default, the preview image is of the -Z face, so it replaces the sliders for X and Y.
+More specifically, the -Z and +Z faces are available when coordinates are assigned to X and Y, and the preview for Z faces will replace the X and Y range sliders. The -Y and +Y faces are available when coordinates are assigned to X and Z, and the previews will replace the X and Z sliders. The -X and +X faces are available when coordinates are assigned to Y and Z, and the previews will replace the Y and Z sliders.
 
 ![](../images/15.png)
 
-We can now adjust the bounds of the X and Y coordinates by manipulating the red box within the preview image.
+We are viewing the -Z face by default, so the X and Y sliders are replaced by the preview image. We can adjust the bounds of X and Y with the red box just like before. Since we also have a coordinate assigned to Z on this dataset, the Z slider is still available.
 
 ![](../images/16.png)
 
-Since we are viewing the -Z face, changing the stop value for the Z coordinate will update the preview image. This is indicated by the blue handle on the Level slider.
+Changing the Z bounds will affect what is shown in the preview image; changing the start value will trigger a change in the +Z face preview, and changing the stop value will trigger a change in the -Z face preview. This is indicated by a blue handle on the Z slider.
 
 ![](../images/17.png)
 
-You can also change the face used for the preview image with the selection box above the preview. If we select +Z, the other handle on the level slider becomes blue, and changing the start value will update the preview image.
+You can change the face used for the preview image with the selection box above the preview. If we select +Z, the other handle on the level slider becomes blue.
 
 To orient the selected face towards you, you can click the camera location button next to the face selection box.
 
 ![](../images/18.png)
 
-Selecting faces along other axes will change which sliders are visible. For example, selecting the +X face will make the longitude slider visible, since longitude is assigned to X. The Y and Z sliders (latitude and level) are invisible, but the bounds of Y and Z can be adjusted with the red crop box in the preview image.
+Selecting faces along other axes will change which sliders are visible. Try viewing the preview for other faces, orienting the selected face toward you with the camera button, and adjusting bounds with the red box and sliders.
 
 ![](../images/19.png)
 
