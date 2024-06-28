@@ -43,7 +43,8 @@ class CoordinateConfigure(vuetify.VCard):
 
                         if axis_info and axis_info["index_var"] != "undefined":
                             vuetify.VCardSubtitle(
-                                "Current: {{ %s?.labels[%s] }}" % (coordinate_info, axis_info["index_var"]),
+                                "Current: {{ %s?.labels[%s] }}"
+                                % (coordinate_info, axis_info["index_var"]),
                                 classes="mt-3",
                             )
                             with vuetify.VSlider(

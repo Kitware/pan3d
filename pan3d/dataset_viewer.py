@@ -519,13 +519,12 @@ class DatasetViewer:
                 size = current_coord.size
                 dtype = current_coord.dtype
                 labels = [
-                    (
-                        pandas.to_datetime(v).strftime("%b %d %Y %H:%M")
-                    ) if dtype.kind in ["O", "M"]  # is datetime
-                    else (
-                        f"{pandas.to_timedelta(v).total_seconds()} seconds"
-                    ) if dtype.kind in ["m"]  # is timedelta
-                    else str(round(v)) if isinstance(v, float)
+                    (pandas.to_datetime(v).strftime("%b %d %Y %H:%M"))
+                    if dtype.kind in ["O", "M"]  # is datetime
+                    else (f"{pandas.to_timedelta(v).total_seconds()} seconds")
+                    if dtype.kind in ["m"]  # is timedelta
+                    else str(round(v))
+                    if isinstance(v, float)
                     else str(v)
                     for v in values
                 ]
@@ -535,7 +534,9 @@ class DatasetViewer:
                 ]
                 coord_attrs.append({"key": "dtype", "value": str(dtype)})
                 coord_attrs.append({"key": "length", "value": int(size)})
-                coord_attrs.append({"key": "range", "value": f'{labels[0]} - {labels[-1]}'})
+                coord_attrs.append(
+                    {"key": "range", "value": f"{labels[0]} - {labels[-1]}"}
+                )
                 bounds = [0, size - 1]
                 self.state.da_coordinates.append(
                     {
@@ -545,7 +546,7 @@ class DatasetViewer:
                         "full_bounds": bounds,
                         "bounds": bounds,
                         "step": 1,
-                        "reverse_order": str(reverse_order)
+                        "reverse_order": str(reverse_order),
                     }
                 )
         self.state.dirty("da_coordinates")
@@ -563,7 +564,7 @@ class DatasetViewer:
                     coord.update(dict(bounds=bounds))
                     self.state.dirty("da_coordinates")
 
-                if slicing[2] != coord.get('step'):
+                if slicing[2] != coord.get("step"):
                     coord.update(dict(step=slicing[2]))
                     self.state.dirty("da_coordinates")
         self._generate_preview()
@@ -647,15 +648,23 @@ class DatasetViewer:
             if length < min_dim_length:
                 gradient_steps = int(min_dim_length / (length - 1))
                 gradients = []
-                slices = list(itertools.product(*[
-                    [slice(None)] if i == axis_index else list(range(l))
-                    for i, l in enumerate(data.shape)
-                ]))
+                slices = list(
+                    itertools.product(
+                        *[
+                            [slice(None)] if i == axis_index else list(range(l))
+                            for i, l in enumerate(data.shape)
+                        ]
+                    )
+                )
                 for s in slices:
                     sdata = data[s]
                     gradient = []
                     for i in range(len(sdata) - 1):
-                        gradient_portion = list(numpy.linspace(sdata[i], sdata[i + 1], gradient_steps, endpoint=False))
+                        gradient_portion = list(
+                            numpy.linspace(
+                                sdata[i], sdata[i + 1], gradient_steps, endpoint=False
+                            )
+                        )
                         gradient += gradient_portion
                     gradient.append(sdata[-1])
                     gradients.append(gradient)
@@ -671,10 +680,10 @@ class DatasetViewer:
         reverse_x = False
         reverse_y = False
         for coord in self.state.da_coordinates:
-            if coord.get('name') == self.state.cube_preview_axes['x']:
-                reverse_x = coord.get('reverse_order') == 'True'
-            if coord.get('name') == self.state.cube_preview_axes['y']:
-                reverse_y = coord.get('reverse_order') == 'True'
+            if coord.get("name") == self.state.cube_preview_axes["x"]:
+                reverse_x = coord.get("reverse_order") == "True"
+            if coord.get("name") == self.state.cube_preview_axes["y"]:
+                reverse_y = coord.get("reverse_order") == "True"
         if not reverse_y:
             img = img.transpose(Image.FLIP_TOP_BOTTOM)
         if reverse_x != "+" in self.state.cube_preview_face:
