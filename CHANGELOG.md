@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.8.2 (2024-07-01)
+
+### Fix
+
+* fix(js): add missing js file ([`3810ee1`](https://github.com/Kitware/pan3d/commit/3810ee1b6b54045f0836306583cd818d417bc932))
+
 ## v0.8.1 (2024-07-01)
 
 ### Ci
