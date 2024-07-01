@@ -51,7 +51,7 @@ jobs:
         with:
           node-version: 20
       - name: Install Vue component dependencies
-        run: npm install
+        run: npm ci
         working-directory: pan3d-js
       - name: Lint Vue components
         run: npm run lint
