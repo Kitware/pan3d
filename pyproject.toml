@@ -92,3 +92,7 @@ version_variables = [
 version_toml = [
     "pyproject.toml:project.version",
 ]
+build_command = """
+  python -m pip install build
+  python -m build .
+"""
