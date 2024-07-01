@@ -76,6 +76,7 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.sdist]
 include = [
   "*.py",
+  "pan3d/ui/pan3d_components/module/serve/*.js",
 ]
 
 [tool.hatch.build.targets.wheel]
