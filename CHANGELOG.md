@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.8.7 (2024-07-01)
+
+### Fix
+
+* fix: release step ([`1d4c277`](https://github.com/Kitware/pan3d/commit/1d4c277ef283cc709390d235855f1fb494942dbf))
+
+* fix: release step ([`cf2a898`](https://github.com/Kitware/pan3d/commit/cf2a898d28e2265db6cea22569b0fa107c4a8035))
+
 ## v0.8.6 (2024-07-01)
 
 ### Fix
