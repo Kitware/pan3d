@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v0.8.6 (2024-07-01)
+
+### Fix
+
+* fix(wheel): add wheel in build env ([`3365503`](https://github.com/Kitware/pan3d/commit/3365503d1fd33f6ffc91f48f738c04a8b84081de))
+
+* fix(prune): remove unwanted files in packages ([`9d3a5d6`](https://github.com/Kitware/pan3d/commit/9d3a5d6a038210ab5c17a70893ed6747572465c7))
+
 ## v0.8.5 (2024-07-01)
 
 ### Ci
