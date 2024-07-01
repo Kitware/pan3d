@@ -33,7 +33,7 @@ classifiers = [
 
 [project.optional-dependencies]
 viewer = [
-    "trame>=3.5",
+    "trame>=3.6",
     "trame-vtk>=2.6",
     "trame-vuetify>=2.4",
     "geovista>=0.4",
@@ -49,7 +49,21 @@ pangeo = [
     "gcsfs>=2024.2",
 ]
 all = [
-    "pan3d[viewer,esgf,pangeo]",
+    # viewer
+    "trame>=3.6",
+    "trame-vtk>=2.6",
+    "trame-vuetify>=2.4",
+    "geovista>=0.4",
+
+    # esgf
+    "intake-esgf>=2024.1",
+
+    # pangeo
+    "intake==0.7.0",  # latest has plugin errors
+    "intake-xarray>=0.7",
+    "intake-esm>=2023.11",
+    "s3fs>=2024.2",
+    "gcsfs>=2024.2",
 ]
 
 [project.scripts]
