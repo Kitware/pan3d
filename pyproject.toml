@@ -90,7 +90,9 @@ version_toml = [
     "pyproject.toml:project.version",
 ]
 build_command = """
-  python -m pip install build
+  python -m venv .venv
+  source .venv/bin/activate
+  pip install -U pip
   python -m build .
 """
 

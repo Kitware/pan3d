@@ -34,14 +34,14 @@ jobs:
             name: "Linux",
             os: ubuntu-latest
           }
-        - {
-            name: "MacOSX",
-            os: macos-latest
-          }
-        - {
-            name: "Windows",
-            os: windows-latest
-          }
+        # - {
+        #     name: "MacOSX",
+        #     os: macos-latest
+        #   }
+        # - {
+        #     name: "Windows",
+        #     os: windows-latest
+        #   }
 
     defaults:
       run:
