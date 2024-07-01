@@ -70,19 +70,15 @@ all = [
 pan3d-viewer = "pan3d.serve_viewer:serve"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ['setuptools', 'setuptools_scm']
+build-backend = 'setuptools.build_meta'
 
-[tool.hatch.build.targets.sdist]
-include = [
-  "*.py",
-  "pan3d/**/*.js",
-]
+[tool.setuptools.packages.find]
+where = ["."]
 
-[tool.hatch.build.targets.wheel]
-packages = ["pan3d"]
-artifacts = [
-  "pan3d/**/*.js",
+[tool.setuptools.package-data]
+pan3d = [
+    "**/module/serve/*.js",
 ]
 
 [tool.semantic_release]
