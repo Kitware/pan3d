@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## v0.8.5 (2024-07-01)
+
+### Ci
+
+* ci: register css ([`3398f1b`](https://github.com/Kitware/pan3d/commit/3398f1ba32265695cf30a27443a9e427add09a3d))
+
+* ci: remove setuptool_scm ([`947f349`](https://github.com/Kitware/pan3d/commit/947f349fee587f5e3cb6083b77644973ea454b6d))
+
+### Fix
+
+* fix: trigger a release ([`655f739`](https://github.com/Kitware/pan3d/commit/655f73912e923fa23cc59b7919c05a78e37cce38))
+
 ## v0.8.4 (2024-07-01)
 
 ### Ci
