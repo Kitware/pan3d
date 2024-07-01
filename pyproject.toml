@@ -70,7 +70,7 @@ all = [
 pan3d-viewer = "pan3d.serve_viewer:serve"
 
 [build-system]
-requires = ['setuptools', 'setuptools_scm']
+requires = ['setuptools']
 build-backend = 'setuptools.build_meta'
 
 [tool.setuptools.packages.find]
