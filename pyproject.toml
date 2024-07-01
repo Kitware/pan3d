@@ -76,14 +76,13 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.sdist]
 include = [
   "*.py",
-  "pan3d/ui/pan3d_components/module/serve/*.js",
+  "pan3d/**/*.js",
 ]
 
 [tool.hatch.build.targets.wheel]
 packages = ["pan3d"]
 artifacts = [
   "pan3d/**/*.js",
-  "pan3d/**/*.css",
 ]
 
 [tool.semantic_release]
