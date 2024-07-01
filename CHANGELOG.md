@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## v0.8.4 (2024-07-01)
+
+### Ci
+
+* ci(semantic-release): publish built wheel ([`c5660da`](https://github.com/Kitware/pan3d/commit/c5660da84ff7fe1edc20cf6e1461b13ba00da10f))
+
+### Fix
+
+* fix(ci): hopefully get that js file ([`11d9482`](https://github.com/Kitware/pan3d/commit/11d94822ac82f84229c5b0028027589eec907a0d))
+
+* fix(ci): try to bundle generated js ([`98a8f36`](https://github.com/Kitware/pan3d/commit/98a8f36522b98da3651dd67b13bc57a8eadd048c))
+
 ## v0.8.3 (2024-07-01)
 
 ### Ci
