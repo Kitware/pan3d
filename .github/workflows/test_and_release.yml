@@ -119,10 +119,6 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: python3 -m pip install build --user
-      - name: Build dist
-        run: python3 -m build
-
       # https://docs.pypi.org/trusted-publishers/using-a-publisher/
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
