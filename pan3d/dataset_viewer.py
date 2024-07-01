@@ -1,5 +1,6 @@
 import asyncio
 import concurrent.futures
+import itertools
 import json
 import pandas
 import pyvista
@@ -60,6 +61,7 @@ class DatasetViewer:
         self.pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         self._ui = None
         self._default_style = CSS_FILE.read_text()
+        self._preview_slicing = None
 
         self.plotter = geovista.GeoPlotter(off_screen=True, notebook=False)
         self.plotter.set_background("lightgrey")
@@ -304,7 +306,7 @@ class DatasetViewer:
             self.plotter.view_vector(vector, viewUp)
         if "Z" in face:
             viewUp = [0, 1, 0]
-            vector = [-1, 1, -1] if "+" in face else [-1, 1, 1]
+            vector = [-1, 1, -1] if "+" in face else [1, 1, 1]
             self.plotter.view_vector(vector, viewUp)
 
     # -----------------------------------------------------
@@ -512,33 +514,39 @@ class DatasetViewer:
         for key in da.dims:
             if key not in [c["name"] for c in self.state.da_coordinates]:
                 current_coord = da.coords[key]
-                values = current_coord.values
+                values = list(current_coord.values)
+                reverse_order = values[0] > values[-1]
                 size = current_coord.size
-                coord_range = [
-                    str(round(v)) if isinstance(v, float) else str(v)
-                    for v in [values.item(0), values.item(size - 1)]
-                ]
                 dtype = current_coord.dtype
-
+                labels = [
+                    (pandas.to_datetime(v).strftime("%b %d %Y %H:%M"))
+                    if dtype.kind in ["O", "M"]  # is datetime
+                    else (f"{pandas.to_timedelta(v).total_seconds()} seconds")
+                    if dtype.kind in ["m"]  # is timedelta
+                    else str(round(v))
+                    if isinstance(v, float)
+                    else str(v)
+                    for v in values
+                ]
                 coord_attrs = [
                     {"key": str(k), "value": str(v)}
                     for k, v in da.coords[key].attrs.items()
                 ]
                 coord_attrs.append({"key": "dtype", "value": str(dtype)})
                 coord_attrs.append({"key": "length", "value": int(size)})
-                coord_attrs.append({"key": "range", "value": coord_range})
+                coord_attrs.append(
+                    {"key": "range", "value": f"{labels[0]} - {labels[-1]}"}
+                )
                 bounds = [0, size - 1]
                 self.state.da_coordinates.append(
                     {
                         "name": key,
                         "attrs": coord_attrs,
-                        "labels": [
-                            str(round(v)) if isinstance(v, float) else str(v)
-                            for v in values
-                        ],
+                        "labels": labels,
                         "full_bounds": bounds,
                         "bounds": bounds,
                         "step": 1,
+                        "reverse_order": str(reverse_order),
                     }
                 )
         self.state.dirty("da_coordinates")
@@ -551,38 +559,18 @@ class DatasetViewer:
         for coord in self.state.da_coordinates:
             slicing = self.builder.slicing.get(coord["name"])
             if slicing:
-                bounds = [slicing[0], slicing[1]]
+                bounds = [slicing[0], slicing[1] - 1]  # stop is exclusive
                 if bounds != coord.get("bounds"):
                     coord.update(dict(bounds=bounds))
+                    self.state.dirty("da_coordinates")
+
+                if slicing[2] != coord.get("step"):
+                    coord.update(dict(step=slicing[2]))
                     self.state.dirty("da_coordinates")
         self._generate_preview()
 
     def _time_index_changed(self) -> None:
-        dataset = self.builder.dataset
-        da_name = self.builder.data_array_name
-        t = self.builder.t
-        t_index = self.builder.t_index
-        if (
-            dataset is not None
-            and da_name is not None
-            and t is not None
-            and dataset[da_name] is not None
-            and dataset[da_name][t] is not None
-        ):
-            d = dataset[da_name].coords[t].dtype
-            time_steps = dataset[da_name][t]
-            current_time = time_steps.values[t_index]
-
-            if d.kind in ["O", "M"]:  # is datetime
-                if not hasattr(current_time, "strftime"):
-                    current_time = pandas.to_datetime(current_time)
-                current_time = current_time.strftime("%b %d %Y %H:%M")
-            elif d.kind in ["m"]:  # is timedelta
-                if not hasattr(current_time, "total_seconds"):
-                    current_time = pandas.to_timedelta(current_time)
-                current_time = f"{current_time.total_seconds()} seconds"
-            self.state.ui_current_time_string = str(current_time)
-            self._generate_preview()
+        self._generate_preview()
 
     def _generate_preview(self) -> None:
         if (
@@ -600,11 +588,11 @@ class DatasetViewer:
             preview_slicing[self.builder.t] = self.builder.t_index
 
         face_options = []
-        if self.builder.z is not None:
+        if self.builder.x is not None and self.builder.y is not None:
             face_options += ["+Z", "-Z"]
-        if self.builder.y is not None:
+        if self.builder.x is not None and self.builder.z is not None:
             face_options += ["+Y", "-Y"]
-        if self.builder.x is not None:
+        if self.builder.y is not None and self.builder.z is not None:
             face_options += ["+X", "-X"]
         self.state.cube_preview_face_options = face_options
         if self.state.cube_preview_face not in face_options and len(face_options):
@@ -636,7 +624,7 @@ class DatasetViewer:
                 preview_slicing[axis_name] = (
                     axis_slicing[0]
                     if "+" in self.state.cube_preview_face
-                    else axis_slicing[1]
+                    else axis_slicing[1] - 1  # stop is exclusive
                 )
 
             # update CSS to make blue slider thumb match preview outline
@@ -644,19 +632,64 @@ class DatasetViewer:
             thumb_style = thumb_selector + " { color: rgb(0, 100, 255) }"
             self.ctrl.update_style(self._default_style + thumb_style)
 
-        data = (
+        if preview_slicing == self._preview_slicing:
+            return
+        self._preview_slicing = preview_slicing
+
+        data = numpy.nan_to_num(
             self.builder.dataset[self.builder.data_array_name]
             .isel(preview_slicing)
             .to_numpy()
         )
+        # if any dimensions are too small, increase size with gradients between values
+        min_dim_length = 50
+        for axis_index in range(len(data.shape)):
+            length = data.shape[axis_index]
+            if length < min_dim_length:
+                gradient_steps = int(min_dim_length / (length - 1))
+                gradients = []
+                slices = list(
+                    itertools.product(
+                        *[
+                            [slice(None)] if i == axis_index else list(range(l))
+                            for i, l in enumerate(data.shape)
+                        ]
+                    )
+                )
+                for s in slices:
+                    sdata = data[s]
+                    gradient = []
+                    for i in range(len(sdata) - 1):
+                        gradient_portion = list(
+                            numpy.linspace(
+                                sdata[i], sdata[i + 1], gradient_steps, endpoint=False
+                            )
+                        )
+                        gradient += gradient_portion
+                    gradient.append(sdata[-1])
+                    gradients.append(gradient)
+                stack_axis = next(i for i in range(len(data.shape)) if i != axis_index)
+                data = numpy.stack(gradients, axis=stack_axis)
+
         normalized_data = numpy.vectorize(
             lambda x, x_min, x_max: (x - x_min) / (x_max - x_min) * 255
         )(data, numpy.min(data), numpy.max(data)).astype(numpy.uint8)
         img = Image.fromarray(normalized_data)
+
         # apply transposes to match rendering orientation
-        img = img.transpose(Image.FLIP_TOP_BOTTOM)
-        if "+" in self.state.cube_preview_face:
+        reverse_x = False
+        reverse_y = False
+        for coord in self.state.da_coordinates:
+            if coord.get("name") == self.state.cube_preview_axes["x"]:
+                reverse_x = coord.get("reverse_order") == "True"
+            if coord.get("name") == self.state.cube_preview_axes["y"]:
+                reverse_y = coord.get("reverse_order") == "True"
+        if not reverse_y:
+            img = img.transpose(Image.FLIP_TOP_BOTTOM)
+        if reverse_x != "+" in self.state.cube_preview_face:
             img = img.transpose(Image.FLIP_LEFT_RIGHT)
+
+        # encode image data
         buffer = BytesIO()
         img.save(buffer, format="PNG")
         encoded = base64.b64encode(buffer.getvalue()).decode("ascii")
@@ -757,7 +790,10 @@ class DatasetViewer:
 
     @change("da_coordinates")
     def _on_change_da_coordinates(self, da_coordinates, **kwargs):
-        bounds = {c.get("name"): c.get("bounds") for c in da_coordinates}
+        bounds = {
+            c.get("name"): [c["bounds"][0], c["bounds"][1] + 1]  # stop is exclusive
+            for c in da_coordinates
+        }
         steps = {c.get("name"): c.get("step") for c in da_coordinates}
         self.builder._auto_select_slicing(bounds, steps)
 

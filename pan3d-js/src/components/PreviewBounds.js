@@ -40,27 +40,38 @@ export default {
       let yMax;
       props.coordinates.forEach((coord) => {
         if (coord.name === props.axes.x) {
-          xMin =
-            previewShape.value[0] -
-            ((coord.bounds[1] - coord.full_bounds[0]) /
-              (coord.full_bounds[1] - coord.full_bounds[0])) *
-              previewShape.value[0];
-          xMax =
-            previewShape.value[0] -
+          let min =
             ((coord.bounds[0] - coord.full_bounds[0]) /
               (coord.full_bounds[1] - coord.full_bounds[0])) *
-              previewShape.value[0];
+            previewShape.value[0];
+          let max =
+            ((coord.bounds[1] - coord.full_bounds[0]) /
+              (coord.full_bounds[1] - coord.full_bounds[0])) *
+            previewShape.value[0];
+          if (coord.reverse_order === "True") {
+            xMin = previewShape.value[0] - max;
+            xMax = previewShape.value[0] - min;
+          } else {
+            xMin = min;
+            xMax = max;
+          }
         } else if (coord.name === props.axes.y) {
-          yMin =
-            previewShape.value[1] -
-            ((coord.bounds[1] - coord.full_bounds[0]) /
-              (coord.full_bounds[1] - coord.full_bounds[0])) *
-              previewShape.value[1];
-          yMax =
-            previewShape.value[1] -
+          let min =
             ((coord.bounds[0] - coord.full_bounds[0]) /
               (coord.full_bounds[1] - coord.full_bounds[0])) *
-              previewShape.value[1];
+            previewShape.value[1];
+          let max =
+            ((coord.bounds[1] - coord.full_bounds[0]) /
+              (coord.full_bounds[1] - coord.full_bounds[0])) *
+            previewShape.value[1];
+          // Y is reversed by default
+          if (coord.reverse_order !== "True") {
+            yMin = previewShape.value[1] - max;
+            yMax = previewShape.value[1] - min;
+          } else {
+            yMin = min;
+            yMax = max;
+          }
         }
       });
       boundsBox.value = [xMin, yMin, xMax, yMax];
@@ -141,27 +152,29 @@ export default {
         let xRange;
         let yRange;
         props.coordinates.forEach((coord) => {
+          var coordRange = coord.full_bounds[1] - coord.full_bounds[0];
           if (coord.name === props.axes.x) {
+            let xMin = boundsBox.value[0];
+            let xMax = boundsBox.value[2];
+            if (coord.reverse_order === "True") {
+              xMin = previewShape.value[0] - boundsBox.value[2];
+              xMax = previewShape.value[0] - boundsBox.value[0];
+            }
             xRange = [
-              ((previewShape.value[0] - boundsBox.value[2]) /
-                previewShape.value[0]) *
-                (coord.full_bounds[1] - coord.full_bounds[0]) +
-                coord.full_bounds[0],
-              ((previewShape.value[0] - boundsBox.value[0]) /
-                previewShape.value[0]) *
-                (coord.full_bounds[1] - coord.full_bounds[0]) +
-                coord.full_bounds[0],
+              (xMin / previewShape.value[0]) * coordRange + coord.full_bounds[0],
+              (xMax / previewShape.value[0]) * coordRange + coord.full_bounds[0],
             ];
           } else if (coord.name === props.axes.y) {
+            let yMin = boundsBox.value[1];
+            let yMax = boundsBox.value[3];
+            // Y is reversed by default
+            if (coord.reverse_order !== "True") {
+              yMin = previewShape.value[1] - boundsBox.value[3];
+              yMax = previewShape.value[1] - boundsBox.value[1];
+            }
             yRange = [
-              ((previewShape.value[1] - boundsBox.value[3]) /
-                previewShape.value[1]) *
-                (coord.full_bounds[1] - coord.full_bounds[0]) +
-                coord.full_bounds[0],
-              ((previewShape.value[1] - boundsBox.value[1]) /
-                previewShape.value[1]) *
-                (coord.full_bounds[1] - coord.full_bounds[0]) +
-                coord.full_bounds[0],
+              (yMin / previewShape.value[1]) * coordRange + coord.full_bounds[0],
+              (yMax / previewShape.value[1]) * coordRange + coord.full_bounds[0],
             ];
           }
         });
