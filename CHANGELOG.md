@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.8.8 (2024-07-01)
+
+### Fix
+
+* fix: ci ([`b7dbd2d`](https://github.com/Kitware/pan3d/commit/b7dbd2d03eaea60d0336e7b4f62d8f35518d55c4))
+
 ## v0.8.7 (2024-07-01)
 
 ### Fix

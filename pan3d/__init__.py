@@ -4,7 +4,7 @@ from .dataset_builder import DatasetBuilder
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-__version__ = "0.8.7"
+__version__ = "0.8.8"
 
 try:
     from .dataset_viewer import DatasetViewer
