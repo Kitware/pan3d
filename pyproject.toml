@@ -6,6 +6,7 @@ authors = [
     {name = "Kitware Inc."},
 ]
 dependencies = [
+    "aiohttp>=3.9",
     "dask>=2023.10",
     "fsspec>=2023.9",
     "netCDF4>=1.6",
