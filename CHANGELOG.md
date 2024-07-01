@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## v0.8.1 (2024-07-01)
+
+### Ci
+
+* ci: add missing dep ([`19e6239`](https://github.com/Kitware/pan3d/commit/19e6239b7ebc5288e4191c904c3ac1b2ee2acce5))
+
+### Fix
+
+* fix(build): use hatch ([`3363daf`](https://github.com/Kitware/pan3d/commit/3363dafa98e267700c2847f32ec6ff097146b2f4))
+
+* fix(pyproject): properly add required js files ([`6270a80`](https://github.com/Kitware/pan3d/commit/6270a80976a3b596122a711c1d7aafc3326d69a4))
+
 ## v0.8.0 (2024-07-01)
 
 ### Ci
