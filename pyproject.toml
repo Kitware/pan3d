@@ -1,12 +1,11 @@
 [project]
 name = "pan3d"
-dynamic = ["version"]
+version = "0.8.0"
 description = "Utility package for processing and visualizing 3D datasets"
 authors = [
     {name = "Kitware Inc."},
 ]
 dependencies = [
-    "aiohttp>=3.8",
     "dask>=2023.10",
     "fsspec>=2023.9",
     "netCDF4>=1.6",
@@ -70,21 +69,25 @@ all = [
 pan3d-viewer = "pan3d.serve_viewer:serve"
 
 [build-system]
-requires = ["setuptools>=61", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.setuptools]
-packages = [
-    "pan3d",
+[tool.hatch.build.targets.sdist]
+include = [
+  "*.py",
 ]
-[tool.setuptools.package-data]
-pan3d = [
-    "**/*.js", 
-    "**/*.css",
+
+[tool.hatch.build.targets.wheel]
+packages = ["pan3d"]
+artifacts = [
+  "pan3d/**/*.js",
+  "pan3d/**/*.css",
 ]
 
 [tool.semantic_release]
-version_variables = ["setup.py:__version__"]
-version_pattern = [
-    "setup.cfg:version = (\\d+\\.\\d+\\.\\d+)",
+version_variables = [
+    "pan3d/__init__.py:__version__",
+]
+version_toml = [
+    "pyproject.toml:project.version",
 ]
