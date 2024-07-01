@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.8.3 (2024-07-01)
+
+### Ci
+
+* ci: add missing file ([`fec5b9e`](https://github.com/Kitware/pan3d/commit/fec5b9e71450ad55d073cd2a0d1f863cb1af26d3))
+
+### Fix
+
+* fix(dep): keep trying to get that js in bundle ([`981d617`](https://github.com/Kitware/pan3d/commit/981d61773a48c6605754c25864b9cac40d55f5a0))
+
 ## v0.8.2 (2024-07-01)
 
 ### Fix
