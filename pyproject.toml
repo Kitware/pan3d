@@ -79,6 +79,7 @@ where = ["."]
 [tool.setuptools.package-data]
 pan3d = [
     "**/module/serve/*.js",
+    "**/ui/custom.css",
 ]
 
 [tool.semantic_release]
