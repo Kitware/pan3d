@@ -1,5 +1,41 @@
 # CHANGELOG
 
+## v0.8.0 (2024-07-01)
+
+### Ci
+
+* ci: update action version and ensure js bundle at release ([`063ffc9`](https://github.com/Kitware/pan3d/commit/063ffc971dc27908996d7f54b64822384b13ff6a))
+
+### Feature
+
+* feat: In preview image generation, compute gradients for small dimensions ([`68b3b9f`](https://github.com/Kitware/pan3d/commit/68b3b9f0d095ab1cb084691c2d67b9deed0c59fc))
+
+* feat: make bounds configuration available in both axis drawer and bounds menu (rather than being mutally exclusive depending on `da_auto_slicing`) ([`8ec9c4a`](https://github.com/Kitware/pan3d/commit/8ec9c4a6ab8be78343300d33874b77554242930c))
+
+### Fix
+
+* fix: resolve test failures ([`186bf5f`](https://github.com/Kitware/pan3d/commit/186bf5f008e0bd052ac45e078a38db47ac84f4ea))
+
+* fix: make bounds interactive preview work for data with flipped coordinates ([`ae54153`](https://github.com/Kitware/pan3d/commit/ae54153866590666562f849b263f19b6816a5c2e))
+
+* fix: disable auto slicing during import ([`70ce50f`](https://github.com/Kitware/pan3d/commit/70ce50f60c0102a272678fc3fc062bd2ec09a0cb))
+
+* fix: consistency for inclusive bounds max vs exclusive slicing stop ([`9d47789`](https://github.com/Kitware/pan3d/commit/9d4778902ec9164274a5540ee8500f5d52fd314a))
+
+* fix: Improve auto slicing behavior in `DatasetBuilder` ([`98a737e`](https://github.com/Kitware/pan3d/commit/98a737e26f021e18e17a33b946ee6d5a4084654a))
+
+* fix: remove `ui_current_time_string`, use pregenerated labels list with datetime formatting ([`c1041ac`](https://github.com/Kitware/pan3d/commit/c1041ac9d9538103e63033bbc92bfe6823e959cd))
+
+### Style
+
+* style: Reformat with black ([`9e54fdf`](https://github.com/Kitware/pan3d/commit/9e54fdf13714c7d5ce5e96fcfac5240f704b51f1))
+
+### Unknown
+
+* Merge pull request #82 from Kitware/behavior-fixes
+
+Various behavior fixes ([`cb7e413`](https://github.com/Kitware/pan3d/commit/cb7e4136c1c1fa71ab3ee6a0ef8b0462ec61f583))
+
 ## v0.7.0 (2024-06-25)
 
 ### Ci
