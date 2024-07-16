@@ -20,7 +20,7 @@ class BoundsConfigure(vuetify.VMenu):
         cube_preview_face="cube_preview_face",
         cube_preview_face_options="cube_preview_face_options",
         cube_preview_axes="cube_preview_axes",
-        ui_bounds_menu="ui_bounds_menu"
+        ui_bounds_menu="ui_bounds_menu",
     ):
         super().__init__(
             v_model=(ui_bounds_menu,),
