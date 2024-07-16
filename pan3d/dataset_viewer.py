@@ -847,3 +847,11 @@ class DatasetViewer:
     @change("cube_view_mode", "cube_preview_face")
     def _on_change_cube_view(self, cube_view_mode, cube_preview_face, **kwargs):
         self._generate_preview()
+
+    @change("ui_main_drawer")
+    def _on_change_ui_main_drawer(self, ui_main_drawer, **kwargs):
+        self.state.ui_bounds_menu = False
+
+    @change("ui_axis_drawer")
+    def _on_change_ui_axis_drawer(self, ui_axis_drawer, **kwargs):
+        self.state.ui_render_options_menu = False

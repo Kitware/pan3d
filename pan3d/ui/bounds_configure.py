@@ -20,10 +20,12 @@ class BoundsConfigure(vuetify.VMenu):
         cube_preview_face="cube_preview_face",
         cube_preview_face_options="cube_preview_face_options",
         cube_preview_axes="cube_preview_axes",
+        ui_bounds_menu="ui_bounds_menu"
     ):
         super().__init__(
+            v_model=(ui_bounds_menu,),
             location="start",
-            transition="slide-y-transition",
+            transition="slide-x-transition",
             close_on_content_click=False,
             persistent=True,
             no_click_animation=True,
