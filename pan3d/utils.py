@@ -74,6 +74,8 @@ initial_state = {
     "ui_import_loading": False,
     "ui_main_drawer": False,
     "ui_axis_drawer": False,
+    "ui_bounds_menu": False,
+    "ui_render_options_menu": False,
     "ui_unapplied_changes": False,
     "ui_error_message": None,
     "ui_more_info_link": None,
