@@ -7,7 +7,6 @@ import pyvista
 import geovista
 import numpy
 import base64
-from datetime import datetime as dt
 from io import BytesIO
 from PIL import Image
 from pathlib import Path
@@ -506,7 +505,7 @@ class DatasetViewer:
         if dtype.kind in ["O", "M"]:  # is datetime
             try:
                 return (pandas.to_datetime(v).strftime("%b %d %Y %H:%M"))
-            except Exception as e:
+            except Exception:
                 # Get around the case where certain cftime objects do not
                 # readily agree with conversion to datetime objects
                 return str(v)
@@ -516,7 +515,6 @@ class DatasetViewer:
             return str(round(v))
         else:
             return str(v)
-
 
     def _data_array_changed(self) -> None:
         dataset = self.builder.dataset
