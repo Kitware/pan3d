@@ -162,8 +162,7 @@ class DatasetViewer:
                             self.ctrl.push_camera = plot_view.push_camera
                             self.plot_view = plot_view
         # turn on axis orientation widget by default with state var from pyvista
-        # (typo in visibility is intentional, done to match pyvista)
-        self.state[f"{self.ctrl.get_plotter()._id_name}_axis_visiblity"] = True
+        self.state[f"{self.ctrl.get_plotter()._id_name}_axis_visibility"] = True
         return self._ui
 
     # -----------------------------------------------------
