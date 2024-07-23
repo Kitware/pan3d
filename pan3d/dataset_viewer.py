@@ -7,6 +7,7 @@ import pyvista
 import geovista
 import numpy
 import base64
+from datetime import datetime as dt
 from io import BytesIO
 from PIL import Image
 from pathlib import Path
@@ -501,6 +502,22 @@ class DatasetViewer:
         else:
             self.state.dataset_ready = False
 
+    def _get_datetime_label(self, dtype, v) -> str:
+        if dtype.kind in ["O", "M"]:  # is datetime
+            try:
+                return (pandas.to_datetime(v).strftime("%b %d %Y %H:%M"))
+            except Exception as e:
+                # Get around the case where certain cftime objects do not
+                # readily agree with conversion to datetime objects
+                return str(v)
+        elif dtype.kind in ["m"]:  # is timedelta
+            return (f"{pandas.to_timedelta(v).total_seconds()} seconds")
+        elif isinstance(v, float):
+            return str(round(v))
+        else:
+            return str(v)
+
+
     def _data_array_changed(self) -> None:
         dataset = self.builder.dataset
         da_name = self.builder.data_array_name
@@ -518,16 +535,7 @@ class DatasetViewer:
                 reverse_order = values[0] > values[-1]
                 size = current_coord.size
                 dtype = current_coord.dtype
-                labels = [
-                    (pandas.to_datetime(v).strftime("%b %d %Y %H:%M"))
-                    if dtype.kind in ["O", "M"]  # is datetime
-                    else (f"{pandas.to_timedelta(v).total_seconds()} seconds")
-                    if dtype.kind in ["m"]  # is timedelta
-                    else str(round(v))
-                    if isinstance(v, float)
-                    else str(v)
-                    for v in values
-                ]
+                labels = [self._get_datetime_label(dtype, v) for v in values]
                 coord_attrs = [
                     {"key": str(k), "value": str(v)}
                     for k, v in da.coords[key].attrs.items()
