@@ -204,14 +204,16 @@ class DatasetViewer:
             catalog_id = self.state.catalog.get("id")
             search_options = pan3d_catalogs.get_search_options(catalog_id)
             self.state.available_catalogs = [
-                {
-                    **catalog,
-                    "search_terms": [
-                        {"key": k, "options": v} for k, v in search_options.items()
-                    ],
-                }
-                if catalog.get("id") == catalog_id
-                else catalog
+                (
+                    {
+                        **catalog,
+                        "search_terms": [
+                            {"key": k, "options": v} for k, v in search_options.items()
+                        ],
+                    }
+                    if catalog.get("id") == catalog_id
+                    else catalog
+                )
                 for catalog in self.state.available_catalogs
             ]
             for catalog in self.state.available_catalogs:
@@ -504,13 +506,13 @@ class DatasetViewer:
     def _get_datetime_label(self, dtype, v) -> str:
         if dtype.kind in ["O", "M"]:  # is datetime
             try:
-                return (pandas.to_datetime(v).strftime("%b %d %Y %H:%M"))
+                return pandas.to_datetime(v).strftime("%b %d %Y %H:%M")
             except Exception:
                 # Get around the case where certain cftime objects do not
                 # readily agree with conversion to datetime objects
                 return str(v)
         elif dtype.kind in ["m"]:  # is timedelta
-            return (f"{pandas.to_timedelta(v).total_seconds()} seconds")
+            return f"{pandas.to_timedelta(v).total_seconds()} seconds"
         elif isinstance(v, float):
             return str(round(v))
         else:
