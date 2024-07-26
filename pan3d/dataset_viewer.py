@@ -204,14 +204,16 @@ class DatasetViewer:
             catalog_id = self.state.catalog.get("id")
             search_options = pan3d_catalogs.get_search_options(catalog_id)
             self.state.available_catalogs = [
-                {
-                    **catalog,
-                    "search_terms": [
-                        {"key": k, "options": v} for k, v in search_options.items()
-                    ],
-                }
-                if catalog.get("id") == catalog_id
-                else catalog
+                (
+                    {
+                        **catalog,
+                        "search_terms": [
+                            {"key": k, "options": v} for k, v in search_options.items()
+                        ],
+                    }
+                    if catalog.get("id") == catalog_id
+                    else catalog
+                )
                 for catalog in self.state.available_catalogs
             ]
             for catalog in self.state.available_catalogs:
@@ -501,6 +503,21 @@ class DatasetViewer:
         else:
             self.state.dataset_ready = False
 
+    def _get_datetime_label(self, dtype, v) -> str:
+        if dtype.kind in ["O", "M"]:  # is datetime
+            try:
+                return pandas.to_datetime(v).strftime("%b %d %Y %H:%M")
+            except Exception:
+                # Get around the case where certain cftime objects do not
+                # readily agree with conversion to datetime objects
+                return str(v)
+        elif dtype.kind in ["m"]:  # is timedelta
+            return f"{pandas.to_timedelta(v).total_seconds()} seconds"
+        elif isinstance(v, float):
+            return str(round(v))
+        else:
+            return str(v)
+
     def _data_array_changed(self) -> None:
         dataset = self.builder.dataset
         da_name = self.builder.data_array_name
@@ -518,16 +535,7 @@ class DatasetViewer:
                 reverse_order = values[0] > values[-1]
                 size = current_coord.size
                 dtype = current_coord.dtype
-                labels = [
-                    (pandas.to_datetime(v).strftime("%b %d %Y %H:%M"))
-                    if dtype.kind in ["O", "M"]  # is datetime
-                    else (f"{pandas.to_timedelta(v).total_seconds()} seconds")
-                    if dtype.kind in ["m"]  # is timedelta
-                    else str(round(v))
-                    if isinstance(v, float)
-                    else str(v)
-                    for v in values
-                ]
+                labels = [self._get_datetime_label(dtype, v) for v in values]
                 coord_attrs = [
                     {"key": str(k), "value": str(v)}
                     for k, v in da.coords[key].attrs.items()
