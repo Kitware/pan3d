@@ -1,4 +1,3 @@
-
 # https://openorganelle.janelia.org/faq#python
 # https://open.quiltdata.com/b/janelia-cosem-datasets/tree/
 from datetime import datetime
@@ -9,27 +8,27 @@ import xarray
 import zarr
 
 
-BUCKET_URL = 's3://janelia-cosem-datasets'
-REFORMATTED_CACHE = './janelia-reformatted'
-prefix_delimiter_pattern = '_|-'
-dataset_suffixes = ['.zarr/', '.n5/']
+BUCKET_URL = "s3://janelia-cosem-datasets"
+REFORMATTED_CACHE = "./janelia-reformatted"
+prefix_delimiter_pattern = "_|-"
+dataset_suffixes = [".zarr/", ".n5/"]
 
 
 def get_dataset_folders():
     bucket = q3.Bucket(BUCKET_URL)
-    directory_info, object_info, delete_markers = bucket.ls('')
+    directory_info, object_info, delete_markers = bucket.ls("")
     return [
-        folder.get('Prefix').replace('/', '')
+        folder.get("Prefix").replace("/", "")
         for folder in directory_info
-        if folder.get('Prefix') is not None
+        if folder.get("Prefix") is not None
     ]
 
 
 def get_catalog():
     return {
-        'name': 'Janelia COSEM',
-        'id': 'janelia',
-        'search_terms': [{'key': 'id', 'options': []}],
+        "name": "Janelia COSEM",
+        "id": "janelia",
+        "search_terms": [{"key": "id", "options": []}],
     }
 
 
@@ -37,20 +36,18 @@ def get_search_options():
     prefixes = []
     for folder in get_dataset_folders():
         partial_prefixes = [
-            folder[:match.start(0)]
+            folder[: match.start(0)]
             for match in re.finditer(prefix_delimiter_pattern, folder)
         ]
         for partial_prefix in partial_prefixes:
             if partial_prefix not in prefixes:
                 prefixes.append(partial_prefix)
-    return {
-        'prefix': prefixes
-    }
+    return {"prefix": prefixes}
 
 
 def search(**kwargs):
     start = datetime.now()
-    prefix = kwargs.get('prefix')
+    prefix = kwargs.get("prefix")
     dataset_folders = get_dataset_folders()
     results = [
         {"name": id, "value": {"source": "janelia", "id": id}}
@@ -58,7 +55,7 @@ def search(**kwargs):
         if not prefix or prefix in id
     ]
     delta = datetime.now() - start
-    group_name = prefix or 'All Janelia COSEM datasets'
+    group_name = prefix or "All Janelia COSEM datasets"
     message = f'Found {len(results)} dataset ids \
         in {delta.total_seconds()} seconds.\
         Results added to group "{group_name}".'
@@ -68,24 +65,28 @@ def search(**kwargs):
 def reformat_zarr_group(original_group, new_group):
     subgroups = list(original_group.groups())
     if len(subgroups):
-        return {
-            gname: reformat_zarr_group(g, new_group) for gname, g in subgroups
-        }
+        return {gname: reformat_zarr_group(g, new_group) for gname, g in subgroups}
     else:
-        name = original_group.name.split('/')[-1]
-        arr = original_group['s0']  # in janelia's schema, s0 is the full-resolution data
+        name = original_group.name.split("/")[-1]
+        arr = original_group[
+            "s0"
+        ]  # in janelia's schema, s0 is the full-resolution data
         zarr.copy(
             arr,
             new_group,
             name=name,
             attrs={
-                '_ARRAY_DIMENSIONS': ['x', 'y', 'z'],  # axes are ordered 'xyz' instead of 'zyx'
-            }
+                "_ARRAY_DIMENSIONS": [
+                    "x",
+                    "y",
+                    "z",
+                ],  # axes are ordered 'xyz' instead of 'zyx'
+            },
         )
 
 
 def cache_reformatted(dataset_path):
-    dataset_url = f'{BUCKET_URL}/{dataset_path}'
+    dataset_url = f"{BUCKET_URL}/{dataset_path}"
     print(dataset_url)
     original_group = zarr.open(zarr.N5FSStore(dataset_url, anon=True))
     return original_group
@@ -105,8 +106,8 @@ def load_dataset(id):
     for suffix in dataset_suffixes:
         if dataset_path is None:
             for folder in directory_info:
-                if folder.get('Prefix').endswith(suffix):
-                    dataset_path = folder.get('Prefix')
+                if folder.get("Prefix").endswith(suffix):
+                    dataset_path = folder.get("Prefix")
 
     if dataset_path is None:
         raise ValueError(f"No dataset found")
@@ -118,6 +119,7 @@ def load_dataset(id):
             raise e.__cause__
         else:
             raise e
+
 
 # Testing
 # print(get_search_options())
