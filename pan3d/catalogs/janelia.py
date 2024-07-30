@@ -1,10 +1,8 @@
 # https://openorganelle.janelia.org/faq#python
 # https://open.quiltdata.com/b/janelia-cosem-datasets/tree/
 from datetime import datetime
-import os
 import quilt3 as q3
 import re
-import xarray
 import zarr
 
 
