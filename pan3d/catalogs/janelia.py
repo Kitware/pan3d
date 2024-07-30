@@ -108,7 +108,7 @@ def load_dataset(id):
                     dataset_path = folder.get("Prefix")
 
     if dataset_path is None:
-        raise ValueError(f"No dataset found")
+        raise ValueError(f"No dataset found for {id}.")
     try:
         # attempt to reformat to something xarray can read
         return cache_reformatted(dataset_path)
