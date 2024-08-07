@@ -14,10 +14,12 @@ class RenderOptions(vuetify.VMenu):
         transparency_function_options="render_transparency_function_options",
         scalar_warp="render_scalar_warp",
         cartographic="render_cartographic",
+        ui_render_options_menu="ui_render_options_menu",
     ):
         super().__init__(
+            v_model=(ui_render_options_menu,),
             location="start",
-            transition="slide-y-transition",
+            transition="slide-x-transition",
             close_on_content_click=False,
             persistent=True,
             no_click_animation=True,
