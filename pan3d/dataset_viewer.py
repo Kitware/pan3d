@@ -50,7 +50,7 @@ class DatasetViewer:
             builder: Pan3D DatasetBuilder instance.
             server: Trame server name or instance.
             state:  A dictionary of initial state values.
-            catalogs: A list of strings referencing available catalog modules (options include 'pangeo', 'esgf'). Each included catalog will be available to search in the Viewer UI.
+            catalogs: A list of strings referencing available catalog modules (options include 'pangeo', 'esgf'). Each included catalog will be available to search in the GeoTrame UI.
         """
         if builder is None:
             builder = DatasetBuilder()
@@ -96,12 +96,12 @@ class DatasetViewer:
         self._mesh_changed()
 
     def start(self, **kwargs):
-        """Initialize the UI and start the server for the Viewer."""
+        """Initialize the UI and start the server for GeoTrame."""
         self.ui.server.start(**kwargs)
 
     @property
     async def ready(self) -> None:
-        """Coroutine to wait for the Viewer server to be ready."""
+        """Coroutine to wait for the GeoTrame server to be ready."""
         await self.ui.ready
 
     @property
@@ -373,7 +373,7 @@ class DatasetViewer:
             self.apply_and_render()
 
     def plot_mesh(self) -> None:
-        """Render current cached mesh in viewer's plotter."""
+        """Render current cached mesh in GeoTrame plotter."""
         if self.builder.data_array is None:
             return
 
@@ -847,3 +847,11 @@ class DatasetViewer:
     @change("cube_view_mode", "cube_preview_face")
     def _on_change_cube_view(self, cube_view_mode, cube_preview_face, **kwargs):
         self._generate_preview()
+
+    @change("ui_main_drawer")
+    def _on_change_ui_main_drawer(self, ui_main_drawer, **kwargs):
+        self.state.ui_bounds_menu = False
+
+    @change("ui_axis_drawer")
+    def _on_change_ui_axis_drawer(self, ui_axis_drawer, **kwargs):
+        self.state.ui_render_options_menu = False
