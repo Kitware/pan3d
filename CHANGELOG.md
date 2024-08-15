@@ -1,5 +1,55 @@
 # CHANGELOG
 
+## v0.8.9 (2024-08-15)
+
+### Documentation
+
+* docs: Update interactive preview descriptions for 3D data ([`87130cf`](https://github.com/Kitware/pan3d/commit/87130cf9a61fd4ea843d348defc62c7209fd9c5f))
+
+* docs: Add preview bounds explanation for 2D data ([`1b49657`](https://github.com/Kitware/pan3d/commit/1b49657041d36dafb85c6f382e178d5bdc3bf292))
+
+* docs: fix Catalogs tutorial link in GeoTrame tutorial ([`ae2b38c`](https://github.com/Kitware/pan3d/commit/ae2b38c69dd718a389031746ad93b24e97437939))
+
+* docs: First pass at updating documentation ([`3f97272`](https://github.com/Kitware/pan3d/commit/3f972722a9e5b2bf4f83f9f45ea830bd999d49cd))
+
+### Fix
+
+* fix: Close menus for bounds configure and render options when nearby drawer changes state ([`0396e36`](https://github.com/Kitware/pan3d/commit/0396e36c8289e481c2bb3e5200aa848af86b3b99))
+
+* fix: update links to other tutorial pages ([`c3393b5`](https://github.com/Kitware/pan3d/commit/c3393b541971e2a26727d584fb02c3176da843e7))
+
+### Refactor
+
+* refactor: Apply new name in example notebooks ([`31f78aa`](https://github.com/Kitware/pan3d/commit/31f78aaebe2f06716d4b7f17d20d53a16f290369))
+
+* refactor: Apply new name in miscellaneous places ([`4caea8b`](https://github.com/Kitware/pan3d/commit/4caea8be4865ee6cbdea9ecfff7ba4787b7a70aa))
+
+* refactor: change name to GeoTrame in user-facing places ([`8141701`](https://github.com/Kitware/pan3d/commit/81417012556907aaddda034399fc3ce82011ae79))
+
+### Style
+
+* style: Add trailing comma ([`cdf7e21`](https://github.com/Kitware/pan3d/commit/cdf7e2153b513ccc8e992d782a5e96da25e322a7))
+
+### Unknown
+
+* Merge pull request #91 from Kitware/rename-and-docs-update-rebase
+
+Merging renaming changes from `pan3D-viewer` to `geotrame` and all the associated documentation changes ([`4874ab9`](https://github.com/Kitware/pan3d/commit/4874ab93ddc419d5de700c7bcf01a0a2983dab7f))
+
+* Merge pull request #89 from Kitware/fix_datetime_issues
+
+Adding exception handling for cftime to datetime conversion ([`f16dd36`](https://github.com/Kitware/pan3d/commit/f16dd36530a268de41557a4da63d36f151582634))
+
+* Reformatting file ([`18667db`](https://github.com/Kitware/pan3d/commit/18667db6e6640e4471ceb4ba57b49f47f21a2e8e))
+
+* Fixing CI errors ([`8e4ceaf`](https://github.com/Kitware/pan3d/commit/8e4ceafc3e72d67706b3a67107d1b2eef227acf6))
+
+* Adding exception handling for cftime to datetime conversion
+
+  It appears that certain cftime objects do not readily support
+  conversion to datetime objects. This change just returns the string
+  for the cftime object in such failure. ([`2c656f2`](https://github.com/Kitware/pan3d/commit/2c656f26a9c9d9b939cc69813655f9394d21802b))
+
 ## v0.8.8 (2024-07-01)
 
 ### Fix
