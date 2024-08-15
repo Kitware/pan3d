@@ -7,7 +7,7 @@
         "name": "sfcWind",
         "x": "lon",
         "y": "lat",
-        "z": "time"
+        "t": "time"
     },
     "ui": {
         "main_drawer": false,
