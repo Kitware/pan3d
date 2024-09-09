@@ -320,6 +320,41 @@ class DatasetBuilder:
                 self._viewer._mesh_changed()
 
     @property
+    def t_num(self) -> int:
+        if not self.t:
+                raise ValueError(
+                    "Cannot set time index > 0 without setting t array first."
+                )
+        t_coords = self.dataset[self.data_array_name].coords[self.t]
+        return t_coords.size
+    
+    @property
+    def t_range(self) -> Tuple[Any]:
+        if not self.t:
+                raise ValueError(
+                    "Cannot set time index > 0 without setting t array first."
+                )
+        t_coords = self.dataset[self.data_array_name].coords[self.t].to_numpy().tolist()
+        return (t_coords[0], t_coords[-1])
+    
+    @property
+    def t_values(self) -> List:
+        if not self.t:
+                raise ValueError(
+                    "Cannot set time index > 0 without setting t array first."
+                )
+        t_coords = self.dataset[self.data_array_name].coords[self.t]
+        return t_coords.to_numpy().tolist()
+
+    @property
+    def var_ranges(self) -> map:
+        range_map = {} 
+        for var in self.dataset.data_vars:
+            arr = self.dataset[var].to_numpy()
+            range_map[var] = (arr.min(), arr.max())
+        return range_map
+
+    @property
     def slicing(self) -> Dict[str, List]:
         """Dictionary mapping of coordinate names to slice arrays.
         Each key should exist in the coordinates of the current data array.
@@ -327,6 +362,16 @@ class DatasetBuilder:
         integers or floats representing start value, stop value, and step.
         """
         return self._algorithm.slicing
+    
+    @property
+    def extents(self) -> map:
+        extents = {}
+        dims = [self.x, self.y, self.z]
+        for i, dim in enumerate(dims):
+            if dim:
+                coords = self.dataset.coords[dim].to_numpy()
+                extents[dim] = (coords.min(), coords.max())
+        return extents
 
     @slicing.setter
     def slicing(self, slicing: Dict[str, List]) -> None:
