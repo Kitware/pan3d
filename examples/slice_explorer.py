@@ -3,6 +3,7 @@ from argparse import ArgumentParser, BooleanOptionalAction
 from pan3d import DatasetBuilder
 from pan3d import SliceExplorer
 
+
 def serve():
     parser = ArgumentParser(
         prog="Pan3D",
@@ -19,6 +20,7 @@ def serve():
 
     viewer = SliceExplorer(builder)
     viewer.start()
+
 
 if __name__ == "__main__":
     serve()
