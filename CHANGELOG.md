@@ -1,6 +1,51 @@
 # CHANGELOG
 
+
+## v0.9.0 (2024-10-10)
+
+### Documentation
+
+* docs(contributing): update contributing guide ([`d5dc425`](https://github.com/Kitware/pan3d/commit/d5dc425e226e279a2888a9ecb0109f8fc5113a92))
+
+### Features
+
+* feat(Slice Explorer): adding inital version of the slice explorer
+
+Adding Slice Explorer
+  -- the main module in the `explorers` directory
+  -- a driver example using python in `examples`
+  -- a jupyter notebook demo example ([`3147a46`](https://github.com/Kitware/pan3d/commit/3147a462368c00e44f0a0a33073b66681b601e03))
+
+### Unknown
+
+* Merge pull request #115 from Kitware/explorers
+
+feat(Slice Explorer): adding inital version of the slice explorer ([`1d2e777`](https://github.com/Kitware/pan3d/commit/1d2e7772d74e75542407e2b5cb5a1c61e1f4e658))
+
+* fix (refactor slice explorer): Addressing Seb review
+
+  Making necessary code maintainance and readability changes
+  Adding presets for diverging color maps
+  Expand and collapse drawer to expand render area
+  Adding support for varied datetime objects for time dimension
+  Adding documentation
+  fix(ci) : conditionally adding pykdtree w/o OpenMP ([`140e7ad`](https://github.com/Kitware/pan3d/commit/140e7adc5ac8a07cdff7f1217b9b574b8602240c))
+
+* Merge pull request #103 from ayenpure/fix_esgf_example
+
+Fixing ESGF example : Set time dimension to t instead of z ([`4fef3d7`](https://github.com/Kitware/pan3d/commit/4fef3d7cab62fff81619351e8039f53b829e892a))
+
+* Fixing ESGF example : Set time dimension to t instead of z
+
+  This change sets the time dimension of the data to the T coordinate
+  instead of the Z coordinate while the example launches. ([`9b37d85`](https://github.com/Kitware/pan3d/commit/9b37d851c721063efea9893ecd73dcf035c90bb0))
+
+
 ## v0.8.9 (2024-08-15)
+
+### Code Style
+
+* style: Add trailing comma ([`cdf7e21`](https://github.com/Kitware/pan3d/commit/cdf7e2153b513ccc8e992d782a5e96da25e322a7))
 
 ### Documentation
 
@@ -12,23 +57,19 @@
 
 * docs: First pass at updating documentation ([`3f97272`](https://github.com/Kitware/pan3d/commit/3f972722a9e5b2bf4f83f9f45ea830bd999d49cd))
 
-### Fix
+### Fixes
 
 * fix: Close menus for bounds configure and render options when nearby drawer changes state ([`0396e36`](https://github.com/Kitware/pan3d/commit/0396e36c8289e481c2bb3e5200aa848af86b3b99))
 
 * fix: update links to other tutorial pages ([`c3393b5`](https://github.com/Kitware/pan3d/commit/c3393b541971e2a26727d584fb02c3176da843e7))
 
-### Refactor
+### Refactoring
 
 * refactor: Apply new name in example notebooks ([`31f78aa`](https://github.com/Kitware/pan3d/commit/31f78aaebe2f06716d4b7f17d20d53a16f290369))
 
 * refactor: Apply new name in miscellaneous places ([`4caea8b`](https://github.com/Kitware/pan3d/commit/4caea8be4865ee6cbdea9ecfff7ba4787b7a70aa))
 
 * refactor: change name to GeoTrame in user-facing places ([`8141701`](https://github.com/Kitware/pan3d/commit/81417012556907aaddda034399fc3ce82011ae79))
-
-### Style
-
-* style: Add trailing comma ([`cdf7e21`](https://github.com/Kitware/pan3d/commit/cdf7e2153b513ccc8e992d782a5e96da25e322a7))
 
 ### Unknown
 
@@ -50,93 +91,106 @@ Adding exception handling for cftime to datetime conversion ([`f16dd36`](https:/
   conversion to datetime objects. This change just returns the string
   for the cftime object in such failure. ([`2c656f2`](https://github.com/Kitware/pan3d/commit/2c656f26a9c9d9b939cc69813655f9394d21802b))
 
+
 ## v0.8.8 (2024-07-01)
 
-### Fix
+### Fixes
 
 * fix: ci ([`b7dbd2d`](https://github.com/Kitware/pan3d/commit/b7dbd2d03eaea60d0336e7b4f62d8f35518d55c4))
 
+
 ## v0.8.7 (2024-07-01)
 
-### Fix
+### Fixes
 
 * fix: release step ([`1d4c277`](https://github.com/Kitware/pan3d/commit/1d4c277ef283cc709390d235855f1fb494942dbf))
 
 * fix: release step ([`cf2a898`](https://github.com/Kitware/pan3d/commit/cf2a898d28e2265db6cea22569b0fa107c4a8035))
 
+
 ## v0.8.6 (2024-07-01)
 
-### Fix
+### Fixes
 
 * fix(wheel): add wheel in build env ([`3365503`](https://github.com/Kitware/pan3d/commit/3365503d1fd33f6ffc91f48f738c04a8b84081de))
 
 * fix(prune): remove unwanted files in packages ([`9d3a5d6`](https://github.com/Kitware/pan3d/commit/9d3a5d6a038210ab5c17a70893ed6747572465c7))
 
+
 ## v0.8.5 (2024-07-01)
 
-### Ci
+### Continuous Integration
 
 * ci: register css ([`3398f1b`](https://github.com/Kitware/pan3d/commit/3398f1ba32265695cf30a27443a9e427add09a3d))
 
 * ci: remove setuptool_scm ([`947f349`](https://github.com/Kitware/pan3d/commit/947f349fee587f5e3cb6083b77644973ea454b6d))
 
-### Fix
+### Fixes
 
 * fix: trigger a release ([`655f739`](https://github.com/Kitware/pan3d/commit/655f73912e923fa23cc59b7919c05a78e37cce38))
 
+
 ## v0.8.4 (2024-07-01)
 
-### Ci
+### Continuous Integration
 
 * ci(semantic-release): publish built wheel ([`c5660da`](https://github.com/Kitware/pan3d/commit/c5660da84ff7fe1edc20cf6e1461b13ba00da10f))
 
-### Fix
+### Fixes
 
 * fix(ci): hopefully get that js file ([`11d9482`](https://github.com/Kitware/pan3d/commit/11d94822ac82f84229c5b0028027589eec907a0d))
 
 * fix(ci): try to bundle generated js ([`98a8f36`](https://github.com/Kitware/pan3d/commit/98a8f36522b98da3651dd67b13bc57a8eadd048c))
 
+
 ## v0.8.3 (2024-07-01)
 
-### Ci
+### Continuous Integration
 
 * ci: add missing file ([`fec5b9e`](https://github.com/Kitware/pan3d/commit/fec5b9e71450ad55d073cd2a0d1f863cb1af26d3))
 
-### Fix
+### Fixes
 
 * fix(dep): keep trying to get that js in bundle ([`981d617`](https://github.com/Kitware/pan3d/commit/981d61773a48c6605754c25864b9cac40d55f5a0))
 
+
 ## v0.8.2 (2024-07-01)
 
-### Fix
+### Fixes
 
 * fix(js): add missing js file ([`3810ee1`](https://github.com/Kitware/pan3d/commit/3810ee1b6b54045f0836306583cd818d417bc932))
 
+
 ## v0.8.1 (2024-07-01)
 
-### Ci
+### Continuous Integration
 
 * ci: add missing dep ([`19e6239`](https://github.com/Kitware/pan3d/commit/19e6239b7ebc5288e4191c904c3ac1b2ee2acce5))
 
-### Fix
+### Fixes
 
 * fix(build): use hatch ([`3363daf`](https://github.com/Kitware/pan3d/commit/3363dafa98e267700c2847f32ec6ff097146b2f4))
 
 * fix(pyproject): properly add required js files ([`6270a80`](https://github.com/Kitware/pan3d/commit/6270a80976a3b596122a711c1d7aafc3326d69a4))
 
+
 ## v0.8.0 (2024-07-01)
 
-### Ci
+### Code Style
+
+* style: Reformat with black ([`9e54fdf`](https://github.com/Kitware/pan3d/commit/9e54fdf13714c7d5ce5e96fcfac5240f704b51f1))
+
+### Continuous Integration
 
 * ci: update action version and ensure js bundle at release ([`063ffc9`](https://github.com/Kitware/pan3d/commit/063ffc971dc27908996d7f54b64822384b13ff6a))
 
-### Feature
+### Features
 
 * feat: In preview image generation, compute gradients for small dimensions ([`68b3b9f`](https://github.com/Kitware/pan3d/commit/68b3b9f0d095ab1cb084691c2d67b9deed0c59fc))
 
 * feat: make bounds configuration available in both axis drawer and bounds menu (rather than being mutally exclusive depending on `da_auto_slicing`) ([`8ec9c4a`](https://github.com/Kitware/pan3d/commit/8ec9c4a6ab8be78343300d33874b77554242930c))
 
-### Fix
+### Fixes
 
 * fix: resolve test failures ([`186bf5f`](https://github.com/Kitware/pan3d/commit/186bf5f008e0bd052ac45e078a38db47ac84f4ea))
 
@@ -150,29 +204,26 @@ Adding exception handling for cftime to datetime conversion ([`f16dd36`](https:/
 
 * fix: remove `ui_current_time_string`, use pregenerated labels list with datetime formatting ([`c1041ac`](https://github.com/Kitware/pan3d/commit/c1041ac9d9538103e63033bbc92bfe6823e959cd))
 
-### Style
-
-* style: Reformat with black ([`9e54fdf`](https://github.com/Kitware/pan3d/commit/9e54fdf13714c7d5ce5e96fcfac5240f704b51f1))
-
 ### Unknown
 
 * Merge pull request #82 from Kitware/behavior-fixes
 
 Various behavior fixes ([`cb7e413`](https://github.com/Kitware/pan3d/commit/cb7e4136c1c1fa71ab3ee6a0ef8b0462ec61f583))
 
+
 ## v0.7.0 (2024-06-25)
 
-### Ci
+### Continuous Integration
 
 * ci: remove pull_request trigger for publish action ([`1751cc4`](https://github.com/Kitware/pan3d/commit/1751cc413aa3bd645da8bfd5b1c5b2f4d8495666))
 
-### Feature
+### Features
 
 * feat: Add entrypoint to create symlink to examples folder (suggested by Yuvi @ 2i2c) ([`29f6af5`](https://github.com/Kitware/pan3d/commit/29f6af52d2561c1f1b03ef609b79f43cb4be6634))
 
 * feat: add cloud dockerfile and add ci step to publish as pan3d-cloud ([`25794ea`](https://github.com/Kitware/pan3d/commit/25794eaa76b38e62b5c7b2da6cf49de14e831e09))
 
-### Fix
+### Fixes
 
 * fix: Remove reference to jupyter.py in pyproject.toml ([`232cdc6`](https://github.com/Kitware/pan3d/commit/232cdc632e106d152594d907d35b73016a12e248))
 
@@ -190,7 +241,7 @@ Various behavior fixes ([`cb7e413`](https://github.com/Kitware/pan3d/commit/cb7e
 
 * fix: remove `if` clauses from ci `jobs` spec (redundant after `on` spec) ([`f87ddf0`](https://github.com/Kitware/pan3d/commit/f87ddf04cdc2086ce11e20a1623089c11dac35ad))
 
-### Refactor
+### Refactoring
 
 * refactor: simplify job names ([`6ae13a9`](https://github.com/Kitware/pan3d/commit/6ae13a965fe844934d933b723ec9b4d2026042c4))
 
@@ -200,11 +251,12 @@ Various behavior fixes ([`cb7e413`](https://github.com/Kitware/pan3d/commit/cb7e
 
 Create pan3d-cloud docker image ([`268b7b9`](https://github.com/Kitware/pan3d/commit/268b7b97d9c5220141b2e03bda01523762cf7766))
 
+
 ## v0.6.2 (2024-06-25)
 
-### Build
+### Build System
 
-* build: require trame-vtk&gt;=2.6.3 ([`be9a4ce`](https://github.com/Kitware/pan3d/commit/be9a4ced0e9bebf5265b301edb0146e1b05c090e))
+* build: require trame-vtk>=2.6.3 ([`be9a4ce`](https://github.com/Kitware/pan3d/commit/be9a4ced0e9bebf5265b301edb0146e1b05c090e))
 
 * build: use BINDER_REQUEST instead of JUPYTERHUB_BASE_URL to determine whether env is in Binder ([`bd9c5e2`](https://github.com/Kitware/pan3d/commit/bd9c5e2f960dff6964e8d54e346fe6cd1f323d2b))
 
@@ -220,7 +272,7 @@ Create pan3d-cloud docker image ([`268b7b9`](https://github.com/Kitware/pan3d/co
 
 * build: remove which Xvfb command
 
-Co-authored-by: Zach Mullen &lt;zach.mullen@kitware.com&gt; ([`081f5cb`](https://github.com/Kitware/pan3d/commit/081f5cba49f406fd74b907cf2b07b31951704b55))
+Co-authored-by: Zach Mullen <zach.mullen@kitware.com> ([`081f5cb`](https://github.com/Kitware/pan3d/commit/081f5cba49f406fd74b907cf2b07b31951704b55))
 
 * build: add binder start script from pyvista docs ([`51318d1`](https://github.com/Kitware/pan3d/commit/51318d150170a74e13b46cc09b3bd03cfb261e4e))
 
@@ -242,7 +294,53 @@ Co-authored-by: Zach Mullen &lt;zach.mullen@kitware.com&gt; ([`081f5cb`](https:/
 
 * build(setup): add MANIFEST.in and include package data ([`efb8cd0`](https://github.com/Kitware/pan3d/commit/efb8cd0b722dbe410d459242f043bddad60f9c63))
 
-### Ci
+### Code Style
+
+* style: Use double quotes ([`bf128ba`](https://github.com/Kitware/pan3d/commit/bf128ba380135ed2b2a90b34fea5288843b799a4))
+
+* style: reformat with black ([`cfa631b`](https://github.com/Kitware/pan3d/commit/cfa631b8296dbcd019945a956ea10f513c3a9410))
+
+* style: add trailing comma ([`5ac37cd`](https://github.com/Kitware/pan3d/commit/5ac37cdcd4955f8613e020e3e41baed113cb288c))
+
+* style: reformat with black ([`ffce418`](https://github.com/Kitware/pan3d/commit/ffce418ddbb34f58d37a9c60ecb96f27cee3b7c0))
+
+* style: reformat with black ([`2860427`](https://github.com/Kitware/pan3d/commit/28604277b68a9aaf5b02fe59cf670b2882304653))
+
+* style: remove print statement ([`cca89e1`](https://github.com/Kitware/pan3d/commit/cca89e170f8b6eae33737b2274b296f3feeeb8c5))
+
+* style: fix automatic formatting of list by removing comma ([`b28f444`](https://github.com/Kitware/pan3d/commit/b28f444fa48edf94560a37aab0d1f2f02c38641c))
+
+* style: reformatting with black ([`687e370`](https://github.com/Kitware/pan3d/commit/687e370703920fba3d29267fadb3c56207e7633d))
+
+* style: update style via black ([`de58bfd`](https://github.com/Kitware/pan3d/commit/de58bfd95002d387a1afe55e2a8085a63f43ea26))
+
+* style: Reformat with black ([`78efd90`](https://github.com/Kitware/pan3d/commit/78efd90fc218953f19c5c364b9a7b305fb443a89))
+
+* style: Reformat with black ([`fb36747`](https://github.com/Kitware/pan3d/commit/fb3674706e080ef32c956a1ea6eaeb7098ccae81))
+
+* style: fix formatting ([`599c1e2`](https://github.com/Kitware/pan3d/commit/599c1e2b525a0ec39435dca5a0e3786f7996e4e5))
+
+* style: fix formatting ([`a698eca`](https://github.com/Kitware/pan3d/commit/a698ecad3bcba57b261321a8c7e69dd9840e7f14))
+
+* style: fix formatting ([`39cae23`](https://github.com/Kitware/pan3d/commit/39cae2386a7a9f9e4a3e58edd5a44193823429a6))
+
+* style(css): hide scroll bar by default ([`d55c2ac`](https://github.com/Kitware/pan3d/commit/d55c2acc374f63c1d898b94dd31c655085934e61))
+
+* style: Use black to fix styling ([`cd61185`](https://github.com/Kitware/pan3d/commit/cd611853756376747815dffa1311c9a4a7819b83))
+
+* style: replace 2 tutorial images with rotated worlds ([`b6abe09`](https://github.com/Kitware/pan3d/commit/b6abe092a821d6709b45bddc89bf7642a137b109))
+
+* style: Use black to fix styling ([`26708bd`](https://github.com/Kitware/pan3d/commit/26708bdc9fa6dfeb222486a04fca1fcf5a6eca4c))
+
+* style: switch cover image in README ([`d7db238`](https://github.com/Kitware/pan3d/commit/d7db2382369c7a0d004a4d0f142dd3862d282a39))
+
+* style: Use black to fix styling ([`a8cbaab`](https://github.com/Kitware/pan3d/commit/a8cbaabebc940836ca84f139c84883850531831f))
+
+* style: apply changes from black ([`0d06d82`](https://github.com/Kitware/pan3d/commit/0d06d82d638438a25c4953cfddf10a8a3f78d608))
+
+* style: prefer double-quotes ([`d77d630`](https://github.com/Kitware/pan3d/commit/d77d630b15da084f4d9fff4353e530c66f1f787f))
+
+### Continuous Integration
 
 * ci: add `contents:write` to permissions in release job ([`c4ef618`](https://github.com/Kitware/pan3d/commit/c4ef618af7820403688abdf745d01c0181076b40))
 
@@ -280,7 +378,7 @@ Co-authored by: @johnkit ([`9149c5b`](https://github.com/Kitware/pan3d/commit/91
 
 * docs: update existing jupyter notebook examples ([`96cb22a`](https://github.com/Kitware/pan3d/commit/96cb22a27ca16c5938f53a8ef86d107d31244a8e))
 
-* docs: replace &#34;active&#34; with &#34;name&#34; in config schema ([`787a0e9`](https://github.com/Kitware/pan3d/commit/787a0e925681dedd2a89cbfd7b62bf1eed6b1033))
+* docs: replace "active" with "name" in config schema ([`787a0e9`](https://github.com/Kitware/pan3d/commit/787a0e925681dedd2a89cbfd7b62bf1eed6b1033))
 
 * docs: Add mesh edges screenshot to viewer tutorial ([`d2ac60c`](https://github.com/Kitware/pan3d/commit/d2ac60cc567766affdf8ef1342e6ee8968bcc745))
 
@@ -306,13 +404,13 @@ Co-authored by: @johnkit ([`9149c5b`](https://github.com/Kitware/pan3d/commit/91
 
 * docs(cli): Rename `dataset_path` arg to `dataset` ([`1dd1c30`](https://github.com/Kitware/pan3d/commit/1dd1c30d98b794f897aa9097b9a3324e7ba5de1f))
 
-### Feature
+### Features
 
 * feat: Add PreviewBounds component, written with Vue ([`1d9c898`](https://github.com/Kitware/pan3d/commit/1d9c89892df76ee0d505218c563c52a1e36423ec))
 
 * feat: Generate cube face preview images and set up cube mode state vars ([`ad2fcdc`](https://github.com/Kitware/pan3d/commit/ad2fcdc14b202ba548433db69705827af90a8a10))
 
-* feat: Add `resolution` CLI arg and disable auto slicing when &lt;= 1 ([`24c97ad`](https://github.com/Kitware/pan3d/commit/24c97adc8af68f8ed3f9b6be6b381bb98ec48977))
+* feat: Add `resolution` CLI arg and disable auto slicing when <= 1 ([`24c97ad`](https://github.com/Kitware/pan3d/commit/24c97adc8af68f8ed3f9b6be6b381bb98ec48977))
 
 * feat: Add BoundsConfigure component within render area ([`73653e9`](https://github.com/Kitware/pan3d/commit/73653e9c3a0c5d9d185e0b103b54e88c9bc6f330))
 
@@ -320,7 +418,7 @@ Co-authored by: @johnkit ([`9149c5b`](https://github.com/Kitware/pan3d/commit/91
 
 * feat: Use GeoVista to map data onto earth sphere ([`3bb7b2f`](https://github.com/Kitware/pan3d/commit/3bb7b2f4bba20128a660d2b70c15c8c79db12f5a))
 
-* feat: Add &#34;render_cartographic&#34; state var and relevant management/docs ([`294bc7f`](https://github.com/Kitware/pan3d/commit/294bc7f42bf7ba4a01aaa559d0dfeca1fc2a2738))
+* feat: Add "render_cartographic" state var and relevant management/docs ([`294bc7f`](https://github.com/Kitware/pan3d/commit/294bc7f42bf7ba4a01aaa559d0dfeca1fc2a2738))
 
 * feat: Add value checking on DatasetBuilder setters ([`ecfe374`](https://github.com/Kitware/pan3d/commit/ecfe374df2fd2e41602254913ab36f3b325d7182))
 
@@ -346,9 +444,9 @@ Co-authored by: @johnkit ([`9149c5b`](https://github.com/Kitware/pan3d/commit/91
 
 * feat(examples): add notebook demonstrating use of `builder.mesh` with pyvista rendering ([`7f9d88c`](https://github.com/Kitware/pan3d/commit/7f9d88cc84506211b492b02dc4fa70a0572e0000))
 
-### Fix
+### Fixes
 
-* fix: Add &#34;pan3d.ui.pan3d_components&#34; to packages list ([`8389496`](https://github.com/Kitware/pan3d/commit/8389496ac09e0b4988c4d733fd6ac0c91f34d3bf))
+* fix: Add "pan3d.ui.pan3d_components" to packages list ([`8389496`](https://github.com/Kitware/pan3d/commit/8389496ac09e0b4988c4d733fd6ac0c91f34d3bf))
 
 * fix: include module and serve packages individusaly ([`c9b449f`](https://github.com/Kitware/pan3d/commit/c9b449ff6a54a8f50818b49d1ea15e0bab2ba22b))
 
@@ -378,7 +476,7 @@ Co-authored by: @johnkit ([`9149c5b`](https://github.com/Kitware/pan3d/commit/91
 
 * fix(test): allow non-numeric slicing values (for time axis) ([`822427e`](https://github.com/Kitware/pan3d/commit/822427ef31eae93c7c321243bd98bc386b82e4e3))
 
-* fix(test): don&#39;t enable cartographic mode on 4D test data ([`b632ad9`](https://github.com/Kitware/pan3d/commit/b632ad99d5bb93aab1d54efb3e12a1fbdc6276aa))
+* fix(test): don't enable cartographic mode on 4D test data ([`b632ad9`](https://github.com/Kitware/pan3d/commit/b632ad99d5bb93aab1d54efb3e12a1fbdc6276aa))
 
 * fix(examples): Update example notebooks with catalogs argument ([`f8c07d9`](https://github.com/Kitware/pan3d/commit/f8c07d9e69178fcb0ad8571acea76fd84083f09a))
 
@@ -388,7 +486,7 @@ Co-authored by: @johnkit ([`9149c5b`](https://github.com/Kitware/pan3d/commit/91
 
 * fix: add catalogs folder to setuptools packages list ([`54722a6`](https://github.com/Kitware/pan3d/commit/54722a671d3d317b725e91f42bc78b12fa401f11))
 
-* fix: prevent &#34;NoneType is not iterable&#34; error in Pangeo search by ID ([`6b91079`](https://github.com/Kitware/pan3d/commit/6b91079cea8cc916a2909601f0cab9b5d68dbb6e))
+* fix: prevent "NoneType is not iterable" error in Pangeo search by ID ([`6b91079`](https://github.com/Kitware/pan3d/commit/6b91079cea8cc916a2909601f0cab9b5d68dbb6e))
 
 * fix: guard against a None `catalogs` value in `DatasetViewer` constructor ([`dc505e5`](https://github.com/Kitware/pan3d/commit/dc505e5e17682113ac537eb90be10585fae1ddb2))
 
@@ -484,7 +582,7 @@ Co-authored by: @johnkit ([`9149c5b`](https://github.com/Kitware/pan3d/commit/91
 
 * fix(changelog): change misspelled word ([`e977de5`](https://github.com/Kitware/pan3d/commit/e977de5e5a0d458db95543bb578b3b89bde05151))
 
-### Refactor
+### Refactoring
 
 * refactor: Enable module in widgets, not dataset_viewer ([`1c4d30c`](https://github.com/Kitware/pan3d/commit/1c4d30cbab102623c7c4be0aaf73ef4fe768da1f))
 
@@ -534,53 +632,7 @@ Co-authored by: @johnkit ([`9149c5b`](https://github.com/Kitware/pan3d/commit/91
 
 * refactor(setup): delete setup.cfg ([`f68cd65`](https://github.com/Kitware/pan3d/commit/f68cd65ad75fe1ca5f43e770aa8c7fe8de0fa32e))
 
-### Style
-
-* style: Use double quotes ([`bf128ba`](https://github.com/Kitware/pan3d/commit/bf128ba380135ed2b2a90b34fea5288843b799a4))
-
-* style: reformat with black ([`cfa631b`](https://github.com/Kitware/pan3d/commit/cfa631b8296dbcd019945a956ea10f513c3a9410))
-
-* style: add trailing comma ([`5ac37cd`](https://github.com/Kitware/pan3d/commit/5ac37cdcd4955f8613e020e3e41baed113cb288c))
-
-* style: reformat with black ([`ffce418`](https://github.com/Kitware/pan3d/commit/ffce418ddbb34f58d37a9c60ecb96f27cee3b7c0))
-
-* style: reformat with black ([`2860427`](https://github.com/Kitware/pan3d/commit/28604277b68a9aaf5b02fe59cf670b2882304653))
-
-* style: remove print statement ([`cca89e1`](https://github.com/Kitware/pan3d/commit/cca89e170f8b6eae33737b2274b296f3feeeb8c5))
-
-* style: fix automatic formatting of list by removing comma ([`b28f444`](https://github.com/Kitware/pan3d/commit/b28f444fa48edf94560a37aab0d1f2f02c38641c))
-
-* style: reformatting with black ([`687e370`](https://github.com/Kitware/pan3d/commit/687e370703920fba3d29267fadb3c56207e7633d))
-
-* style: update style via black ([`de58bfd`](https://github.com/Kitware/pan3d/commit/de58bfd95002d387a1afe55e2a8085a63f43ea26))
-
-* style: Reformat with black ([`78efd90`](https://github.com/Kitware/pan3d/commit/78efd90fc218953f19c5c364b9a7b305fb443a89))
-
-* style: Reformat with black ([`fb36747`](https://github.com/Kitware/pan3d/commit/fb3674706e080ef32c956a1ea6eaeb7098ccae81))
-
-* style: fix formatting ([`599c1e2`](https://github.com/Kitware/pan3d/commit/599c1e2b525a0ec39435dca5a0e3786f7996e4e5))
-
-* style: fix formatting ([`a698eca`](https://github.com/Kitware/pan3d/commit/a698ecad3bcba57b261321a8c7e69dd9840e7f14))
-
-* style: fix formatting ([`39cae23`](https://github.com/Kitware/pan3d/commit/39cae2386a7a9f9e4a3e58edd5a44193823429a6))
-
-* style(css): hide scroll bar by default ([`d55c2ac`](https://github.com/Kitware/pan3d/commit/d55c2acc374f63c1d898b94dd31c655085934e61))
-
-* style: Use black to fix styling ([`cd61185`](https://github.com/Kitware/pan3d/commit/cd611853756376747815dffa1311c9a4a7819b83))
-
-* style: replace 2 tutorial images with rotated worlds ([`b6abe09`](https://github.com/Kitware/pan3d/commit/b6abe092a821d6709b45bddc89bf7642a137b109))
-
-* style: Use black to fix styling ([`26708bd`](https://github.com/Kitware/pan3d/commit/26708bdc9fa6dfeb222486a04fca1fcf5a6eca4c))
-
-* style: switch cover image in README ([`d7db238`](https://github.com/Kitware/pan3d/commit/d7db2382369c7a0d004a4d0f142dd3862d282a39))
-
-* style: Use black to fix styling ([`a8cbaab`](https://github.com/Kitware/pan3d/commit/a8cbaabebc940836ca84f139c84883850531831f))
-
-* style: apply changes from black ([`0d06d82`](https://github.com/Kitware/pan3d/commit/0d06d82d638438a25c4953cfddf10a8a3f78d608))
-
-* style: prefer double-quotes ([`d77d630`](https://github.com/Kitware/pan3d/commit/d77d630b15da084f4d9fff4353e530c66f1f787f))
-
-### Test
+### Testing
 
 * test: Update expected values in tests ([`e08af6b`](https://github.com/Kitware/pan3d/commit/e08af6b40fb2a17f689071a8b484e69b9157c97b))
 
@@ -608,7 +660,7 @@ Co-authored by: @johnkit ([`9149c5b`](https://github.com/Kitware/pan3d/commit/91
 
 * Merge pull request #78 from Kitware/auto-slicing
 
-Improve Coordinate Indexing &amp; Slicing ([`c17d6b7`](https://github.com/Kitware/pan3d/commit/c17d6b76dd04d7f2f36b85c1ee0d87a1c85b8133))
+Improve Coordinate Indexing & Slicing ([`c17d6b7`](https://github.com/Kitware/pan3d/commit/c17d6b76dd04d7f2f36b85c1ee0d87a1c85b8133))
 
 * examples: add cartographic mode to noaa example ([`54d90ad`](https://github.com/Kitware/pan3d/commit/54d90ad6965256484b8d2dd5571cb48e739f03d9))
 
@@ -616,7 +668,7 @@ Improve Coordinate Indexing &amp; Slicing ([`c17d6b7`](https://github.com/Kitwar
 
 * More doc changes
 
-* Change title from &#34;local server to a more general &#34;command line&#34;
+* Change title from "local server to a more general "command line"
 * Change pip instruction to include [viewer]
 * Show more code in jupyter_notebook.md
 * Also fix mkdocs warning in dataset_viewer.py ([`6607718`](https://github.com/Kitware/pan3d/commit/66077188ea579a54cbbe244133114c123ca5b985))
@@ -649,7 +701,7 @@ Improve Coordinate Indexing &amp; Slicing ([`c17d6b7`](https://github.com/Kitwar
 
 * Update CI action to publish on PyPI ([`104f81a`](https://github.com/Kitware/pan3d/commit/104f81a34f0b727ac9062561bd968e1fa1a38b6a))
 
-* Rename mesh-&gt;_mesh, pv_mesh-&gt;mesh ([`03792a5`](https://github.com/Kitware/pan3d/commit/03792a5e1d6283eb99c0da562d93f8073ff9d645))
+* Rename mesh->_mesh, pv_mesh->mesh ([`03792a5`](https://github.com/Kitware/pan3d/commit/03792a5e1d6283eb99c0da562d93f8073ff9d645))
 
 * Remove unused import of `get_catalog` ([`877d9dd`](https://github.com/Kitware/pan3d/commit/877d9dd88ed9392218235cdeaef14f230a202278))
 
@@ -683,7 +735,7 @@ Improve Coordinate Indexing &amp; Slicing ([`c17d6b7`](https://github.com/Kitwar
 
 * Change expected size for sliced array in test_import_config ([`ad1af03`](https://github.com/Kitware/pan3d/commit/ad1af031daedf28a6cad21128b315696dfac54c7))
 
-* Reduce redundant algorithm modifications (&amp; therefore repeated slice computations) ([`7436c03`](https://github.com/Kitware/pan3d/commit/7436c0346fa343706e78e5b03fc517f8e8361c29))
+* Reduce redundant algorithm modifications (& therefore repeated slice computations) ([`7436c03`](https://github.com/Kitware/pan3d/commit/7436c0346fa343706e78e5b03fc517f8e8361c29))
 
 * Remove time printouts ([`9a118ab`](https://github.com/Kitware/pan3d/commit/9a118abda17550f50d9e880ea4f770517992da7d))
 
@@ -707,7 +759,7 @@ Improve Coordinate Indexing &amp; Slicing ([`c17d6b7`](https://github.com/Kitwar
 
 * Immediate callback during set_dataset_path ([`e77cd5f`](https://github.com/Kitware/pan3d/commit/e77cd5ff13d131282e9de2622b55f14c0ff65325))
 
-* Allow &#34;pangeo&#34; arg to determine whether to fetch pangeo forge datasets ([`af077f2`](https://github.com/Kitware/pan3d/commit/af077f2debc48644ee06100e888e8155066466d1))
+* Allow "pangeo" arg to determine whether to fetch pangeo forge datasets ([`af077f2`](https://github.com/Kitware/pan3d/commit/af077f2debc48644ee06100e888e8155066466d1))
 
 * Separate user-accesible state change functions and rename dialog-relevant state vars ([`3dbf538`](https://github.com/Kitware/pan3d/commit/3dbf53847c7047f7f722597d1ebfa350a8c8cff4))
 
@@ -721,7 +773,7 @@ Improve Coordinate Indexing &amp; Slicing ([`c17d6b7`](https://github.com/Kitwar
 
 * Manage drawer states manually, use VAppLayout instead of SinglePageWithDrawerLayout ([`72c5353`](https://github.com/Kitware/pan3d/commit/72c535344eae0e1ce1e6f7a129157977c9dff81e))
 
-* Change state variable names to group &#34;ui&#34; and &#34;da&#34; relevant vars ([`6437fe8`](https://github.com/Kitware/pan3d/commit/6437fe88f8885f7d371c009020b0f56ff70a39f8))
+* Change state variable names to group "ui" and "da" relevant vars ([`6437fe8`](https://github.com/Kitware/pan3d/commit/6437fe88f8885f7d371c009020b0f56ff70a39f8))
 
 * Remove redundant state modifications ([`2e53021`](https://github.com/Kitware/pan3d/commit/2e530218abf07d11947f12a0bf213a2d1e191aba))
 
@@ -749,7 +801,7 @@ Improve Coordinate Indexing &amp; Slicing ([`c17d6b7`](https://github.com/Kitwar
 
 * Switch lon/lat in example config ([`06c5291`](https://github.com/Kitware/pan3d/commit/06c529127cdd876ec27dcf3efca6d840399556e1))
 
-* Add a new test to compare import &amp; export ([`d54cdcc`](https://github.com/Kitware/pan3d/commit/d54cdcc722b12be16b6769380dab34e8aad9b380))
+* Add a new test to compare import & export ([`d54cdcc`](https://github.com/Kitware/pan3d/commit/d54cdcc722b12be16b6769380dab34e8aad9b380))
 
 * Add download support for browsers without File System API ([`bb7cccf`](https://github.com/Kitware/pan3d/commit/bb7cccfa9d93392abd4b9fb8ba81eff0fb23c2f6))
 
@@ -807,11 +859,11 @@ Improve Coordinate Indexing &amp; Slicing ([`c17d6b7`](https://github.com/Kitwar
 
 * Store coordinate slices on state.coordinates and edit in coordinate configuration ([`54ef006`](https://github.com/Kitware/pan3d/commit/54ef006a42cbc058de0f7ed3c02da2ea82d2662d))
 
-* Refactor AxisConfigure -&gt; CoordinateConfigure ([`65fa5d5`](https://github.com/Kitware/pan3d/commit/65fa5d521c8fe115d306fccf1c924b11d1d71ef8))
+* Refactor AxisConfigure -> CoordinateConfigure ([`65fa5d5`](https://github.com/Kitware/pan3d/commit/65fa5d521c8fe115d306fccf1c924b11d1d71ef8))
 
 * Add coordinate auto-selection ([`fbb19d4`](https://github.com/Kitware/pan3d/commit/fbb19d470b7e5c681edac05c7cd40aedb6520728))
 
-* Use uppercase arg shortcuts (avoid conflict with &#34;-d/--debug&#34;) ([`0e2a30d`](https://github.com/Kitware/pan3d/commit/0e2a30db7a538c4f791591231c0c0880a99e98e5))
+* Use uppercase arg shortcuts (avoid conflict with "-d/--debug") ([`0e2a30d`](https://github.com/Kitware/pan3d/commit/0e2a30db7a538c4f791591231c0c0880a99e98e5))
 
 * Use better code for accessing custom style file ([`41fe985`](https://github.com/Kitware/pan3d/commit/41fe985bd7eb6ba16877d6685668b381decc2ed4))
 
@@ -849,7 +901,7 @@ Improve Coordinate Indexing &amp; Slicing ([`c17d6b7`](https://github.com/Kitwar
 
 * Call viewer in main so lazy load occurs ([`6a0a29a`](https://github.com/Kitware/pan3d/commit/6a0a29a9e427791337cb865f64ff519f7e4681e2))
 
-* Remove the word &#34;bookmark&#34; from notebook examples ([`c6d42ed`](https://github.com/Kitware/pan3d/commit/c6d42ed6a72888170d9b2705bf768a518a0f9ac2))
+* Remove the word "bookmark" from notebook examples ([`c6d42ed`](https://github.com/Kitware/pan3d/commit/c6d42ed6a72888170d9b2705bf768a518a0f9ac2))
 
 * Start with layout = None ([`6bd1381`](https://github.com/Kitware/pan3d/commit/6bd1381e80225172c6429cb1d4a1398a0d8d2626))
 
@@ -861,17 +913,17 @@ Improve Coordinate Indexing &amp; Slicing ([`c17d6b7`](https://github.com/Kitwar
 
 * Fix test config ([`76e8780`](https://github.com/Kitware/pan3d/commit/76e878076c4036b679af670361aa2a17bdc7d9df))
 
-* Rename feature bookmark -&gt; config ([`27604b1`](https://github.com/Kitware/pan3d/commit/27604b135a0df3b1528046ca659724fabf8f17ee))
+* Rename feature bookmark -> config ([`27604b1`](https://github.com/Kitware/pan3d/commit/27604b135a0df3b1528046ca659724fabf8f17ee))
 
 * More UI component refactoring ([`790a57d`](https://github.com/Kitware/pan3d/commit/790a57d07cead815fc412d7d48e18875bb8e84e8))
 
-* Rename property gui -&gt; viewer ([`53c8397`](https://github.com/Kitware/pan3d/commit/53c839707e4235aedfe6c69b716814fbcd058bb4))
+* Rename property gui -> viewer ([`53c8397`](https://github.com/Kitware/pan3d/commit/53c839707e4235aedfe6c69b716814fbcd058bb4))
 
-* Don&#39;t pass layout to components ([`9f2acb7`](https://github.com/Kitware/pan3d/commit/9f2acb7ba64e9a7579a50d0cdb0cbbee9644beb1))
+* Don't pass layout to components ([`9f2acb7`](https://github.com/Kitware/pan3d/commit/9f2acb7ba64e9a7579a50d0cdb0cbbee9644beb1))
 
 * Break ui file into macro components ([`d10da4c`](https://github.com/Kitware/pan3d/commit/d10da4c221cf78208c17add486756b680a72f91c))
 
-* Class rename Pan3DViewer -&gt; DatasetBuilder ([`371fe1a`](https://github.com/Kitware/pan3d/commit/371fe1a7e2c17abf4f66507789a7095b104d62df))
+* Class rename Pan3DViewer -> DatasetBuilder ([`371fe1a`](https://github.com/Kitware/pan3d/commit/371fe1a7e2c17abf4f66507789a7095b104d62df))
 
 * Remove some redundant lines ([`8860b8a`](https://github.com/Kitware/pan3d/commit/8860b8a7567ee5bc34d51641e0ac834ee2e6164d))
 
