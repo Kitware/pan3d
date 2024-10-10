@@ -60,6 +60,13 @@ jobs:
         run: npm run build
         working-directory: pan3d-js
 
+      # Conditionally install pykdtree from source for MacOS only
+      - name: Install pykdtree from source on macOS
+        if: matrix.config.os == 'macos-latest'
+        run: |
+          export USE_OMP=0
+          pip install --no-binary pykdtree pykdtree>=1.3.13 
+
       - name: Install and Run Tests
         run: |
           pip install .
