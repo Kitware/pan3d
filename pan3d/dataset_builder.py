@@ -341,7 +341,7 @@ class DatasetBuilder:
         if not self.t:
             raise ValueError("Cannot set time index > 0 without setting t array first.")
         t_coords = self.dataset[self.data_array_name].coords[self.t]
-        return t_coords.to_numpy().tolist()
+        return list(t_coords.values)
 
     @property
     def var_ranges(self) -> map:
@@ -516,11 +516,11 @@ class DatasetBuilder:
             k: [
                 v[0],
                 v[1],
-                (
-                    math.ceil((v[1] - v[0]) / self._resolution)
-                    if self._resolution > 1 and v[1] - v[0] > 0 and k != self.t
-                    else steps.get(k, 1) if steps is not None and k != self.t else 1
-                ),
+                math.ceil((v[1] - v[0]) / self._resolution)
+                if self._resolution > 1 and v[1] - v[0] > 0 and k != self.t
+                else steps.get(k, 1)
+                if steps is not None and k != self.t
+                else 1,
             ]
             for k, v in bounds.items()
         }
