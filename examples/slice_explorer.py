@@ -10,7 +10,6 @@ def serve():
         description="Launch the Pan3D GeoTrame App",
     )
 
-    parser.add_argument("--config_path")
     parser.add_argument("--server", action=BooleanOptionalAction)
     parser.add_argument("--debug", action=BooleanOptionalAction)
     args = parser.parse_args()

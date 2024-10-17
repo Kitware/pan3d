@@ -7,9 +7,12 @@ from trame.decorators import TrameApp, change
 from trame.ui.vuetify3 import SinglePageWithDrawerLayout
 from trame.widgets import vuetify3 as v3, vtk as vtkw, html, client
 from pan3d.dataset_builder import DatasetBuilder
+from pan3d.ui.common import NumericField
 
 from pan3d.explorers.utilities import apply_preset
 from pan3d.explorers.utilities import hsv_colors, rgb_colors
+from functools import partial
+
 
 colors = []
 colors.extend(list(hsv_colors.keys()))
@@ -105,8 +108,10 @@ class SliceExplorer:
         self.state.dimmax = float(ext[1])
         self.state.varmin = 0.0
         self.state.varmax = 0.0
-
         self.state.t_labels = get_time_labels(self.builder.t_values)
+        self.state.x_scale = 1.0
+        self.state.y_scale = 1.0
+        self.state.z_scale = 1.0
 
         self.t_cache = {}
         self.vars = list(builder.dataset.data_vars.keys())
@@ -154,13 +159,10 @@ class SliceExplorer:
         outline_actor = vtk.vtkActor()
         outline_mapper = vtk.vtkPolyDataMapper()
         outline.SetInputData(self.builder.mesh)
-        tubify = vtk.vtkTubeFilter()
-        tubify.SetInputConnection(outline.GetOutputPort())
-        outline_mapper.SetInputConnection(tubify.GetOutputPort())
+        outline_mapper.SetInputConnection(outline.GetOutputPort())
         outline_actor.SetMapper(outline_mapper)
         outline_actor.GetProperty().SetColor(0.5, 0.5, 0.5)
         self._outline = outline
-        self._tubify = tubify
         self._outline_actor = outline_actor
         self._outline_mapper = outline_mapper
 
@@ -285,6 +287,23 @@ class SliceExplorer:
             self.on_view_mode_change(mode)
 
     @property
+    def scale_axis(self):
+        s = self.state
+        return [s.x_scale, s.y_scale, s.z_scale]
+
+    @scale_axis.setter
+    def scale_axis(self, sfac):
+        s = self.state
+        s.x_scale = float(sfac[0])
+        s.y_scale = float(sfac[1])
+        s.z_scale = float(sfac[2])
+        self._slice_actor.SetScale(s.x_scale, s.y_scale, s.z_scale)
+        self._data_actor.SetScale(s.x_scale, s.y_scale, s.z_scale)
+        self._outline_actor.SetScale(s.x_scale, s.y_scale, s.z_scale)
+        self.on_view_mode_change(s.view_mode)
+        pass
+
+    @property
     def color_map(self):
         """
         Returns the color map currently used for visualization
@@ -353,7 +372,8 @@ class SliceExplorer:
         """
         Performs all the steps necessary when user toggles the view mode
         """
-        slice_dim = self.state.slice_dim
+        s = self.state
+        slice_dim = s.slice_dim
         slice_i = (
             0
             if self.dims[slice_dim] == "x"
@@ -363,9 +383,9 @@ class SliceExplorer:
         )
         extents = list(self.extents.values())
         origin = [
-            float(extents[0][0] + (extents[0][1] - extents[0][0]) / 2),
-            float(extents[1][0] + (extents[1][1] - extents[1][0]) / 2),
-            float(extents[2][0] + (extents[2][1] - extents[2][0]) / 2),
+            float(extents[0][0] + (extents[0][1] - extents[0][0]) / 2) * s.x_scale,
+            float(extents[1][0] + (extents[1][1] - extents[1][0]) / 2) * s.y_scale,
+            float(extents[2][0] + (extents[2][1] - extents[2][0]) / 2) * s.z_scale,
         ]
         if view_mode == "3D":
             self._set_view_3D(origin)
@@ -379,7 +399,6 @@ class SliceExplorer:
         that requires a new data update. E.g. changing the data variable for
         visualization, or changing active time, or changing slice value.
         """
-
         dimval = self.state.dimval
         slice_dim = self.state.slice_dim
         normal = [0, 0, 0]
@@ -435,6 +454,29 @@ class SliceExplorer:
         self._slice_mapper.SetScalarRange(float(varmin), float(varmax))
         self._sbar_actor.SetLookupTable(self._slice_mapper.GetLookupTable())
         self.ctrl.view_update()
+
+    def on_axis_scale_change(self, axis, value):
+        """
+        Performs all the steps necessary when user specifies scaling along a certain axis
+        """
+        s = self.state
+        update = (
+            (axis == 0 and value != self.state.x_scale)
+            or (axis == 1 and value != self.state.y_scale)
+            or (axis == 2 and value != self.state.z_scale)
+        )
+        if not update:
+            return
+        if axis == 0:
+            s.x_scale = value
+        elif axis == 1:
+            s.y_scale = value
+        elif axis == 2:
+            s.z_scale = value
+        self._slice_actor.SetScale(s.x_scale, s.y_scale, s.z_scale)
+        self._data_actor.SetScale(s.x_scale, s.y_scale, s.z_scale)
+        self._outline_actor.SetScale(s.x_scale, s.y_scale, s.z_scale)
+        self.on_view_mode_change(s.view_mode)
 
     @property
     def coords_time(self):
@@ -572,6 +614,39 @@ class SliceExplorer:
                             v_model=("data_var", next(iter(self.vars))),
                             items=("data_vars", self.vars),
                         )
+
+                with v3.VCard():
+                    with v3.VCardTitle():
+                        html.Div("Scaling")
+                    with v3.VCardText():
+                        with v3.VRow():
+                            with v3.VCol(
+                                cols=4,
+                                classes="text-center font-weight-medium d-flex flex-column",
+                            ):
+                                html.Div("{{slice_dims[0]}}")
+                                NumericField(
+                                    model_value=("x_scale",),
+                                    update_event=partial(self.on_axis_scale_change, 0),
+                                )
+                            with v3.VCol(
+                                cols=4,
+                                classes="text-center font-weight-medium d-flex flex-column",
+                            ):
+                                html.Div("{{slice_dims[1]}}")
+                                NumericField(
+                                    model_value=("y_scale",),
+                                    update_event=partial(self.on_axis_scale_change, 1),
+                                )
+                            with v3.VCol(
+                                cols=4,
+                                classes="text-center font-weight-medium d-flex flex-column",
+                            ):
+                                html.Div("{{slice_dims[2]}}")
+                                NumericField(
+                                    model_value=("z_scale",),
+                                    update_event=partial(self.on_axis_scale_change, 2),
+                                )
 
                 with v3.VCard():
                     with v3.VCardTitle():
