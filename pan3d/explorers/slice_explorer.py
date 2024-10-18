@@ -11,8 +11,6 @@ from pan3d.ui.common import NumericField
 
 from pan3d.explorers.utilities import apply_preset
 from pan3d.explorers.utilities import hsv_colors, rgb_colors
-from functools import partial
-
 
 colors = []
 colors.extend(list(hsv_colors.keys()))
@@ -301,7 +299,6 @@ class SliceExplorer:
         self._data_actor.SetScale(s.x_scale, s.y_scale, s.z_scale)
         self._outline_actor.SetScale(s.x_scale, s.y_scale, s.z_scale)
         self.on_view_mode_change(s.view_mode)
-        pass
 
     @property
     def color_map(self):
@@ -460,22 +457,18 @@ class SliceExplorer:
         Performs all the steps necessary when user specifies scaling along a certain axis
         """
         s = self.state
-        update = (
-            (axis == 0 and value != self.state.x_scale)
-            or (axis == 1 and value != self.state.y_scale)
-            or (axis == 2 and value != self.state.z_scale)
-        )
-        if not update:
+        axis_names = ["x_scale", "y_scale", "z_scale"]
+        axis_name = axis_names[axis]
+        # If value is the same as previous no scaling is needed
+        if s[axis_name] == value:
             return
-        if axis == 0:
-            s.x_scale = value
-        elif axis == 1:
-            s.y_scale = value
-        elif axis == 2:
-            s.z_scale = value
-        self._slice_actor.SetScale(s.x_scale, s.y_scale, s.z_scale)
-        self._data_actor.SetScale(s.x_scale, s.y_scale, s.z_scale)
-        self._outline_actor.SetScale(s.x_scale, s.y_scale, s.z_scale)
+        # Update all the actors to scale based on new value
+        s[axis_name] = value
+        scales = [s[n] for n in axis_names]
+        self._slice_actor.SetScale(*scales)
+        self._data_actor.SetScale(*scales)
+        self._outline_actor.SetScale(*scales)
+        # Update view
         self.on_view_mode_change(s.view_mode)
 
     @property
@@ -627,7 +620,10 @@ class SliceExplorer:
                                 html.Div("{{slice_dims[0]}}")
                                 NumericField(
                                     model_value=("x_scale",),
-                                    update_event=partial(self.on_axis_scale_change, 0),
+                                    update_event=(
+                                        self.on_axis_scale_change,
+                                        "[0, Number($event.target.value)]",
+                                    ),
                                 )
                             with v3.VCol(
                                 cols=4,
@@ -636,7 +632,10 @@ class SliceExplorer:
                                 html.Div("{{slice_dims[1]}}")
                                 NumericField(
                                     model_value=("y_scale",),
-                                    update_event=partial(self.on_axis_scale_change, 1),
+                                    update_event=(
+                                        self.on_axis_scale_change,
+                                        "[1, Number($event.target.value)]",
+                                    ),
                                 )
                             with v3.VCol(
                                 cols=4,
@@ -645,7 +644,10 @@ class SliceExplorer:
                                 html.Div("{{slice_dims[2]}}")
                                 NumericField(
                                     model_value=("z_scale",),
-                                    update_event=partial(self.on_axis_scale_change, 2),
+                                    update_event=(
+                                        self.on_axis_scale_change,
+                                        "[2, Number($event.target.value)]",
+                                    ),
                                 )
 
                 with v3.VCard():
@@ -704,8 +706,8 @@ class SliceExplorer:
                         classes="text-subtitle-1 pa-2",
                     )
                     html.Div(
-                        "{{parseFloat(dimmin).toFixed(2)}}",
-                        classes="text-subtitle-1 pa-2",
+                        "{{parseFloat(dimmax).toFixed(2)}}",
+                        classes=" text-subtitle-1 pa-2",
                     )
                     v3.VSlider(
                         thumb_label="always",
@@ -719,8 +721,8 @@ class SliceExplorer:
                         max=("dimmax",),
                     )
                     html.Div(
-                        "{{parseFloat(dimmax).toFixed(2)}}",
-                        classes=" text-subtitle-1 pa-2",
+                        "{{parseFloat(dimmin).toFixed(2)}}",
+                        classes="text-subtitle-1 pa-2",
                     )
                 with html.Div(
                     v_show="!main_drawer",
