@@ -81,7 +81,7 @@ where = ["."]
 pan3d = [
     "**/module/serve/*.js",
     "**/ui/custom.css",
-    "**/explorers/Presets.json"
+    "**/utils/*.json"
 ]
 
 [tool.semantic_release]

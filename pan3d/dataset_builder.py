@@ -4,7 +4,7 @@ import json
 import pyvista
 import xarray
 
-from pan3d.utils import coordinate_auto_selection
+from pan3d.utils.constants import coordinate_auto_selection
 from pan3d import catalogs as pan3d_catalogs
 from pathlib import Path
 from pvxarray.vtk_source import PyVistaXarraySource
