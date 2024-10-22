@@ -1,10 +1,13 @@
+import vtk
+import numpy as np
+import pandas as pd
+
 from trame.app import get_server
 from trame.decorators import TrameApp, change
 from trame.ui.vuetify3 import SinglePageWithDrawerLayout
-from trame.widgets import vuetify3 as v3, vtk as vtkw, html
+from trame.widgets import vuetify3 as v3, vtk as vtkw, html, client
 from pan3d.dataset_builder import DatasetBuilder
-import vtk
-import numpy as np
+from pan3d.ui.common import NumericField
 
 from pan3d.explorers.utilities import apply_preset
 from pan3d.explorers.utilities import hsv_colors, rgb_colors
@@ -44,6 +47,13 @@ def update_preset(actor: vtk.vtkActor, sbar: vtk.vtkActor, logcale: bool) -> Non
         lut.SetScaleToLinear()
     lut.Build()
     sbar.SetLookupTable(lut)
+
+
+def get_time_labels(times):
+    labels = []
+    for time in times:
+        labels.append(pd.to_datetime(time).strftime("%Y-%m-%d %H:%M:%S"))
+    return labels
 
 
 @TrameApp()
@@ -95,6 +105,10 @@ class SliceExplorer:
         self.state.dimmax = float(ext[1])
         self.state.varmin = 0.0
         self.state.varmax = 0.0
+        self.state.t_labels = get_time_labels(self.builder.t_values)
+        self.state.x_scale = 1.0
+        self.state.y_scale = 1.0
+        self.state.z_scale = 1.0
 
         self.t_cache = {}
         self.vars = list(builder.dataset.data_vars.keys())
@@ -142,13 +156,10 @@ class SliceExplorer:
         outline_actor = vtk.vtkActor()
         outline_mapper = vtk.vtkPolyDataMapper()
         outline.SetInputData(self.builder.mesh)
-        tubify = vtk.vtkTubeFilter()
-        tubify.SetInputConnection(outline.GetOutputPort())
-        outline_mapper.SetInputConnection(tubify.GetOutputPort())
+        outline_mapper.SetInputConnection(outline.GetOutputPort())
         outline_actor.SetMapper(outline_mapper)
         outline_actor.GetProperty().SetColor(0.5, 0.5, 0.5)
         self._outline = outline
-        self._tubify = tubify
         self._outline_actor = outline_actor
         self._outline_mapper = outline_mapper
 
@@ -202,14 +213,14 @@ class SliceExplorer:
         as a xarray selection for the time slice
         """
         datavar = self.state.data_var
-        m = self.state.time_active
+        # m = self.state.time_active
+        m = self.builder.t_values[self.state.time_active]
         mesh = self.t_cache.get((m, datavar))
         builder = self.builder
         ttype = builder.dataset.coords[builder.t].dtype
         if mesh is None:
             criteria = {}
             if ttype.kind in ["O", "M"]:
-                print(np.datetime64(m, "ns"))
                 criteria[builder.t] = np.datetime64(m, "ns")
             else:
                 criteria[builder.t] = m
@@ -270,6 +281,22 @@ class SliceExplorer:
         with self.state:
             self.state.view_mode = mode
             self.on_view_mode_change(mode)
+
+    @property
+    def scale_axis(self):
+        s = self.state
+        return [s.x_scale, s.y_scale, s.z_scale]
+
+    @scale_axis.setter
+    def scale_axis(self, sfac):
+        s = self.state
+        s.x_scale = float(sfac[0])
+        s.y_scale = float(sfac[1])
+        s.z_scale = float(sfac[2])
+        self._slice_actor.SetScale(s.x_scale, s.y_scale, s.z_scale)
+        self._data_actor.SetScale(s.x_scale, s.y_scale, s.z_scale)
+        self._outline_actor.SetScale(s.x_scale, s.y_scale, s.z_scale)
+        self.on_view_mode_change(s.view_mode)
 
     @property
     def color_map(self):
@@ -340,7 +367,8 @@ class SliceExplorer:
         """
         Performs all the steps necessary when user toggles the view mode
         """
-        slice_dim = self.state.slice_dim
+        s = self.state
+        slice_dim = s.slice_dim
         slice_i = (
             0
             if self.dims[slice_dim] == "x"
@@ -350,9 +378,9 @@ class SliceExplorer:
         )
         extents = list(self.extents.values())
         origin = [
-            float(extents[0][0] + (extents[0][1] - extents[0][0]) / 2),
-            float(extents[1][0] + (extents[1][1] - extents[1][0]) / 2),
-            float(extents[2][0] + (extents[2][1] - extents[2][0]) / 2),
+            float(extents[0][0] + (extents[0][1] - extents[0][0]) / 2) * s.x_scale,
+            float(extents[1][0] + (extents[1][1] - extents[1][0]) / 2) * s.y_scale,
+            float(extents[2][0] + (extents[2][1] - extents[2][0]) / 2) * s.z_scale,
         ]
         if view_mode == "3D":
             self._set_view_3D(origin)
@@ -422,6 +450,25 @@ class SliceExplorer:
         self._sbar_actor.SetLookupTable(self._slice_mapper.GetLookupTable())
         self.ctrl.view_update()
 
+    def on_axis_scale_change(self, axis, value):
+        """
+        Performs all the steps necessary when user specifies scaling along a certain axis
+        """
+        s = self.state
+        axis_names = ["x_scale", "y_scale", "z_scale"]
+        axis_name = axis_names[axis]
+        # If value is the same as previous no scaling is needed
+        if s[axis_name] == value:
+            return
+        # Update all the actors to scale based on new value
+        s[axis_name] = value
+        scales = [s[n] for n in axis_names]
+        self._slice_actor.SetScale(*scales)
+        self._data_actor.SetScale(*scales)
+        self._outline_actor.SetScale(*scales)
+        # Update view
+        self.on_view_mode_change(s.view_mode)
+
     @property
     def coords_time(self):
         """
@@ -446,7 +493,7 @@ class SliceExplorer:
         with SinglePageWithDrawerLayout(self.server, full_height=True) as layout:
             self._ui = layout
             layout.title.set_text("Slice Explorer")
-
+            client.Style("html, body {  overflow: hidden; }")
             with layout.toolbar.clear():
                 with v3.VBtn(
                     size="x-large",
@@ -487,6 +534,7 @@ class SliceExplorer:
                     label="Disable Scroll",
                     color="primary",
                     v_model=("vscroll", False),
+                    classes="mx-4",
                     **style,
                 )
 
@@ -496,13 +544,27 @@ class SliceExplorer:
                     with v3.VCardTitle():
                         html.Div("Slice Setting")
                     with v3.VCardText():
-                        v3.VSelect(
-                            label="Time",
-                            v_model=(
-                                "time_active",
-                                next(iter(self.coords_time.tolist())),
-                            ),
-                            items=("times_available", self.coords_time.tolist()),
+                        html.Div(
+                            "Time", classes="text-h6 text-center font-weight-medium"
+                        )
+                        with v3.VCol(classes="text-center text-subtitle-1"):
+                            html.Div("selected : {{t_labels[time_active]}}")
+                        with v3.VRow():
+                            with v3.VCol():
+                                html.Div(
+                                    "{{t_labels[0]}}", classes="font-weight-medium"
+                                )
+                            with v3.VCol(classes="text-right"):
+                                html.Div(
+                                    "{{t_labels[t_labels.length - 1]}}",
+                                    classes="font-weight-medium",
+                                )
+                        v3.VSlider(
+                            classes="mx-2",
+                            min=0,
+                            max=self.builder.t_size - 1,
+                            v_model=("time_active", 0),
+                            step=1,
                         )
 
                         v3.VSelect(
@@ -515,9 +577,24 @@ class SliceExplorer:
                             ),
                         )
 
+                        html.Div(
+                            "{{slice_dim}}",
+                            classes="text-h6 text-center font-weight-medium",
+                        )
+                        with v3.VCol(classes="text-center text-subtitle-1"):
+                            html.Div("selected : {{parseFloat(dimval).toFixed(2)}}")
+                        with v3.VRow():
+                            with v3.VCol():
+                                html.Div(
+                                    "{{parseFloat(dimmin).toFixed(2)}}",
+                                    classes="font-weight-medium",
+                                )
+                            with v3.VCol(classes="text-right"):
+                                html.Div(
+                                    "{{parseFloat(dimmax).toFixed(2)}}",
+                                    classes="font-weight-medium",
+                                )
                         v3.VSlider(
-                            thumb_size=16,
-                            thumb_label=True,
                             v_model=("dimval",),
                             min=("dimmin",),
                             max=("dimmax",),
@@ -528,6 +605,48 @@ class SliceExplorer:
                             v_model=("data_var", next(iter(self.vars))),
                             items=("data_vars", self.vars),
                         )
+
+                with v3.VCard():
+                    with v3.VCardTitle():
+                        html.Div("Scaling")
+                    with v3.VCardText():
+                        with v3.VRow():
+                            with v3.VCol(
+                                cols=4,
+                                classes="text-center font-weight-medium d-flex flex-column",
+                            ):
+                                html.Div("{{slice_dims[0]}}")
+                                NumericField(
+                                    model_value=("x_scale",),
+                                    update_event=(
+                                        self.on_axis_scale_change,
+                                        "[0, Number($event.target.value)]",
+                                    ),
+                                )
+                            with v3.VCol(
+                                cols=4,
+                                classes="text-center font-weight-medium d-flex flex-column",
+                            ):
+                                html.Div("{{slice_dims[1]}}")
+                                NumericField(
+                                    model_value=("y_scale",),
+                                    update_event=(
+                                        self.on_axis_scale_change,
+                                        "[1, Number($event.target.value)]",
+                                    ),
+                                )
+                            with v3.VCol(
+                                cols=4,
+                                classes="text-center font-weight-medium d-flex flex-column",
+                            ):
+                                html.Div("{{slice_dims[2]}}")
+                                NumericField(
+                                    model_value=("z_scale",),
+                                    update_event=(
+                                        self.on_axis_scale_change,
+                                        "[2, Number($event.target.value)]",
+                                    ),
+                                )
 
                 with v3.VCard():
                     with v3.VCardTitle():
@@ -563,14 +682,73 @@ class SliceExplorer:
                                 v3.VIcon("mdi-restore")
 
             with layout.content:
-                with vtkw.VtkRemoteView(
-                    self._render_window, interactive_ratio=1
-                ) as view:
-                    self.ctrl.view_update = view.update
-                    self.ctrl.view_reset_camera = view.reset_camera
+                with html.Div(
+                    style="position:absolute; top: 0; left: 0; width: 100%; height: 100%;",
+                ):
+                    with vtkw.VtkRemoteView(
+                        self._render_window, interactive_ratio=1
+                    ) as view:
+                        self.ctrl.view_update = view.update
+                        self.ctrl.view_reset_camera = view.reset_camera
                 html.Div(
                     v_show="vscroll",
                     style="position:absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;",
                 )
-
+                with html.Div(
+                    v_show="!main_drawer",
+                    classes="d-flex align-center flex-column",
+                    style="position: absolute; left: 0; top: var(--v-layout-top); bottom: var(--v-layout-bottom); z-index: 2; pointer-events: none;",
+                ):
+                    html.Div(
+                        "{{slice_dim}}",
+                        classes="text-subtitle-1 pa-2",
+                    )
+                    html.Div(
+                        "{{parseFloat(dimmax).toFixed(2)}}",
+                        classes=" text-subtitle-1 pa-2",
+                    )
+                    v3.VSlider(
+                        thumb_label="always",
+                        thumb_size=16,
+                        style="pointer-events: auto;",
+                        hide_details=True,
+                        classes="flex-fill",
+                        direction="vertical",
+                        v_model=("dimval",),
+                        min=("dimmin",),
+                        max=("dimmax",),
+                    )
+                    html.Div(
+                        "{{parseFloat(dimmin).toFixed(2)}}",
+                        classes="text-subtitle-1 pa-2",
+                    )
+                with html.Div(
+                    v_show="!main_drawer",
+                    classes="align-center flex-column",
+                    style="position: absolute; bottom: var(--v-layout-bottom); left: 50%; transform: translateX(-50%); width: 80%;",
+                ):
+                    with v3.VRow():
+                        with v3.VCol(classes="text-left"):
+                            html.Div(
+                                "{{t_labels[0]}}",
+                                classes=" text-subtitle-1 pa-2 font-weight-medium",
+                            )
+                        with v3.VCol(classes="text-center"):
+                            html.Div(
+                                "Time (selected : {{t_labels[time_active]}})",
+                                classes=" text-subtitle-1 pa-2",
+                            )
+                        with v3.VCol(classes="text-right"):
+                            html.Div(
+                                "{{t_labels[t_labels.length - 1]}}",
+                                classes=" text-subtitle-1 pa-2",
+                            )
+                    v3.VSlider(
+                        style="pointer-events: auto;",
+                        hide_details=True,
+                        min=0,
+                        max=self.builder.t_size - 1,
+                        v_model=("time_active", 0),
+                        step=1,
+                    )
             return layout
