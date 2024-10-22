@@ -53,7 +53,6 @@ def get_time_labels(times):
     labels = []
     for time in times:
         labels.append(pd.to_datetime(time).strftime("%Y-%m-%d %H:%M:%S"))
-    print("Labels : ", labels)
     return labels
 
 
@@ -222,7 +221,6 @@ class SliceExplorer:
         if mesh is None:
             criteria = {}
             if ttype.kind in ["O", "M"]:
-                print(np.datetime64(m, "ns"))
                 criteria[builder.t] = np.datetime64(m, "ns")
             else:
                 criteria[builder.t] = m
