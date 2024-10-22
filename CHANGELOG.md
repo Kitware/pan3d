@@ -1,6 +1,36 @@
 # CHANGELOG
 
 
+## v0.9.1 (2024-10-22)
+
+### Bug Fixes
+
+* fix(explorer): gui and code cleanup ([`8eb9ca4`](https://github.com/Kitware/pan3d/commit/8eb9ca43ae85f6e8c4a6d95329376d9c74ee8fb9))
+
+### Continuous Integration
+
+* ci(black): update pre-commit version ([`22f7dab`](https://github.com/Kitware/pan3d/commit/22f7dab272bcb934d610e30abafb1953f9c171db))
+
+### Unknown
+
+* Merge pull request #122 from ayenpure/slice_explorer_v2
+
+Adding key Slice Explorer v2 features ([`4f7d35b`](https://github.com/Kitware/pan3d/commit/4f7d35bb732d0516f7c92b7325ae6cf15acef8ab))
+
+* fix (slice explorer) : Removing print statement ([`ad928bb`](https://github.com/Kitware/pan3d/commit/ad928bbe60d7ec0df8fa4123e7cc345f9baaf21f))
+
+* fix (slice explorer) : Fixing config path issue for example ([`3bf3fe4`](https://github.com/Kitware/pan3d/commit/3bf3fe4c86dd3bebe7fc52022ea3913fd7345d35))
+
+* fix (slice explorer) : Adding review changes to simplify code ([`2598bde`](https://github.com/Kitware/pan3d/commit/2598bde0e57e75135e658828736e598db3ad2acb))
+
+* fix (slice explorer): Adding axis scaling controls
+
+  - Adding `scale_axis` property and related Trame fixin's to scale
+  data along a certain axis ([`3e16a11`](https://github.com/Kitware/pan3d/commit/3e16a1137cc5fb579782052d45d89535d5807bea))
+
+* fix (slice explorer) : Adding time and slice sliders when drawer closed ([`a2ce66a`](https://github.com/Kitware/pan3d/commit/a2ce66ad0f1e448515bdf544dc8a0826a3fad1fc))
+
+
 ## v0.9.0 (2024-10-10)
 
 ### Documentation
@@ -43,6 +73,12 @@ Fixing ESGF example : Set time dimension to t instead of z ([`4fef3d7`](https://
 
 ## v0.8.9 (2024-08-15)
 
+### Bug Fixes
+
+* fix: Close menus for bounds configure and render options when nearby drawer changes state ([`0396e36`](https://github.com/Kitware/pan3d/commit/0396e36c8289e481c2bb3e5200aa848af86b3b99))
+
+* fix: update links to other tutorial pages ([`c3393b5`](https://github.com/Kitware/pan3d/commit/c3393b541971e2a26727d584fb02c3176da843e7))
+
 ### Code Style
 
 * style: Add trailing comma ([`cdf7e21`](https://github.com/Kitware/pan3d/commit/cdf7e2153b513ccc8e992d782a5e96da25e322a7))
@@ -56,12 +92,6 @@ Fixing ESGF example : Set time dimension to t instead of z ([`4fef3d7`](https://
 * docs: fix Catalogs tutorial link in GeoTrame tutorial ([`ae2b38c`](https://github.com/Kitware/pan3d/commit/ae2b38c69dd718a389031746ad93b24e97437939))
 
 * docs: First pass at updating documentation ([`3f97272`](https://github.com/Kitware/pan3d/commit/3f972722a9e5b2bf4f83f9f45ea830bd999d49cd))
-
-### Fixes
-
-* fix: Close menus for bounds configure and render options when nearby drawer changes state ([`0396e36`](https://github.com/Kitware/pan3d/commit/0396e36c8289e481c2bb3e5200aa848af86b3b99))
-
-* fix: update links to other tutorial pages ([`c3393b5`](https://github.com/Kitware/pan3d/commit/c3393b541971e2a26727d584fb02c3176da843e7))
 
 ### Refactoring
 
@@ -94,14 +124,14 @@ Adding exception handling for cftime to datetime conversion ([`f16dd36`](https:/
 
 ## v0.8.8 (2024-07-01)
 
-### Fixes
+### Bug Fixes
 
 * fix: ci ([`b7dbd2d`](https://github.com/Kitware/pan3d/commit/b7dbd2d03eaea60d0336e7b4f62d8f35518d55c4))
 
 
 ## v0.8.7 (2024-07-01)
 
-### Fixes
+### Bug Fixes
 
 * fix: release step ([`1d4c277`](https://github.com/Kitware/pan3d/commit/1d4c277ef283cc709390d235855f1fb494942dbf))
 
@@ -110,7 +140,7 @@ Adding exception handling for cftime to datetime conversion ([`f16dd36`](https:/
 
 ## v0.8.6 (2024-07-01)
 
-### Fixes
+### Bug Fixes
 
 * fix(wheel): add wheel in build env ([`3365503`](https://github.com/Kitware/pan3d/commit/3365503d1fd33f6ffc91f48f738c04a8b84081de))
 
@@ -119,62 +149,76 @@ Adding exception handling for cftime to datetime conversion ([`f16dd36`](https:/
 
 ## v0.8.5 (2024-07-01)
 
+### Bug Fixes
+
+* fix: trigger a release ([`655f739`](https://github.com/Kitware/pan3d/commit/655f73912e923fa23cc59b7919c05a78e37cce38))
+
 ### Continuous Integration
 
 * ci: register css ([`3398f1b`](https://github.com/Kitware/pan3d/commit/3398f1ba32265695cf30a27443a9e427add09a3d))
 
 * ci: remove setuptool_scm ([`947f349`](https://github.com/Kitware/pan3d/commit/947f349fee587f5e3cb6083b77644973ea454b6d))
 
-### Fixes
-
-* fix: trigger a release ([`655f739`](https://github.com/Kitware/pan3d/commit/655f73912e923fa23cc59b7919c05a78e37cce38))
-
 
 ## v0.8.4 (2024-07-01)
 
-### Continuous Integration
-
-* ci(semantic-release): publish built wheel ([`c5660da`](https://github.com/Kitware/pan3d/commit/c5660da84ff7fe1edc20cf6e1461b13ba00da10f))
-
-### Fixes
+### Bug Fixes
 
 * fix(ci): hopefully get that js file ([`11d9482`](https://github.com/Kitware/pan3d/commit/11d94822ac82f84229c5b0028027589eec907a0d))
 
 * fix(ci): try to bundle generated js ([`98a8f36`](https://github.com/Kitware/pan3d/commit/98a8f36522b98da3651dd67b13bc57a8eadd048c))
 
+### Continuous Integration
+
+* ci(semantic-release): publish built wheel ([`c5660da`](https://github.com/Kitware/pan3d/commit/c5660da84ff7fe1edc20cf6e1461b13ba00da10f))
+
 
 ## v0.8.3 (2024-07-01)
+
+### Bug Fixes
+
+* fix(dep): keep trying to get that js in bundle ([`981d617`](https://github.com/Kitware/pan3d/commit/981d61773a48c6605754c25864b9cac40d55f5a0))
 
 ### Continuous Integration
 
 * ci: add missing file ([`fec5b9e`](https://github.com/Kitware/pan3d/commit/fec5b9e71450ad55d073cd2a0d1f863cb1af26d3))
 
-### Fixes
-
-* fix(dep): keep trying to get that js in bundle ([`981d617`](https://github.com/Kitware/pan3d/commit/981d61773a48c6605754c25864b9cac40d55f5a0))
-
 
 ## v0.8.2 (2024-07-01)
 
-### Fixes
+### Bug Fixes
 
 * fix(js): add missing js file ([`3810ee1`](https://github.com/Kitware/pan3d/commit/3810ee1b6b54045f0836306583cd818d417bc932))
 
 
 ## v0.8.1 (2024-07-01)
 
-### Continuous Integration
-
-* ci: add missing dep ([`19e6239`](https://github.com/Kitware/pan3d/commit/19e6239b7ebc5288e4191c904c3ac1b2ee2acce5))
-
-### Fixes
+### Bug Fixes
 
 * fix(build): use hatch ([`3363daf`](https://github.com/Kitware/pan3d/commit/3363dafa98e267700c2847f32ec6ff097146b2f4))
 
 * fix(pyproject): properly add required js files ([`6270a80`](https://github.com/Kitware/pan3d/commit/6270a80976a3b596122a711c1d7aafc3326d69a4))
 
+### Continuous Integration
+
+* ci: add missing dep ([`19e6239`](https://github.com/Kitware/pan3d/commit/19e6239b7ebc5288e4191c904c3ac1b2ee2acce5))
+
 
 ## v0.8.0 (2024-07-01)
+
+### Bug Fixes
+
+* fix: resolve test failures ([`186bf5f`](https://github.com/Kitware/pan3d/commit/186bf5f008e0bd052ac45e078a38db47ac84f4ea))
+
+* fix: make bounds interactive preview work for data with flipped coordinates ([`ae54153`](https://github.com/Kitware/pan3d/commit/ae54153866590666562f849b263f19b6816a5c2e))
+
+* fix: disable auto slicing during import ([`70ce50f`](https://github.com/Kitware/pan3d/commit/70ce50f60c0102a272678fc3fc062bd2ec09a0cb))
+
+* fix: consistency for inclusive bounds max vs exclusive slicing stop ([`9d47789`](https://github.com/Kitware/pan3d/commit/9d4778902ec9164274a5540ee8500f5d52fd314a))
+
+* fix: Improve auto slicing behavior in `DatasetBuilder` ([`98a737e`](https://github.com/Kitware/pan3d/commit/98a737e26f021e18e17a33b946ee6d5a4084654a))
+
+* fix: remove `ui_current_time_string`, use pregenerated labels list with datetime formatting ([`c1041ac`](https://github.com/Kitware/pan3d/commit/c1041ac9d9538103e63033bbc92bfe6823e959cd))
 
 ### Code Style
 
@@ -190,20 +234,6 @@ Adding exception handling for cftime to datetime conversion ([`f16dd36`](https:/
 
 * feat: make bounds configuration available in both axis drawer and bounds menu (rather than being mutally exclusive depending on `da_auto_slicing`) ([`8ec9c4a`](https://github.com/Kitware/pan3d/commit/8ec9c4a6ab8be78343300d33874b77554242930c))
 
-### Fixes
-
-* fix: resolve test failures ([`186bf5f`](https://github.com/Kitware/pan3d/commit/186bf5f008e0bd052ac45e078a38db47ac84f4ea))
-
-* fix: make bounds interactive preview work for data with flipped coordinates ([`ae54153`](https://github.com/Kitware/pan3d/commit/ae54153866590666562f849b263f19b6816a5c2e))
-
-* fix: disable auto slicing during import ([`70ce50f`](https://github.com/Kitware/pan3d/commit/70ce50f60c0102a272678fc3fc062bd2ec09a0cb))
-
-* fix: consistency for inclusive bounds max vs exclusive slicing stop ([`9d47789`](https://github.com/Kitware/pan3d/commit/9d4778902ec9164274a5540ee8500f5d52fd314a))
-
-* fix: Improve auto slicing behavior in `DatasetBuilder` ([`98a737e`](https://github.com/Kitware/pan3d/commit/98a737e26f021e18e17a33b946ee6d5a4084654a))
-
-* fix: remove `ui_current_time_string`, use pregenerated labels list with datetime formatting ([`c1041ac`](https://github.com/Kitware/pan3d/commit/c1041ac9d9538103e63033bbc92bfe6823e959cd))
-
 ### Unknown
 
 * Merge pull request #82 from Kitware/behavior-fixes
@@ -213,17 +243,7 @@ Various behavior fixes ([`cb7e413`](https://github.com/Kitware/pan3d/commit/cb7e
 
 ## v0.7.0 (2024-06-25)
 
-### Continuous Integration
-
-* ci: remove pull_request trigger for publish action ([`1751cc4`](https://github.com/Kitware/pan3d/commit/1751cc413aa3bd645da8bfd5b1c5b2f4d8495666))
-
-### Features
-
-* feat: Add entrypoint to create symlink to examples folder (suggested by Yuvi @ 2i2c) ([`29f6af5`](https://github.com/Kitware/pan3d/commit/29f6af52d2561c1f1b03ef609b79f43cb4be6634))
-
-* feat: add cloud dockerfile and add ci step to publish as pan3d-cloud ([`25794ea`](https://github.com/Kitware/pan3d/commit/25794eaa76b38e62b5c7b2da6cf49de14e831e09))
-
-### Fixes
+### Bug Fixes
 
 * fix: Remove reference to jupyter.py in pyproject.toml ([`232cdc6`](https://github.com/Kitware/pan3d/commit/232cdc632e106d152594d907d35b73016a12e248))
 
@@ -241,6 +261,16 @@ Various behavior fixes ([`cb7e413`](https://github.com/Kitware/pan3d/commit/cb7e
 
 * fix: remove `if` clauses from ci `jobs` spec (redundant after `on` spec) ([`f87ddf0`](https://github.com/Kitware/pan3d/commit/f87ddf04cdc2086ce11e20a1623089c11dac35ad))
 
+### Continuous Integration
+
+* ci: remove pull_request trigger for publish action ([`1751cc4`](https://github.com/Kitware/pan3d/commit/1751cc413aa3bd645da8bfd5b1c5b2f4d8495666))
+
+### Features
+
+* feat: Add entrypoint to create symlink to examples folder (suggested by Yuvi @ 2i2c) ([`29f6af5`](https://github.com/Kitware/pan3d/commit/29f6af52d2561c1f1b03ef609b79f43cb4be6634))
+
+* feat: add cloud dockerfile and add ci step to publish as pan3d-cloud ([`25794ea`](https://github.com/Kitware/pan3d/commit/25794eaa76b38e62b5c7b2da6cf49de14e831e09))
+
 ### Refactoring
 
 * refactor: simplify job names ([`6ae13a9`](https://github.com/Kitware/pan3d/commit/6ae13a965fe844934d933b723ec9b4d2026042c4))
@@ -253,6 +283,144 @@ Create pan3d-cloud docker image ([`268b7b9`](https://github.com/Kitware/pan3d/co
 
 
 ## v0.6.2 (2024-06-25)
+
+### Bug Fixes
+
+* fix: Add "pan3d.ui.pan3d_components" to packages list ([`8389496`](https://github.com/Kitware/pan3d/commit/8389496ac09e0b4988c4d733fd6ac0c91f34d3bf))
+
+* fix: include module and serve packages individusaly ([`c9b449f`](https://github.com/Kitware/pan3d/commit/c9b449ff6a54a8f50818b49d1ea15e0bab2ba22b))
+
+* fix: update javscript path in CI for build step ([`7432328`](https://github.com/Kitware/pan3d/commit/743232879e4f4dab9fa9ffa4b19d2031c0d78889))
+
+* fix: add new folders to packages list in pyproject.toml ([`3247611`](https://github.com/Kitware/pan3d/commit/32476117eebe3de18a9e7daecaac58632af1b374))
+
+* fix: apply suggested usability changes ([`1532b5a`](https://github.com/Kitware/pan3d/commit/1532b5ae25084aa207ddd28c6b973344d596be07))
+
+* fix: Add npm installation steps to CI tests ([`ce688ed`](https://github.com/Kitware/pan3d/commit/ce688ed14488a793cbf1827f7db79ec84fd881fc))
+
+* fix: Move default resolution value (cmd arg is None if not specified) ([`faabc39`](https://github.com/Kitware/pan3d/commit/faabc39df0ef5edbdb5caa69efb34dfcaa260876))
+
+* fix: Correct various bugs and unexpected behavior ([`9c9ebf7`](https://github.com/Kitware/pan3d/commit/9c9ebf7862dfd93369bf7ea4b4ab46fef51cf902))
+
+* fix: Update example config files ([`5cac70e`](https://github.com/Kitware/pan3d/commit/5cac70ea660dda2cc61fb6ecaa137ae3aec19b2f))
+
+* fix: slice by index instead of value to allow slicing time coord ([`801735f`](https://github.com/Kitware/pan3d/commit/801735f3ef4296ffc292f1c3c5ba2ac7ec380b94))
+
+* fix: remove cmdline arg shorthand notations to avoid conflicts ([`88d9810`](https://github.com/Kitware/pan3d/commit/88d9810f06f283fe66fa785f6e6bc71b211a9d78))
+
+* fix: update files in `docker` folder ([`b1aae3f`](https://github.com/Kitware/pan3d/commit/b1aae3facf5a0df09823a4eebb422e7b4463881a))
+
+* fix: show import loading bar during import ([`24821c4`](https://github.com/Kitware/pan3d/commit/24821c41d6427df69b6c0edd8fd4691a59917eed))
+
+* fix(test): add a flag to disable render in `set_render_options`; geovista GeoPlotter raises exception when no GPU found ([`2fd86ca`](https://github.com/Kitware/pan3d/commit/2fd86ca6c2a39e92961ccd74b0f5b13f674c3fba))
+
+* fix(test): allow non-numeric slicing values (for time axis) ([`822427e`](https://github.com/Kitware/pan3d/commit/822427ef31eae93c7c321243bd98bc386b82e4e3))
+
+* fix(test): don't enable cartographic mode on 4D test data ([`b632ad9`](https://github.com/Kitware/pan3d/commit/b632ad99d5bb93aab1d54efb3e12a1fbdc6276aa))
+
+* fix(examples): Update example notebooks with catalogs argument ([`f8c07d9`](https://github.com/Kitware/pan3d/commit/f8c07d9e69178fcb0ad8571acea76fd84083f09a))
+
+* fix: Set DatasetBuilder slicing to None when DatasetViewer coordinates are blank ([`f53dc24`](https://github.com/Kitware/pan3d/commit/f53dc24e6106b1a247dae063b7c4689f20b09ed3))
+
+* fix: prevent name conflict by renaming catalogs module import ([`806657f`](https://github.com/Kitware/pan3d/commit/806657fb4db006ae1e40c182563a5d4d3fe7db3c))
+
+* fix: add catalogs folder to setuptools packages list ([`54722a6`](https://github.com/Kitware/pan3d/commit/54722a671d3d317b725e91f42bc78b12fa401f11))
+
+* fix: prevent "NoneType is not iterable" error in Pangeo search by ID ([`6b91079`](https://github.com/Kitware/pan3d/commit/6b91079cea8cc916a2909601f0cab9b5d68dbb6e))
+
+* fix: guard against a None `catalogs` value in `DatasetViewer` constructor ([`dc505e5`](https://github.com/Kitware/pan3d/commit/dc505e5e17682113ac537eb90be10585fae1ddb2))
+
+* fix: reset search and message when catalog changes ([`5327dab`](https://github.com/Kitware/pan3d/commit/5327dab1b9cb83d460f3e0e11cddce0570bf4d16))
+
+* fix: reduce sleep time in `run_as_async` ([`50e568b`](https://github.com/Kitware/pan3d/commit/50e568b2af8b5f53a4d76be7366f2244b6d6fa40))
+
+* fix: update binder requirements.txt ([`26abc54`](https://github.com/Kitware/pan3d/commit/26abc54e9eab0af05f89845cee6dd3f07d8b9a5b))
+
+* fix: Use try-catch for catalog module imports ([`a1a7e5a`](https://github.com/Kitware/pan3d/commit/a1a7e5ab0d10747095ed4e11f1546b00815b4f3d))
+
+* fix: use correct exception imports in `pangeo_forge.py` ([`a8fccca`](https://github.com/Kitware/pan3d/commit/a8fccca880988a7a257c1216e8102b08869bfc78))
+
+* fix: remove unnecessary values from exported state ([`a6de08b`](https://github.com/Kitware/pan3d/commit/a6de08bbe070a17c5f614ee7e4639dd7d9b0155d))
+
+* fix: loading and error states should be handled only by `run_as_async` method ([`1c488ff`](https://github.com/Kitware/pan3d/commit/1c488ff9de9ac2c503db0fbd4bd853b8d41b5853))
+
+* fix: improve compatibility with more pangeo datasets with timedelta dtypes ([`a80119e`](https://github.com/Kitware/pan3d/commit/a80119e19a25cd7aa383edbb580ec793a81ccda7))
+
+* fix: consolidate asynchronous viewer behavior with helper function `run_as_async` ([`a69f106`](https://github.com/Kitware/pan3d/commit/a69f106778f4645cb356d6455403cb49ba73b00c))
+
+* fix: Update Builder and Viewer to use Pangeo module ([`b94e60e`](https://github.com/Kitware/pan3d/commit/b94e60eb552f57b1157210be8617fa6706d1e0ac))
+
+* fix: add missing parenthesis in async callback ([`a2e7676`](https://github.com/Kitware/pan3d/commit/a2e76762a06c3f6870eb32374def6e6437fd7d23))
+
+* fix: protect against NoSearchResults exceptions from intake_esgf ([`3654f48`](https://github.com/Kitware/pan3d/commit/3654f482ed44ee14236f8140ccd8cd016a2150d5))
+
+* fix: remove broken pangeo-forge links from catalog ([`9ea98f5`](https://github.com/Kitware/pan3d/commit/9ea98f5d75bb7efc2e7c1624f05ed83898a53abd))
+
+* fix: improve usability of import via UI ([`22520fd`](https://github.com/Kitware/pan3d/commit/22520fd359f9e334f4bbb8be7e0e9f9c5a70c967))
+
+* fix: wait until server ready before enabling auto rendering ([`e02d159`](https://github.com/Kitware/pan3d/commit/e02d15922ee33e7bcc86094318527b54cf1ee258))
+
+* fix: synchronize slicing state between builder and viewer ([`33b5404`](https://github.com/Kitware/pan3d/commit/33b54048b3a1cd0fc50aedd92a64d35d360b26a5))
+
+* fix: assign coordinates on implicitly indexed data arrays before sending to algorithm ([`087d04f`](https://github.com/Kitware/pan3d/commit/087d04fa544334d178eb442a8b52cf1f2c59c611))
+
+* fix: asynchronous trame state updates ([`48bd1d7`](https://github.com/Kitware/pan3d/commit/48bd1d7779a735fa059d564296c734493964efc4))
+
+* fix: state synchronization between builder and viewer ([`e3ab71a`](https://github.com/Kitware/pan3d/commit/e3ab71ab1da2177da1ff3d5037c56ca1345a1534))
+
+* fix(threading): use `call_soon_threadsafe` for plotting mesh ([`28930fb`](https://github.com/Kitware/pan3d/commit/28930fb372a4cc6d5fbfadaf3d966d67994e202b))
+
+* fix(docs): fix README badge rendering on GH ([`a6065d6`](https://github.com/Kitware/pan3d/commit/a6065d6326f49b4560375e6cf33775850482f011))
+
+* fix: use true min and max for default slicing ([`aa4d939`](https://github.com/Kitware/pan3d/commit/aa4d9394b2f4f2c40ef38df6f3489563de8a570f))
+
+* fix: use relative path for pangeo datasets JSON ([`e85e83e`](https://github.com/Kitware/pan3d/commit/e85e83e849b958e8070b84be7a6876a97f49484a))
+
+* fix: update test expected size for updated example file ([`c4acabe`](https://github.com/Kitware/pan3d/commit/c4acabef8045dbbda6c41d2069dc1a54dd9806a4))
+
+* fix: change pyvista StructuredGrid reference ([`5260a60`](https://github.com/Kitware/pan3d/commit/5260a60a04dc57412d8af2259edb8a699cdd0d36))
+
+* fix(DatasetBuilder): typing adjustments ([`0686dea`](https://github.com/Kitware/pan3d/commit/0686dea8889db3e8d1360d3c6e511abe2e6ad1a5))
+
+* fix: always use `push_camera` instead of `reset_camera` ([`b3ce44f`](https://github.com/Kitware/pan3d/commit/b3ce44f3f20f61bd66c23d82b048c34c76fef747))
+
+* fix: use `push_camera` instead of `reset_camera` in cloud mode ([`41dde0c`](https://github.com/Kitware/pan3d/commit/41dde0ccb4cf794f9985bbbfe490dab49d096f9d))
+
+* fix: remove defaults on computed attribute values ([`fd024a7`](https://github.com/Kitware/pan3d/commit/fd024a7de971c856beb85e2d2828242038ae1a36))
+
+* fix: prevent `auto_select_coordinates` from overwriting `set_data_array_axis_names` results ([`53f016e`](https://github.com/Kitware/pan3d/commit/53f016e492acdfdcd2bbe11adc50f7d0eaea930e))
+
+* fix: convert more directive attributes to tuple syntax ([`469c511`](https://github.com/Kitware/pan3d/commit/469c5113bcc12fcc61b04e0abe5f1b27f75e6a34))
+
+* fix: cast keys and values in `da_vars_attrs` to strings ([`bc8c319`](https://github.com/Kitware/pan3d/commit/bc8c319a230bea29c5ac6332b4fc2f8e47fe40a5))
+
+* fix: cast objects to strings in template code ([`c8c66ba`](https://github.com/Kitware/pan3d/commit/c8c66baae1c9ad796c9826bf9c77e4751908059f))
+
+* fix: stringify axes list for VSelect component ([`e783699`](https://github.com/Kitware/pan3d/commit/e7836993bbfba19a29a2485d02c99fab1977b42d))
+
+* fix(setup): Add setuptools_scm to pyproject.toml; use git tag for version in build step ([`9c2789d`](https://github.com/Kitware/pan3d/commit/9c2789d0427ebd12d5d9398d4f4d51e21b804beb))
+
+* fix(requirements): add trame-jupyter-extension to requirements.txt ([`91f253a`](https://github.com/Kitware/pan3d/commit/91f253a9e4860490bc1730ee11f4d183f4d2e4c7))
+
+* fix(setup): use Dockerfile to specify uninstall of default vtk before install of vtk-osmesa ([`34c459d`](https://github.com/Kitware/pan3d/commit/34c459d20de43abe428ed968c3de44e79c6f5757))
+
+* fix(setup): add vtk-osmesa to examples requirements for binder ([`5abfa59`](https://github.com/Kitware/pan3d/commit/5abfa5948f2caddd19dc4ff0d2f450c0af857dd0))
+
+* fix(lint): run black ([`754d44d`](https://github.com/Kitware/pan3d/commit/754d44d955dc530a2203a3470fca7b2eaed836e4))
+
+* fix(examples): update notebooks and add requirements.txt ([`406c76b`](https://github.com/Kitware/pan3d/commit/406c76baf5ce99259ecbd949a11947928f43e565))
+
+* fix(dataset_builder): update export_config and mesh_changed functions ([`40e1b17`](https://github.com/Kitware/pan3d/commit/40e1b17aa439f6c79efa6f1075bb6ae6c18b85ec))
+
+* fix(setup): specify packages list to override automatic packages discovery ([`a0f7941`](https://github.com/Kitware/pan3d/commit/a0f7941cc3a1ad230240deabc8bd0bca682ad756))
+
+* fix(pyproject.toml): escape backslash characters in version pattern ([`66d8db9`](https://github.com/Kitware/pan3d/commit/66d8db9348b5ae07b2bab278fa4a3aada1ea89b8))
+
+* fix(release): add a job to build dist folder ([`aa48f3a`](https://github.com/Kitware/pan3d/commit/aa48f3a58822ce00c6adde2969f9ea2259814061))
+
+* fix(pyproject.toml): semantic-release v8 does not support setup.cfg ([`bda7a67`](https://github.com/Kitware/pan3d/commit/bda7a67b5cf9f7f0ac2d866b458ca9b767eb2353))
+
+* fix(changelog): change misspelled word ([`e977de5`](https://github.com/Kitware/pan3d/commit/e977de5e5a0d458db95543bb578b3b89bde05151))
 
 ### Build System
 
@@ -443,144 +611,6 @@ Co-authored by: @johnkit ([`9149c5b`](https://github.com/Kitware/pan3d/commit/91
 * feat: set rendering mode to client in known cloud jupyter environments ([`32641fe`](https://github.com/Kitware/pan3d/commit/32641feab747f5edd9a38debd5fbf0c54ed3a55f))
 
 * feat(examples): add notebook demonstrating use of `builder.mesh` with pyvista rendering ([`7f9d88c`](https://github.com/Kitware/pan3d/commit/7f9d88cc84506211b492b02dc4fa70a0572e0000))
-
-### Fixes
-
-* fix: Add "pan3d.ui.pan3d_components" to packages list ([`8389496`](https://github.com/Kitware/pan3d/commit/8389496ac09e0b4988c4d733fd6ac0c91f34d3bf))
-
-* fix: include module and serve packages individusaly ([`c9b449f`](https://github.com/Kitware/pan3d/commit/c9b449ff6a54a8f50818b49d1ea15e0bab2ba22b))
-
-* fix: update javscript path in CI for build step ([`7432328`](https://github.com/Kitware/pan3d/commit/743232879e4f4dab9fa9ffa4b19d2031c0d78889))
-
-* fix: add new folders to packages list in pyproject.toml ([`3247611`](https://github.com/Kitware/pan3d/commit/32476117eebe3de18a9e7daecaac58632af1b374))
-
-* fix: apply suggested usability changes ([`1532b5a`](https://github.com/Kitware/pan3d/commit/1532b5ae25084aa207ddd28c6b973344d596be07))
-
-* fix: Add npm installation steps to CI tests ([`ce688ed`](https://github.com/Kitware/pan3d/commit/ce688ed14488a793cbf1827f7db79ec84fd881fc))
-
-* fix: Move default resolution value (cmd arg is None if not specified) ([`faabc39`](https://github.com/Kitware/pan3d/commit/faabc39df0ef5edbdb5caa69efb34dfcaa260876))
-
-* fix: Correct various bugs and unexpected behavior ([`9c9ebf7`](https://github.com/Kitware/pan3d/commit/9c9ebf7862dfd93369bf7ea4b4ab46fef51cf902))
-
-* fix: Update example config files ([`5cac70e`](https://github.com/Kitware/pan3d/commit/5cac70ea660dda2cc61fb6ecaa137ae3aec19b2f))
-
-* fix: slice by index instead of value to allow slicing time coord ([`801735f`](https://github.com/Kitware/pan3d/commit/801735f3ef4296ffc292f1c3c5ba2ac7ec380b94))
-
-* fix: remove cmdline arg shorthand notations to avoid conflicts ([`88d9810`](https://github.com/Kitware/pan3d/commit/88d9810f06f283fe66fa785f6e6bc71b211a9d78))
-
-* fix: update files in `docker` folder ([`b1aae3f`](https://github.com/Kitware/pan3d/commit/b1aae3facf5a0df09823a4eebb422e7b4463881a))
-
-* fix: show import loading bar during import ([`24821c4`](https://github.com/Kitware/pan3d/commit/24821c41d6427df69b6c0edd8fd4691a59917eed))
-
-* fix(test): add a flag to disable render in `set_render_options`; geovista GeoPlotter raises exception when no GPU found ([`2fd86ca`](https://github.com/Kitware/pan3d/commit/2fd86ca6c2a39e92961ccd74b0f5b13f674c3fba))
-
-* fix(test): allow non-numeric slicing values (for time axis) ([`822427e`](https://github.com/Kitware/pan3d/commit/822427ef31eae93c7c321243bd98bc386b82e4e3))
-
-* fix(test): don't enable cartographic mode on 4D test data ([`b632ad9`](https://github.com/Kitware/pan3d/commit/b632ad99d5bb93aab1d54efb3e12a1fbdc6276aa))
-
-* fix(examples): Update example notebooks with catalogs argument ([`f8c07d9`](https://github.com/Kitware/pan3d/commit/f8c07d9e69178fcb0ad8571acea76fd84083f09a))
-
-* fix: Set DatasetBuilder slicing to None when DatasetViewer coordinates are blank ([`f53dc24`](https://github.com/Kitware/pan3d/commit/f53dc24e6106b1a247dae063b7c4689f20b09ed3))
-
-* fix: prevent name conflict by renaming catalogs module import ([`806657f`](https://github.com/Kitware/pan3d/commit/806657fb4db006ae1e40c182563a5d4d3fe7db3c))
-
-* fix: add catalogs folder to setuptools packages list ([`54722a6`](https://github.com/Kitware/pan3d/commit/54722a671d3d317b725e91f42bc78b12fa401f11))
-
-* fix: prevent "NoneType is not iterable" error in Pangeo search by ID ([`6b91079`](https://github.com/Kitware/pan3d/commit/6b91079cea8cc916a2909601f0cab9b5d68dbb6e))
-
-* fix: guard against a None `catalogs` value in `DatasetViewer` constructor ([`dc505e5`](https://github.com/Kitware/pan3d/commit/dc505e5e17682113ac537eb90be10585fae1ddb2))
-
-* fix: reset search and message when catalog changes ([`5327dab`](https://github.com/Kitware/pan3d/commit/5327dab1b9cb83d460f3e0e11cddce0570bf4d16))
-
-* fix: reduce sleep time in `run_as_async` ([`50e568b`](https://github.com/Kitware/pan3d/commit/50e568b2af8b5f53a4d76be7366f2244b6d6fa40))
-
-* fix: update binder requirements.txt ([`26abc54`](https://github.com/Kitware/pan3d/commit/26abc54e9eab0af05f89845cee6dd3f07d8b9a5b))
-
-* fix: Use try-catch for catalog module imports ([`a1a7e5a`](https://github.com/Kitware/pan3d/commit/a1a7e5ab0d10747095ed4e11f1546b00815b4f3d))
-
-* fix: use correct exception imports in `pangeo_forge.py` ([`a8fccca`](https://github.com/Kitware/pan3d/commit/a8fccca880988a7a257c1216e8102b08869bfc78))
-
-* fix: remove unnecessary values from exported state ([`a6de08b`](https://github.com/Kitware/pan3d/commit/a6de08bbe070a17c5f614ee7e4639dd7d9b0155d))
-
-* fix: loading and error states should be handled only by `run_as_async` method ([`1c488ff`](https://github.com/Kitware/pan3d/commit/1c488ff9de9ac2c503db0fbd4bd853b8d41b5853))
-
-* fix: improve compatibility with more pangeo datasets with timedelta dtypes ([`a80119e`](https://github.com/Kitware/pan3d/commit/a80119e19a25cd7aa383edbb580ec793a81ccda7))
-
-* fix: consolidate asynchronous viewer behavior with helper function `run_as_async` ([`a69f106`](https://github.com/Kitware/pan3d/commit/a69f106778f4645cb356d6455403cb49ba73b00c))
-
-* fix: Update Builder and Viewer to use Pangeo module ([`b94e60e`](https://github.com/Kitware/pan3d/commit/b94e60eb552f57b1157210be8617fa6706d1e0ac))
-
-* fix: add missing parenthesis in async callback ([`a2e7676`](https://github.com/Kitware/pan3d/commit/a2e76762a06c3f6870eb32374def6e6437fd7d23))
-
-* fix: protect against NoSearchResults exceptions from intake_esgf ([`3654f48`](https://github.com/Kitware/pan3d/commit/3654f482ed44ee14236f8140ccd8cd016a2150d5))
-
-* fix: remove broken pangeo-forge links from catalog ([`9ea98f5`](https://github.com/Kitware/pan3d/commit/9ea98f5d75bb7efc2e7c1624f05ed83898a53abd))
-
-* fix: improve usability of import via UI ([`22520fd`](https://github.com/Kitware/pan3d/commit/22520fd359f9e334f4bbb8be7e0e9f9c5a70c967))
-
-* fix: wait until server ready before enabling auto rendering ([`e02d159`](https://github.com/Kitware/pan3d/commit/e02d15922ee33e7bcc86094318527b54cf1ee258))
-
-* fix: synchronize slicing state between builder and viewer ([`33b5404`](https://github.com/Kitware/pan3d/commit/33b54048b3a1cd0fc50aedd92a64d35d360b26a5))
-
-* fix: assign coordinates on implicitly indexed data arrays before sending to algorithm ([`087d04f`](https://github.com/Kitware/pan3d/commit/087d04fa544334d178eb442a8b52cf1f2c59c611))
-
-* fix: asynchronous trame state updates ([`48bd1d7`](https://github.com/Kitware/pan3d/commit/48bd1d7779a735fa059d564296c734493964efc4))
-
-* fix: state synchronization between builder and viewer ([`e3ab71a`](https://github.com/Kitware/pan3d/commit/e3ab71ab1da2177da1ff3d5037c56ca1345a1534))
-
-* fix(threading): use `call_soon_threadsafe` for plotting mesh ([`28930fb`](https://github.com/Kitware/pan3d/commit/28930fb372a4cc6d5fbfadaf3d966d67994e202b))
-
-* fix(docs): fix README badge rendering on GH ([`a6065d6`](https://github.com/Kitware/pan3d/commit/a6065d6326f49b4560375e6cf33775850482f011))
-
-* fix: use true min and max for default slicing ([`aa4d939`](https://github.com/Kitware/pan3d/commit/aa4d9394b2f4f2c40ef38df6f3489563de8a570f))
-
-* fix: use relative path for pangeo datasets JSON ([`e85e83e`](https://github.com/Kitware/pan3d/commit/e85e83e849b958e8070b84be7a6876a97f49484a))
-
-* fix: update test expected size for updated example file ([`c4acabe`](https://github.com/Kitware/pan3d/commit/c4acabef8045dbbda6c41d2069dc1a54dd9806a4))
-
-* fix: change pyvista StructuredGrid reference ([`5260a60`](https://github.com/Kitware/pan3d/commit/5260a60a04dc57412d8af2259edb8a699cdd0d36))
-
-* fix(DatasetBuilder): typing adjustments ([`0686dea`](https://github.com/Kitware/pan3d/commit/0686dea8889db3e8d1360d3c6e511abe2e6ad1a5))
-
-* fix: always use `push_camera` instead of `reset_camera` ([`b3ce44f`](https://github.com/Kitware/pan3d/commit/b3ce44f3f20f61bd66c23d82b048c34c76fef747))
-
-* fix: use `push_camera` instead of `reset_camera` in cloud mode ([`41dde0c`](https://github.com/Kitware/pan3d/commit/41dde0ccb4cf794f9985bbbfe490dab49d096f9d))
-
-* fix: remove defaults on computed attribute values ([`fd024a7`](https://github.com/Kitware/pan3d/commit/fd024a7de971c856beb85e2d2828242038ae1a36))
-
-* fix: prevent `auto_select_coordinates` from overwriting `set_data_array_axis_names` results ([`53f016e`](https://github.com/Kitware/pan3d/commit/53f016e492acdfdcd2bbe11adc50f7d0eaea930e))
-
-* fix: convert more directive attributes to tuple syntax ([`469c511`](https://github.com/Kitware/pan3d/commit/469c5113bcc12fcc61b04e0abe5f1b27f75e6a34))
-
-* fix: cast keys and values in `da_vars_attrs` to strings ([`bc8c319`](https://github.com/Kitware/pan3d/commit/bc8c319a230bea29c5ac6332b4fc2f8e47fe40a5))
-
-* fix: cast objects to strings in template code ([`c8c66ba`](https://github.com/Kitware/pan3d/commit/c8c66baae1c9ad796c9826bf9c77e4751908059f))
-
-* fix: stringify axes list for VSelect component ([`e783699`](https://github.com/Kitware/pan3d/commit/e7836993bbfba19a29a2485d02c99fab1977b42d))
-
-* fix(setup): Add setuptools_scm to pyproject.toml; use git tag for version in build step ([`9c2789d`](https://github.com/Kitware/pan3d/commit/9c2789d0427ebd12d5d9398d4f4d51e21b804beb))
-
-* fix(requirements): add trame-jupyter-extension to requirements.txt ([`91f253a`](https://github.com/Kitware/pan3d/commit/91f253a9e4860490bc1730ee11f4d183f4d2e4c7))
-
-* fix(setup): use Dockerfile to specify uninstall of default vtk before install of vtk-osmesa ([`34c459d`](https://github.com/Kitware/pan3d/commit/34c459d20de43abe428ed968c3de44e79c6f5757))
-
-* fix(setup): add vtk-osmesa to examples requirements for binder ([`5abfa59`](https://github.com/Kitware/pan3d/commit/5abfa5948f2caddd19dc4ff0d2f450c0af857dd0))
-
-* fix(lint): run black ([`754d44d`](https://github.com/Kitware/pan3d/commit/754d44d955dc530a2203a3470fca7b2eaed836e4))
-
-* fix(examples): update notebooks and add requirements.txt ([`406c76b`](https://github.com/Kitware/pan3d/commit/406c76baf5ce99259ecbd949a11947928f43e565))
-
-* fix(dataset_builder): update export_config and mesh_changed functions ([`40e1b17`](https://github.com/Kitware/pan3d/commit/40e1b17aa439f6c79efa6f1075bb6ae6c18b85ec))
-
-* fix(setup): specify packages list to override automatic packages discovery ([`a0f7941`](https://github.com/Kitware/pan3d/commit/a0f7941cc3a1ad230240deabc8bd0bca682ad756))
-
-* fix(pyproject.toml): escape backslash characters in version pattern ([`66d8db9`](https://github.com/Kitware/pan3d/commit/66d8db9348b5ae07b2bab278fa4a3aada1ea89b8))
-
-* fix(release): add a job to build dist folder ([`aa48f3a`](https://github.com/Kitware/pan3d/commit/aa48f3a58822ce00c6adde2969f9ea2259814061))
-
-* fix(pyproject.toml): semantic-release v8 does not support setup.cfg ([`bda7a67`](https://github.com/Kitware/pan3d/commit/bda7a67b5cf9f7f0ac2d866b458ca9b767eb2353))
-
-* fix(changelog): change misspelled word ([`e977de5`](https://github.com/Kitware/pan3d/commit/e977de5e5a0d458db95543bb578b3b89bde05151))
 
 ### Refactoring
 
