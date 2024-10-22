@@ -519,9 +519,7 @@ class DatasetBuilder:
                 (
                     math.ceil((v[1] - v[0]) / self._resolution)
                     if self._resolution > 1 and v[1] - v[0] > 0 and k != self.t
-                    else steps.get(k, 1)
-                    if steps is not None and k != self.t
-                    else 1
+                    else steps.get(k, 1) if steps is not None and k != self.t else 1
                 ),
             ]
             for k, v in bounds.items()

@@ -140,12 +140,14 @@ class CoordinateConfigure(vuetify.VCard):
                             model_value=(str(axis_info) or "undefined",),
                             clearable=True,
                             click_clear=(
-                                coordinate_select_axis_function,
-                                # args: coord name, current axis, new axis
-                                f"[{axis_info['name_var']}, '{axis_info['name_var']}', 'undefined']",
-                            )
-                            if axis_info
-                            else "undefined",
+                                (
+                                    coordinate_select_axis_function,
+                                    # args: coord name, current axis, new axis
+                                    f"[{axis_info['name_var']}, '{axis_info['name_var']}', 'undefined']",
+                                )
+                                if axis_info
+                                else "undefined"
+                            ),
                             update_modelValue=(
                                 coordinate_select_axis_function,
                                 # args: coord name, current axis, new axis
