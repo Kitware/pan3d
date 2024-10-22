@@ -1,6 +1,15 @@
 # CHANGELOG
 
 
+## v0.9.2 (2024-10-22)
+
+### Bug Fixes
+
+* fix(import): correct import pattern ([`4d478bf`](https://github.com/Kitware/pan3d/commit/4d478bf4c8dc2e4e0f91272e6ab23016b3683021))
+
+* fix(preset): centralize util methods ([`1f4eaf0`](https://github.com/Kitware/pan3d/commit/1f4eaf0139a33666cc5e8021a1c0d1f87d3fc772))
+
+
 ## v0.9.1 (2024-10-22)
 
 ### Bug Fixes
