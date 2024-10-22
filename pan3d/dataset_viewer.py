@@ -24,7 +24,7 @@ from trame_vuetify.ui.vuetify3 import VAppLayout
 from pan3d import catalogs as pan3d_catalogs
 from pan3d.dataset_builder import DatasetBuilder
 from pan3d.ui import AxisDrawer, MainDrawer, Toolbar, RenderOptions, BoundsConfigure
-from pan3d.utils import (
+from pan3d.utils.constants import (
     initial_state,
     has_gpu_rendering,
 )

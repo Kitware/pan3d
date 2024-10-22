@@ -1,5 +1,6 @@
 import logging
-from .dataset_builder import DatasetBuilder
+from pan3d.dataset_builder import DatasetBuilder
+from contextlib import suppress
 
 
 logger = logging.getLogger(__name__)
@@ -7,11 +8,15 @@ logger.setLevel(logging.INFO)
 
 __version__ = "0.9.1"
 
-try:
-    from .dataset_viewer import DatasetViewer
-    from .explorers.slice_explorer import SliceExplorer
+__all__ = ["DatasetBuilder"]
 
-    __all__ = [DatasetBuilder, DatasetViewer, SliceExplorer]
-except Exception:
-    # Trame is not installed, DatasetViewer will not be accessible
-    __all__ = [DatasetBuilder]
+with suppress(ImportError):
+    from pan3d.dataset_viewer import DatasetViewer  # noqa
+
+    __all__.append("DatasetViewer")
+
+
+with suppress(ImportError):
+    from pan3d.explorers.slice_explorer import SliceExplorer  # noqa
+
+    __all__.append("SliceExplorer")
