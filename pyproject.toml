@@ -74,6 +74,15 @@ slice-explorer = "pan3d.explorers.slice_explorer:main"
 requires = ['setuptools', 'wheel']
 build-backend = 'setuptools.build_meta'
 
+[project.entry-points."xarray.backends"]
+vtk = "pan3d.xarray.io:VTKBackendEntrypoint"
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::pan3d.xarray.errors.DataCopyWarning",
+]
+
+
 [tool.setuptools.packages.find]
 where = ["."]
 
