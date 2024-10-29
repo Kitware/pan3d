@@ -146,7 +146,7 @@ def rectilinear(
         values = values.reshape((-1, values.shape[-1]), order=order)
         warnings.warn(
             DataCopyWarning(
-                "Made a copy of the multicomponent array - VTK/PyVista data not shared with xarray."
+                "Made a copy of the multicomponent array - VTK data not shared with xarray."
             )
         )
         ndim += 1
