@@ -114,6 +114,9 @@ class SliceExplorer:
         slice_mapper = vtk.vtkDataSetMapper()
         slice_mapper.SetInputConnection(cutter.GetOutputPort())
         slice_mapper.SetScalarRange(float(var_range[0]), float(var_range[1]))
+        slice_mapper.SelectColorArray(self.vars[0])
+        slice_mapper.SetScalarModeToUsePointFieldData()
+        slice_mapper.InterpolateScalarsBeforeMappingOn()
         slice_actor.SetMapper(slice_mapper)
         self._plane = plane
         self._cutter = cutter
@@ -403,6 +406,7 @@ class SliceExplorer:
         output = self._cutter.GetOutput()
         vrange = output.GetPointData().GetArray(self.state.data_var).GetRange()
         self._slice_mapper.SetScalarRange(float(vrange[0]), float(vrange[1]))
+        self._slice_mapper.SelectColorArray(self.state.data_var)
         self.state.varmin = float(vrange[0])
         self.state.varmax = float(vrange[1])
         self._sbar_actor.SetLookupTable(self._slice_mapper.GetLookupTable())
