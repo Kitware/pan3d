@@ -61,6 +61,7 @@ class vtkXArrayRectilinearSource(VTKPythonAlgorithmBase):
         self._xarray_mesh = None
         self._pipeline = None
         self._computed = {}
+        self._data_origin = None
 
         # Array name selectors
         self._x = x
@@ -91,7 +92,7 @@ z: {self.z}
 t: {self.t} ({self.t_index + 1}/{self.t_size})
 arrays: {self.arrays}
         {self.available_arrays}
-slicing: {json.dumps(self.slicing, indent=2)}
+slices: {json.dumps(self.slices, indent=2)}
 computed: {json.dumps(self.computed, indent=2)}
 order: {self._order}
 """
@@ -311,6 +312,10 @@ order: {self._order}
         self._xarray_mesh = None
         self.Modified()
 
+    # -------------------------------------------------------------------------
+    # add-on logic
+    # -------------------------------------------------------------------------
+
     @property
     def computed(self):
         return self._computed
@@ -344,6 +349,46 @@ order: {self._order}
 
             self.Modified()
 
+    def load(self, data_info):
+        if "data_origin" not in data_info:
+            raise ValueError("Only state with data_origin can be loaded")
+
+        from pan3d import catalogs
+
+        self._data_origin = data_info["data_origin"]
+        self.input = catalogs.load_dataset(
+            self._data_origin["source"], self._data_origin["id"]
+        )
+
+        dataset_config = data_info.get("dataset_config")
+        if dataset_config is None:
+            self.apply_coords()
+            self.arrays = self.available_arrays
+        else:
+            self.x = dataset_config.get("x")
+            self.y = dataset_config.get("y")
+            self.z = dataset_config.get("z")
+            self.t = dataset_config.get("t")
+            self.slices = dataset_config.get("slices")
+            self.t_index = dataset_config.get("t_index", 0)
+            self.apply_coords()
+            self.arrays = dataset_config.get("arrays", self.available_arrays)
+
+    @property
+    def state(self):
+        if self._data_origin is None:
+            raise RuntimeError(
+                "No state available without data origin. Need to use the load method to set the data origin."
+            )
+
+        return {
+            "data_origin": self._data_origin,
+            "dataset_config": {
+                k: getattr(self, k)
+                for k in ["x", "y", "z", "t", "slices", "t_index", "arrays"]
+            },
+        }
+
     # -------------------------------------------------------------------------
     # Algorithm
     # -------------------------------------------------------------------------
@@ -359,13 +404,13 @@ order: {self._order}
                 # grid
                 mesh = vtkRectilinearGrid()
                 mesh.x_coordinates = slice_array(
-                    self._input[self._x].values, self.slicing.get(self._x)
+                    self._input[self._x].values, self.slices.get(self._x)
                 )
                 mesh.y_coordinates = slice_array(
-                    self._input[self._y].values, self.slicing.get(self._y)
+                    self._input[self._y].values, self.slices.get(self._y)
                 )
                 mesh.z_coordinates = slice_array(
-                    self._input[self._z].values, self.slicing.get(self._z)
+                    self._input[self._z].values, self.slices.get(self._z)
                 )
                 mesh.dimensions = [
                     mesh.x_coordinates.size,
@@ -373,7 +418,7 @@ order: {self._order}
                     mesh.z_coordinates.size,
                 ]
                 # fields
-                indexing = to_isel(self.slicing, self.x, self.y, self.z, self.t)
+                indexing = to_isel(self.slices, self.x, self.y, self.z, self.t)
                 for field_name in self._array_names:
                     da = self._input[field_name]
                     if indexing is not None:
