@@ -1,4 +1,3 @@
-import os
 import math
 import json
 import pyvista
@@ -430,29 +429,19 @@ class DatasetBuilder:
     def _load_dataset(self, dataset_info):
         ds = None
         if dataset_info is not None:
-            source = dataset_info.get("source")
-            if source in ["pangeo", "esgf"]:
+            source = (
+                "str" if isinstance(dataset_info, str) else dataset_info.get("source")
+            )
+            if source == "str":
+                source = "url" if "https://" in dataset_info else "file"
+                ds = pan3d_catalogs.load_dataset(source, id=dataset_info)
+            elif source in ["pangeo", "esgf", "xarray", "file", "url"]:
                 ds = pan3d_catalogs.load_dataset(source, id=dataset_info["id"])
-            elif source == "xarray":
-                ds = xarray.tutorial.load_dataset(dataset_info["id"])
             else:
-                ds = self._load_dataset_default(dataset_info)
+                raise ValueError(f"Invalid dataset source: {dataset_info}")
 
         if ds is not None:
             self.dataset = ds
-
-    def _load_dataset_default(self, dataset_info):
-        # Assume 'id' in dataset_info is a path or url
-        if "https://" in dataset_info["id"] or os.path.exists(dataset_info["id"]):
-            engine = None
-            if ".zarr" in dataset_info["id"]:
-                engine = "zarr"
-            if ".nc" in dataset_info["id"]:
-                engine = "netcdf4"
-            ds = xarray.open_dataset(dataset_info["id"], engine=engine, chunks={})
-            return ds
-        else:
-            raise ValueError(f'Could not find dataset at {dataset_info["id"]}')
 
     def _set_state_values(self, **kwargs):
         if self._viewer is not None:
