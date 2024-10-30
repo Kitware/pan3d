@@ -74,6 +74,15 @@ class XArrayViewer:
         self.actor.visibility = 1
         self.reset_camera()
 
+    @property
+    def computed(self):
+        return self.source.computed
+
+    @computed.setter
+    def computed(self, value):
+        self.source.computed = value
+        self.refresh_data()
+
     def update(self):
         self.ctrl.view_update()
 

@@ -1,10 +1,42 @@
 import traceback
 from typing import List, Optional
 
+import json
 import xarray as xr
 from vtkmodules.vtkCommonDataModel import vtkRectilinearGrid
 from vtkmodules.util.vtkAlgorithm import VTKPythonAlgorithmBase
 from vtkmodules.vtkFiltersCore import vtkArrayCalculator
+
+# -----------------------------------------------------------------------------
+# Helper functions
+# -----------------------------------------------------------------------------
+
+
+def slice_array(array, slice_info):
+    if slice_info is None:
+        return array
+    if isinstance(slice_info, int):
+        return array[slice_info]
+    return array[slice(*slice_info)]
+
+
+def to_isel(slices_info, *array_names):
+    slices = {}
+    for name in array_names:
+        info = slices_info.get(name)
+        if info is None:
+            continue
+        if isinstance(info, int):
+            slices[name] = info
+        else:
+            slices[name] = slice(*info)
+
+    return slices if slices else None
+
+
+# -----------------------------------------------------------------------------
+# VTK Algorithms
+# -----------------------------------------------------------------------------
 
 
 class vtkXArrayRectilinearSource(VTKPythonAlgorithmBase):
@@ -50,6 +82,19 @@ class vtkXArrayRectilinearSource(VTKPythonAlgorithmBase):
 
         if len(self._array_names) == 0:
             self.arrays = self.available_arrays
+
+    def __str__(self):
+        return f"""
+x: {self.x}
+y: {self.y}
+z: {self.z}
+t: {self.t} ({self.t_index + 1}/{self.t_size})
+arrays: {self.arrays}
+        {self.available_arrays}
+slicing: {json.dumps(self.slicing, indent=2)}
+computed: {json.dumps(self.computed, indent=2)}
+order: {self._order}
+"""
 
     # -------------------------------------------------------------------------
     # Data input
@@ -176,8 +221,10 @@ class vtkXArrayRectilinearSource(VTKPythonAlgorithmBase):
         self.t = None
 
         # assign mapping
-        for key, value in zip(["x", "y", "z", "t"], coords):
-            # print(f"set({key}={value})")
+        axes = ["t", "z", "y", "x"]
+        while len(axes) > len(coords):
+            axes.pop(0)
+        for key, value in zip(axes, coords):
             setattr(self, key, value)
 
     @property
@@ -228,6 +275,20 @@ class vtkXArrayRectilinearSource(VTKPythonAlgorithmBase):
 
         return list(set(self._input.variables.keys()) - set(self._input.coords.keys()))
 
+    @property
+    def slicing(self):
+        result = dict(self._slices or {})
+        if self.t is not None:
+            result[self.t] = self.t_index
+        return result
+
+    @slicing.setter
+    def slicing(self, v):
+        if v != self._slices:
+            self._slices = v
+            self._xarray_mesh = None
+            self.Modified()
+
     # -------------------------------------------------------------------------
     # properties
     # -------------------------------------------------------------------------
@@ -251,18 +312,27 @@ class vtkXArrayRectilinearSource(VTKPythonAlgorithmBase):
         if self._computed != v:
             self._computed = v or {}
             self._pipeline = None
+            scalar_arrays = self._computed.get("_use_scalars", [])
+            vector_arrays = self._computed.get("_use_vectors", [])
 
             for output_name, func in self._computed.items():
+                if output_name[0] == "_":
+                    continue
+                filter = vtkArrayCalculator(
+                    result_array_name=output_name,
+                    function=func,
+                )
+
+                # register array dependencies
+                for scalar_array in scalar_arrays:
+                    filter.AddScalarArrayName(scalar_array)
+                for vector_array in vector_arrays:
+                    filter.AddVectorArrayName(vector_array)
+
                 if self._pipeline is None:
-                    self._pipeline = vtkArrayCalculator(
-                        result_array_name=output_name,
-                        function=func,
-                    )
+                    self._pipeline = filter
                 else:
-                    self._pipeline = self._pipeline >> vtkArrayCalculator(
-                        result_array_name=output_name,
-                        function=func,
-                    )
+                    self._pipeline = self._pipeline >> filter
 
             self.Modified()
 
@@ -280,26 +350,32 @@ class vtkXArrayRectilinearSource(VTKPythonAlgorithmBase):
             if self._xarray_mesh is None:
                 # grid
                 mesh = vtkRectilinearGrid()
-                mesh.x_coordinates = self._input[self._x].values
-                mesh.y_coordinates = self._input[self._y].values
-                mesh.z_coordinates = self._input[self._z].values
+                mesh.x_coordinates = slice_array(
+                    self._input[self._x].values, self.slicing.get(self._x)
+                )
+                mesh.y_coordinates = slice_array(
+                    self._input[self._y].values, self.slicing.get(self._y)
+                )
+                mesh.z_coordinates = slice_array(
+                    self._input[self._z].values, self.slicing.get(self._z)
+                )
                 mesh.dimensions = [
                     mesh.x_coordinates.size,
                     mesh.y_coordinates.size,
                     mesh.z_coordinates.size,
                 ]
                 # fields
+                indexing = to_isel(self.slicing, self.x, self.y, self.z, self.t)
                 for field_name in self._array_names:
                     da = self._input[field_name]
-                    if self.t is not None:
-                        da = da.isel({self._t: self._t_index})
+                    if indexing is not None:
+                        da = da.isel(indexing)
                     mesh.point_data[field_name] = da.values.ravel(order=self._order)
 
                 self._xarray_mesh = mesh
 
             # Compute derived quantity
             if self._pipeline is not None:
-                print(self._pipeline)
                 pdo.ShallowCopy(self._pipeline(self._xarray_mesh))
             else:
                 pdo.ShallowCopy(self._xarray_mesh)

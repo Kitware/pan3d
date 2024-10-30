@@ -1,10 +1,10 @@
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import numpy as np
 import xarray as xr
 
 from vtkmodules.vtkCommonDataModel import vtkDataSet
-from pan3d.xarray import datasets
+from pan3d.xarray import datasets, algorithm
 
 # from pvxarray.vtk_source import PyVistaXarraySource
 
@@ -74,25 +74,21 @@ class VTKAccessor:
             self, x=x, y=y, z=z, order=order, component=component, scales=scales
         )
 
-    # def algorithm(
-    #     self,
-    #     x: Optional[str] = None,
-    #     y: Optional[str] = None,
-    #     z: Optional[str] = None,
-    #     time: Optional[str] = None,
-    #     order: str = "C",
-    #     component: Optional[str] = None,
-    #     mesh_type: Optional[str] = None,
-    #     resolution: float = 1.0,
-    # ):
-    #     return PyVistaXarraySource(
-    #         data_array=self._xarray,
-    #         x=x,
-    #         y=y,
-    #         z=z,
-    #         time=time,
-    #         order=order,
-    #         component=component,
-    #         mesh_type=mesh_type,
-    #         resolution=resolution,
-    #     )
+    def algorithm(
+        self,
+        x: Optional[str] = None,
+        y: Optional[str] = None,
+        z: Optional[str] = None,
+        t: Optional[str] = None,
+        arrays: Optional[List[str]] = None,
+        order: str = "C",
+    ):
+        return algorithm.vtkXArrayRectilinearSource(
+            input=self._xarray,
+            x=x,
+            y=y,
+            z=z,
+            t=t,
+            arrays=arrays,
+            order=order,
+        )
