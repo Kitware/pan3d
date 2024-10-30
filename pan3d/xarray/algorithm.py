@@ -206,6 +206,14 @@ order: {self._order}
             self._xarray_mesh = None
             self.Modified()
 
+    @property
+    def slice_extents(self):
+        return {
+            coord_name: [0, self.input[coord_name].size]
+            for coord_name in [self.x, self.y, self.z]
+            if coord_name is not None
+        }
+
     def apply_coords(self):
         """Use array dims to map coordinates"""
         if self.input is None:
@@ -276,14 +284,14 @@ order: {self._order}
         return list(set(self._input.variables.keys()) - set(self._input.coords.keys()))
 
     @property
-    def slicing(self):
+    def slices(self):
         result = dict(self._slices or {})
         if self.t is not None:
             result[self.t] = self.t_index
         return result
 
-    @slicing.setter
-    def slicing(self, v):
+    @slices.setter
+    def slices(self, v):
         if v != self._slices:
             self._slices = v
             self._xarray_mesh = None
