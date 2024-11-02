@@ -13,33 +13,40 @@ ALL_ENTRIES = [
         "name": "basin_mask",
         "description": "Dataset with ocean basins marked using integers",
     },
-    {
-        "name": "ASE_ice_velocity",
-        "description": "MEaSUREs InSAR-Based Ice Velocity of the Amundsen Sea Embayment, Antarctica, Version 1",
-    },
-    {
-        "name": "rasm",
-        "description": "Output of the Regional Arctic System Model (RASM)",
-    },
-    {
-        "name": "ROMS_example",
-        "description": "Regional Ocean Model System (ROMS) output",
-    },
-    {
-        "name": "tiny",
-        "description": "small synthetic dataset with a 1D data variable",
-    },
-    {
-        "name": "era5-2mt-2019-03-uk.grib",
-        "description": "ERA5 temperature data over the UK",
-    },
+    # -------------------------------------------------------------------------
+    # {
+    #     "name": "ASE_ice_velocity",
+    #     "description": "MEaSUREs InSAR-Based Ice Velocity of the Amundsen Sea Embayment, Antarctica, Version 1",
+    # },
+    # -------------------------------------------------------------------------
+    # {
+    #     "name": "rasm",
+    #     "description": "Output of the Regional Arctic System Model (RASM)",
+    # },
+    # -------------------------------------------------------------------------
+    # {
+    #     "name": "ROMS_example",
+    #     "description": "Regional Ocean Model System (ROMS) output",
+    # },
+    # -------------------------------------------------------------------------
+    # {
+    #     "name": "tiny",
+    #     "description": "small synthetic dataset with a 1D data variable",
+    # },
+    # -------------------------------------------------------------------------
+    # needs pandas[xarray]
+    # {
+    #     "name": "era5-2mt-2019-03-uk.grib",
+    #     "description": "ERA5 temperature data over the UK",
+    # },
+    # -------------------------------------------------------------------------
     {
         "name": "eraint_uvz",
         "description": "data from ERA-Interim reanalysis, monthly averages of upper level data",
     },
     {
         "name": "ersstv5",
-        "description": "NOAA’s Extended Reconstructed Sea Surface Temperature monthly averages    ",
+        "description": "NOAA’s Extended Reconstructed Sea Surface Temperature monthly averages",
     },
 ]
 

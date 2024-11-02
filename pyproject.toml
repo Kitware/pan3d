@@ -68,6 +68,7 @@ all = [
 
 [project.scripts]
 geotrame = "pan3d.serve_geotrame:serve"
+pan3d-preview = "pan3d.viewers.preview:main"
 slice-explorer = "pan3d.explorers.slice_explorer:main"
 
 [build-system]

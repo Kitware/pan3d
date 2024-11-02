@@ -1,0 +1,44 @@
+.controller {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow: auto;
+    z-index: 2;
+}
+.controller-content {
+    width: clamp(20rem, 25vw, 30rem);
+}
+
+.no-bg {
+    background: transparent;
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+.view-toolbar {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    opacity: 0.8;
+    display: flex;
+    flex-direction: column;
+    z-index: 2;
+}
+
+.alert-position {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+}
+
+.view-lock {
+    position:absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    z-index: 1;
+}

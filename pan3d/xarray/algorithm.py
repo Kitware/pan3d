@@ -2,6 +2,8 @@ import traceback
 from typing import List, Optional
 
 import json
+import numpy as np
+import pandas as pd
 import xarray as xr
 from vtkmodules.vtkCommonDataModel import vtkRectilinearGrid
 from vtkmodules.util.vtkAlgorithm import VTKPythonAlgorithmBase
@@ -12,7 +14,14 @@ from vtkmodules.vtkFiltersCore import vtkArrayCalculator
 # -----------------------------------------------------------------------------
 
 
-def slice_array(array, slice_info):
+def get_time_labels(times):
+    return [pd.to_datetime(time).strftime("%Y-%m-%d %H:%M:%S") for time in times]
+
+
+def slice_array(array_name, dataset, slice_info):
+    if array_name is None:
+        return np.zeros(1, dtype=np.float32)
+    array = dataset[array_name].values
     if slice_info is None:
         return array
     if isinstance(slice_info, int):
@@ -210,7 +219,7 @@ order: {self._order}
     @property
     def slice_extents(self):
         return {
-            coord_name: [0, self.input[coord_name].size]
+            coord_name: [0, self.input[coord_name].size - 1]
             for coord_name in [self.x, self.y, self.z]
             if coord_name is not None
         }
@@ -231,10 +240,25 @@ order: {self._order}
 
         # assign mapping
         axes = ["t", "z", "y", "x"]
-        while len(axes) > len(coords):
-            axes.pop(0)
-        for key, value in zip(axes, coords):
-            setattr(self, key, value)
+        if len(coords) == 4:
+            for key, value in zip(axes, coords):
+                setattr(self, key, value)
+        elif len(coords) == 2:
+            axes.remove("t")
+            axes.remove("z")
+            for key, value in zip(axes, coords):
+                setattr(self, key, value)
+        elif len(coords) == 3:
+            # Is it 2D dataset with time or 3D dataset ?
+            outer_dtype = self._input[array_name][coords[0]].dtype
+            if np.issubdtype(outer_dtype, np.datetime64):
+                axes.remove("z")
+                for key, value in zip(axes, coords):
+                    setattr(self, key, value)
+            else:
+                axes.remove("t")
+                for key, value in zip(axes, coords):
+                    setattr(self, key, value)
 
     @property
     def available_coords(self):
@@ -265,8 +289,19 @@ order: {self._order}
         return int(self._input[self._t].size)
 
     @property
+    def t_labels(self):
+        if self._t is None:
+            return []
+
+        t_array = self._input[self._t]
+        t_type = t_array.dtype
+        if np.issubdtype(t_type, np.datetime64):
+            return get_time_labels(t_array.values)
+        return [str(t) for t in t_array.values]
+
+    @property
     def arrays(self):
-        return self._array_names
+        return list(self._array_names)
 
     @arrays.setter
     def arrays(self, array_names: List[str]):
@@ -282,7 +317,13 @@ order: {self._order}
         if self._input is None:
             return []
 
-        return list(set(self._input.variables.keys()) - set(self._input.coords.keys()))
+        return [
+            name
+            for name in (
+                set(self._input.data_vars.keys()) - set(self._input.coords.keys())
+            )
+            if not name.endswith("_bnds") and not name.endswith("_bounds")
+        ]
 
     @property
     def slices(self):
@@ -404,13 +445,13 @@ order: {self._order}
                 # grid
                 mesh = vtkRectilinearGrid()
                 mesh.x_coordinates = slice_array(
-                    self._input[self._x].values, self.slices.get(self._x)
+                    self._x, self._input, self.slices.get(self._x)
                 )
                 mesh.y_coordinates = slice_array(
-                    self._input[self._y].values, self.slices.get(self._y)
+                    self._y, self._input, self.slices.get(self._y)
                 )
                 mesh.z_coordinates = slice_array(
-                    self._input[self._z].values, self.slices.get(self._z)
+                    self._z, self._input, self.slices.get(self._z)
                 )
                 mesh.dimensions = [
                     mesh.x_coordinates.size,
