@@ -9,6 +9,50 @@
 .controller-content {
     width: clamp(20rem, 25vw, 30rem);
 }
+.summary-toolbar {
+    position: absolute;
+    top: 1rem;
+    left: 5rem;
+    right: 5rem;
+    height: 2.4rem;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+}
+
+.scalarbar {
+    position: absolute;
+    bottom: 1rem;
+    left: 15rem;
+    right: 15rem;
+    height: 2rem;
+    z-index: 2;
+}
+
+.scalarbar-left {
+    position: absolute;
+    left: 0;
+    z-index: 2;
+    top: 1rem;
+    transform: translateY(-50%) translateX(-110%);
+}
+.scalarbar-right {
+    position: absolute;
+    right: 0;
+    z-index: 2;
+    top: 1rem;
+    transform: translateY(-50%) translateX(110%);
+}
+.scalar-cursor {
+    position: absolute;
+    z-index: 1;
+    width: 3px;
+    background: rgb(255,255,255);
+    background: linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(0,0,0,1) 50%, rgba(255,255,255,1) 100%);
+    top: -5px;
+    bottom: -5px;
+    pointer-events: none;
+}
 
 .no-bg {
     background: transparent;

@@ -6,6 +6,7 @@ import json
 import math
 import traceback
 from pathlib import Path
+import base64
 
 from trame.decorators import TrameApp, change, trigger
 from trame.app import get_server
@@ -49,9 +50,53 @@ def to_float(v):
     return v
 
 
+def max_str_length(labels):
+    size = 0
+    for label in labels:
+        s = len(label)
+        if s > size:
+            size = s
+
+    return size
+
+
 def update_camera(camera, props):
     for k, v in props.items():
         setattr(camera, k, v)
+
+
+def to_image(lut, samples=255):
+    colorArray = vtk.vtkUnsignedCharArray()
+    colorArray.SetNumberOfComponents(3)
+    colorArray.SetNumberOfTuples(samples)
+
+    dataRange = lut.GetRange()
+    delta = (dataRange[1] - dataRange[0]) / float(samples)
+
+    # Add the color array to an image data
+    imgData = vtk.vtkImageData()
+    imgData.SetDimensions(samples, 1, 1)
+    imgData.GetPointData().SetScalars(colorArray)
+
+    # Loop over all presets
+    rgb = [0, 0, 0]
+    for i in range(samples):
+        lut.GetColor(dataRange[0] + float(i) * delta, rgb)
+        r = int(round(rgb[0] * 255))
+        g = int(round(rgb[1] * 255))
+        b = int(round(rgb[2] * 255))
+        colorArray.SetTuple3(i, r, g, b)
+
+    writer = vtk.vtkPNGWriter()
+    writer.WriteToMemoryOn()
+    writer.SetInputData(imgData)
+    writer.SetCompressionLevel(6)
+    writer.Write()
+
+    writer.GetResult()
+
+    base64_img = base64.standard_b64encode(writer.GetResult()).decode("utf-8")
+    return f"data:image/png;base64,{base64_img}"
 
 
 XYZ = ["x", "y", "z"]
@@ -104,8 +149,11 @@ class XarrayPreview:
                 "view_locked": False,
                 "view_3d": True,
                 "t_labels": [],
+                "max_time_width": 0,
+                "max_time_index_width": 0,
                 "dataset_bounds": [0, 1, 0, 1, 0, 1],
                 "data_origin_id_to_desc": {},
+                "probe_location": 0.2,
             }
         )
         self._import_pending = False
@@ -287,6 +335,89 @@ class XarrayPreview:
                 variant="tonal",
                 classes="alert-position",
             )
+
+            # Summary toolbar
+            with v3.VCard(
+                classes="summary-toolbar",
+                rounded="pill",
+                v_show="!control_expended",
+                v_if="slice_t_max > 0",
+            ):
+                with v3.VToolbar(
+                    classes="pl-2",
+                    height=50,
+                    elevation=1,
+                    style="background: none;",
+                ):
+                    v3.VIcon("mdi-clock-outline")
+                    html.Pre(
+                        "{{ t_labels[slice_t] }}",
+                        classes="mx-2 text-left",
+                        style=("`min-width: ${max_time_width}rem;`",),
+                    )
+                    v3.VSlider(
+                        prepend_inner_icon="mdi-clock-outline",
+                        v_model=("slice_t", 0),
+                        min=0,
+                        max=("slice_t_max", 0),
+                        step=1,
+                        hide_details=True,
+                        density="compact",
+                        flat=True,
+                        variant="solo",
+                        classes="mx-2",
+                    )
+                    html.Div(
+                        "{{ slice_t + 1 }}/{{ slice_t_max + 1 }}",
+                        classes="mx-2 text-right",
+                        style=("`min-width: ${max_time_index_width}rem;`",),
+                    )
+                    v3.VSelect(
+                        placeholder="Color By",
+                        prepend_inner_icon="mdi-format-color-fill",
+                        v_model=("color_by", None),
+                        items=("data_arrays", []),
+                        clearable=True,
+                        hide_details=True,
+                        density="compact",
+                        flat=True,
+                        variant="solo",
+                        max_width=200,
+                    )
+
+            # Scalar bar
+            with v3.VTooltip(location="top"):
+                with html.Template(v_slot_activator="{ props }"):
+                    with html.Div(
+                        classes="scalarbar",
+                        rounded="pill",
+                        v_show="!control_expended",
+                        v_if="color_by",
+                        v_bind="props",
+                    ):
+                        html.Div("{{ color_min.toFixed(6) }}", classes="scalarbar-left")
+                        html.Img(
+                            src=("preset_img", None),
+                            style="height: 100%; width: 100%;",
+                            classes="rounded-lg border-thin",
+                            mousemove="probe_location = [$event.x, $event.target.getBoundingClientRect()]",
+                            mouseenter="probe_available = 1",
+                            mouseleave="probe_available = 0",
+                            __events=["mousemove", "mouseenter", "mouseleave"],
+                        )
+                        html.Div(
+                            v_show=("probe_available", False),
+                            classes="scalar-cursor",
+                            style=(
+                                "`left: ${probe_location?.[0] - probe_location?.[1]?.left}px`",
+                            ),
+                        )
+                        html.Div(
+                            "{{ color_max.toFixed(6) }}", classes="scalarbar-right"
+                        )
+                html.Span(
+                    "{{ ((color_max - color_min) * (probe_location?.[0] - probe_location?.[1]?.left) / probe_location?.[1]?.width + color_min).toFixed(6) }}"
+                )
 
             # Control panel
             with v3.VCard(
@@ -541,7 +672,12 @@ class XarrayPreview:
                                     classes="mx-2",
                                     click=self._reset_color_range,
                                 )
-                        v3.VDivider()
+                        # v3.VDivider()
+                        html.Img(
+                            src=("preset_img", None),
+                            style="height: 0.75rem; width: 100%;",
+                            classes="rounded-lg border-thin",
+                        )
                         v3.VSelect(
                             placeholder="Color Preset",
                             prepend_inner_icon="mdi-palette",
@@ -972,6 +1108,8 @@ class XarrayPreview:
         apply_preset(self.actor, [color_min, color_max], color_preset)
         self.ctrl.view_update()
 
+        self.state.preset_img = to_image(self.actor.mapper.lookup_table, 255)
+
     @change("scale_x", "scale_y", "scale_z")
     def _on_scale_change(self, scale_x, scale_y, scale_z, **_):
         self.actor.SetScale(
@@ -1128,6 +1266,12 @@ class XarrayPreview:
             self.state.slice_t = self.source.t_index
             self.state.slice_t_max = self.source.t_size - 1
             self.state.t_labels = self.source.t_labels
+            self.state.max_time_width = math.ceil(
+                0.58 * max_str_length(self.state.t_labels)
+            )
+            self.state.max_time_index_width = math.ceil(
+                0.6 + (math.log10(self.state.slice_t_max + 1) + 1) * 2 * 0.58
+            )
 
     def _update_rendering(self, reset_camera=False):
         self.state.dirty_data = False
