@@ -91,6 +91,7 @@ where = ["."]
 pan3d = [
     "**/module/serve/*.js",
     "**/ui/custom.css",
+    "**/ui/css/*",
     "**/utils/*.json"
 ]
 

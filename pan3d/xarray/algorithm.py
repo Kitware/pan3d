@@ -32,6 +32,9 @@ def slice_array(array_name, dataset, slice_info):
 def to_isel(slices_info, *array_names):
     slices = {}
     for name in array_names:
+        if name is None:
+            continue
+
         info = slices_info.get(name)
         if info is None:
             continue

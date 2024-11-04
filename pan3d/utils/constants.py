@@ -129,3 +129,15 @@ coordinate_auto_selection = {
     "z": ["z", "k", "depth", "height", "nz", "level"],
     "t": ["t", "time", "year", "month", "date", "day", "hour", "minute", "second"],
 }
+
+# Used in preview
+
+XYZ = ["x", "y", "z"]
+SLICE_VARS = ["slice_{}_range", "slice_{}_cut", "slice_{}_type", "slice_{}_step"]
+VIEW_UPS = {
+    (1, 1, 1): (0, 0, 1),
+    (-1, -1, 1): (0, 0, 1),
+    (1, 0, 0): (0, 0, 1),
+    (0, 1, 0): (0, 0, 1),
+    (0, 0, 1): (0, 1, 0),
+}
