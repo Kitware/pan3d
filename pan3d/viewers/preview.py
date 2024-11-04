@@ -49,6 +49,11 @@ def to_float(v):
     return v
 
 
+def update_camera(camera, props):
+    for k, v in props.items():
+        setattr(camera, k, v)
+
+
 XYZ = ["x", "y", "z"]
 SLICE_VARS = ["slice_{}_range", "slice_{}_cut", "slice_{}_type", "slice_{}_step"]
 VIEW_UPS = {
@@ -73,10 +78,20 @@ class XarrayPreview:
         Parameters:
             server: Trame server name or instance.
         """
-        self.ui = None
         self.server = get_server(server, client_type="vue3")
         if self.server.hot_reload:
             self.ctrl.on_server_reload.add(self._build_ui)
+
+        # cli
+        self.server.cli.add_argument(
+            "--import-state",
+            help="Provide path to state file to import",
+        )
+        self.server.cli.add_argument(
+            "--xarray-file",
+            help="Provide path to xarray file",
+        )
+        self.ctrl.on_server_ready.add(self._process_cli)
 
         # GUI initial state
         self.state.update(
@@ -93,7 +108,8 @@ class XarrayPreview:
                 "data_origin_id_to_desc": {},
             }
         )
-
+        self._import_pending = False
+        self.ui = None
         self._setup_vtk()
         self._build_ui()
 
@@ -317,27 +333,40 @@ class XarrayPreview:
                         with html.Template(v_slot_activator="{props}"):
                             v3.VBtn(
                                 v_bind="props",
-                                icon="mdi-file-export-outline",
+                                icon="mdi-file-arrow-left-right-outline",
                                 flat=True,
                                 size="sm",
                                 classes="mx-1",
-                                # click=self.ctrl.on_server_reload,
                             )
                         with v3.VList(density="compact"):
-                            with v3.VListItem():
-                                # make it prettier
-                                html.Input(
-                                    type="file",
-                                    change=(self.data_import, "[$event.target.files]"),
-                                    __events=["change"],
-                                )
-
-                            v3.VListItem(
-                                title="Export - download",
+                            with v3.VListItem(
+                                title="Export state file",
                                 disabled=("can_load",),
                                 click="utils.download('xarray-state.txt', trigger('download_export'), 'text/plain')",
-                            )
-                            # v3.VListItem(title="Export - save", disabled=("can_load",), click=self.data_export_file)
+                            ):
+                                with html.Template(v_slot_prepend=True):
+                                    v3.VIcon(
+                                        "mdi-cloud-download-outline", classes="mr-n5"
+                                    )
+
+                            with v3.VListItem(
+                                title="Import state file",
+                                click="trame.utils.get('document').querySelector('#fileImport').click()",
+                            ):
+                                html.Input(
+                                    id="fileImport",
+                                    hidden=True,
+                                    type="file",
+                                    change=(
+                                        self._import_file_upload,
+                                        "[$event.target.files]",
+                                    ),
+                                    __events=["change"],
+                                )
+                                with html.Template(v_slot_prepend=True):
+                                    v3.VIcon(
+                                        "mdi-cloud-upload-outline", classes="mr-n5"
+                                    )
 
                 with v3.VCardText(
                     v_show=("control_expended", True),
@@ -399,7 +428,10 @@ class XarrayPreview:
                             rounded=0,
                             disabled=("!data_origin_id?.length || !can_load",),
                             color=("can_load ? 'primary': undefined",),
-                            click=self._load_dataset,
+                            click=(
+                                self._load_dataset,
+                                "[data_origin_source, data_origin_id]",
+                            ),
                         )
 
                     with CollapsableSection(
@@ -819,7 +851,7 @@ class XarrayPreview:
                             color=(
                                 "dirty_data && data_arrays.length ? 'primary': undefined",
                             ),
-                            click=self._update_rendering,
+                            click=(self._update_rendering, "[true]"),
                         )
 
     # -----------------------------------------------------
@@ -827,6 +859,9 @@ class XarrayPreview:
     # -----------------------------------------------------
     @change("data_origin_source")
     def _on_data_origin_source(self, data_origin_source, **kwargs):
+        if self._import_pending:
+            return
+
         self.state.data_origin_id = ""
         results, *_ = pan3d_catalogs.search(data_origin_source)
         self.state.data_origin_ids = [v["name"] for v in results]
@@ -836,6 +871,9 @@ class XarrayPreview:
 
     @change("data_origin_id")
     def _on_data_origin_id(self, data_origin_id, data_origin_source, **kwargs):
+        if self._import_pending:
+            return
+
         self.state.load_button_text = "Load"
         self.state.can_load = True
 
@@ -846,6 +884,9 @@ class XarrayPreview:
 
     @change("slice_t", *[var.format(axis) for axis in XYZ for var in SLICE_VARS])
     def _on_slice_change(self, slice_t, **_):
+        if self._import_pending:
+            return
+
         slices = {self.source.t: slice_t}
         for axis in XYZ:
             axis_name = getattr(self.source, axis)
@@ -869,6 +910,9 @@ class XarrayPreview:
 
     @change("data_arrays")
     def _on_array_selection(self, data_arrays, **_):
+        if self._import_pending:
+            return
+
         self.state.dirty_data = True
         if len(data_arrays) == 1:
             self.state.color_by = data_arrays[0]
@@ -879,6 +923,9 @@ class XarrayPreview:
 
     @change("slice_t")
     def _on_slice_t(self, slice_t, **_):
+        if self._import_pending:
+            return
+
         self.source.t_index = slice_t
         self.ctrl.view_update()
 
@@ -891,7 +938,9 @@ class XarrayPreview:
         else:
             # self.interactor.GetInteractorStyle().SetCu()
             self.renderer.GetActiveCamera().SetParallelProjection(1)
-        self.ctrl.view_reset_camera()
+
+        if not self._import_pending:
+            self.ctrl.view_reset_camera()
 
     @change("color_by")
     def _on_color_by(self, color_by, **__):
@@ -930,6 +979,10 @@ class XarrayPreview:
             to_float(scale_y),
             to_float(scale_z),
         )
+
+        if self._import_pending:
+            return
+
         if self.actor.visibility:
             self.ctrl.view_reset_camera()
 
@@ -937,94 +990,63 @@ class XarrayPreview:
     # Triggers
     # -----------------------------------------------------
 
-    @trigger("download_export")
-    def data_export_download(self):
-        print("data_export_download")
-        return json.dumps(self.source.state)
+    def _import_file_upload(self, files):
+        self.import_state(json.loads(files[0].get("content")))
 
-    def data_export_file(self):
-        print("data_export_file")
+    def _process_cli(self, **_):
+        args, _ = self.server.cli.parse_known_args()
 
-    async def data_import(self, files):
-        data_info = json.loads(files[0].get("content"))
+        # import state
+        if args.import_state:
+            self._import_file_from_path(args.import_state)
 
-        self.state.data_origin_source = data_info.get("data_origin").get("source")
-        self.state.data_origin_id = data_info.get("data_origin").get("id")
-        self._load_dataset()
+        # load xarray
+        elif args.xarray_file:
+            self._import_pending = True
+            with self.state:
+                self._load_dataset("file", args.xarray_file)
+                self.state.data_origin_id = str(Path(args.xarray_file).resolve())
+            self._import_pending = False
 
-        # fixme more work to sync UI
-        dataset_config = data_info.get("dataset_config")
-        # self.source.load(data_info)  # bad: use state instead
-        self.state.data_arrays = dataset_config.get("arrays")
+    def _import_file_from_path(self, file_path):
+        if file_path is None:
+            return
 
-    def _load_dataset(self):
+        file_path = Path(file_path)
+        if file_path.exists():
+            self.import_state(json.loads(file_path.read_text("utf-8")))
+
+    def _load_dataset(self, source, id, config=None):
+        self.state.data_origin_source = source
+        self.state.data_origin_id = id
         self.state.load_button_text = "Loaded"
         self.state.can_load = False
         self.state.show_data_information = True
+
+        if config is None:
+            config = {
+                "arrays": [],
+                "slices": {},
+            }
+
         try:
             self.source.load(
                 {
                     "data_origin": {
-                        "source": self.state.data_origin_source,
-                        "id": self.state.data_origin_id,
+                        "source": source,
+                        "id": id,
                     },
-                    "dataset_config": {
-                        "arrays": [],
-                    },
+                    "dataset_config": config,
                 }
             )
             self.actor.visibility = 0
 
-            # Extract information
-            xr = self.source.input
-            xarray_info = []
-            coords = set(xr.coords.keys())
-            data = set(self.source.available_arrays)
-            for name in xr.variables:
-                icon = "mdi-variable"
-                order = 3
-                if name in coords:
-                    icon = "mdi-ruler"
-                    order = 1
-                if name in data:
-                    icon = "mdi-database"
-                    order = 2
-                xarray_info.append(
-                    {
-                        "order": order,
-                        "icon": icon,
-                        "name": name,
-                        "length": f'({",".join(xr[name].dims)})',
-                        "type": str(xr[name].dtype),
-                        "attrs": [
-                            {"key": "type", "value": str(xr[name].dtype)},
-                        ]
-                        + [
-                            {"key": str(k), "value": str(v)}
-                            for k, v in xr[name].attrs.items()
-                        ],
-                    }
-                )
-            xarray_info.sort(key=lambda item: item["order"])
+            # Extract UI
+            self.__update_data_information()
+            self.__update_ui_from_source()
 
-            # Update UI
-            self.state.xarray_info = xarray_info
-            self.state.data_arrays_available = self.source.available_arrays
-            self.state.data_arrays = []
-            self.state.color_by = None
-            self.state.slice_extents = self.source.slice_extents
-            self.state.axis_names = [self.source.x, self.source.y, self.source.z]
-            self.state.slice_x_range = self.state.slice_extents.get(self.source.x)
-            self.state.slice_x_cut = 0
-            self.state.slice_y_range = self.state.slice_extents.get(self.source.y)
-            self.state.slice_y_cut = 0
-            self.state.slice_z_range = self.state.slice_extents.get(self.source.z)
-            self.state.slice_z_cut = 0
-            self.state.slice_t = 0
-            self.state.slice_t_max = self.source.t_size - 1
+            # no error
             self.state.data_origin_error = False
-            self.state.t_labels = self.source.t_labels
-
         except Exception as e:
             self.state.data_origin_error = (
                 f"Error occurred while trying to load data. {e}"
@@ -1036,12 +1058,86 @@ class XarrayPreview:
 
             print(traceback.format_exc())
 
-    def _update_rendering(self):
+    def __update_data_information(self):
+        xr = self.source.input
+        xarray_info = []
+        coords = set(xr.coords.keys())
+        data = set(self.source.available_arrays)
+        for name in xr.variables:
+            icon = "mdi-variable"
+            order = 3
+            length = f'({",".join(xr[name].dims)})'
+            if name in coords:
+                icon = "mdi-ruler"
+                order = 1
+                length = xr[name].size
+            if name in data:
+                icon = "mdi-database"
+                order = 2
+            xarray_info.append(
+                {
+                    "order": order,
+                    "icon": icon,
+                    "name": name,
+                    "length": length,
+                    "type": str(xr[name].dtype),
+                    "attrs": [
+                        {"key": "type", "value": str(xr[name].dtype)},
+                    ]
+                    + [
+                        {"key": str(k), "value": str(v)}
+                        for k, v in xr[name].attrs.items()
+                    ],
+                }
+            )
+        xarray_info.sort(key=lambda item: item["order"])
+
+        # Update UI
+        self.state.xarray_info = xarray_info
+
+    def __update_ui_from_source(self):
+        """Gather source state information and current application state from it"""
+        with self.state:
+            self.state.data_arrays_available = self.source.available_arrays
+            self.state.data_arrays = self.source.arrays
+            self.state.color_by = None
+            self.state.axis_names = [self.source.x, self.source.y, self.source.z]
+            self.state.slice_extents = self.source.slice_extents
+            slices = self.source.slices
+            for axis in XYZ:
+                # default
+                axis_extent = self.state.slice_extents.get(getattr(self.source, axis))
+                self.state[f"slice_{axis}_range"] = axis_extent
+                self.state[f"slice_{axis}_cut"] = 0
+                self.state[f"slice_{axis}_step"] = 1
+                self.state[f"slice_{axis}_type"] = "range"
+
+                # use slice info if available
+                axis_slice = slices.get(getattr(self.source, axis))
+                if axis_slice is not None:
+                    if isinstance(axis_slice, int):
+                        # cut
+                        self.state[f"slice_{axis}_cut"] = axis_slice
+                        self.state[f"slice_{axis}_type"] = "cut"
+                    else:
+                        # range
+                        self.state[f"slice_{axis}_range"] = axis_slice[:2]
+                        self.state[f"slice_{axis}_step"] = axis_slice[2]
+
+            # Update time
+            self.state.slice_t = self.source.t_index
+            self.state.slice_t_max = self.source.t_size - 1
+            self.state.t_labels = self.source.t_labels
+
+    def _update_rendering(self, reset_camera=False):
         self.state.dirty_data = False
         self.actor.visibility = 1
         self.widget.EnabledOn()
         self.widget.InteractiveOff()
-        self.ctrl.view_reset_camera()
+        if reset_camera:
+            self.ctrl.view_reset_camera()
+        else:
+            self.ctrl.view_update()
 
     def _reset_camera_to_axis(self, axis):
         camera = self.renderer.active_camera
@@ -1074,6 +1170,60 @@ class XarrayPreview:
         else:
             self.state.color_min = 0
             self.state.color_max = 1
+
+    # -----------------------------------------------------
+    # Public API
+    # -----------------------------------------------------
+
+    @trigger("download_export")
+    def export_state(self):
+        camera = self.renderer.active_camera
+        state_to_export = {
+            **self.source.state,
+            "preview": {
+                "view_3d": self.state.view_3d,
+                "color_by": self.state.color_by,
+                "color_preset": self.state.color_preset,
+                "color_min": self.state.color_min,
+                "color_max": self.state.color_max,
+                "scale_x": self.state.scale_x,
+                "scale_y": self.state.scale_y,
+                "scale_z": self.state.scale_z,
+            },
+            "camera": {
+                "position": camera.position,
+                "view_up": camera.view_up,
+                "focal_point": camera.focal_point,
+                "parallel_projection": camera.parallel_projection,
+                "parallel_scale": camera.parallel_scale,
+            },
+        }
+        return json.dumps(state_to_export, indent=2)
+
+    def import_state(self, data_state):
+        self._import_pending = True
+        try:
+            data_origin = data_state.get("data_origin")
+            source = data_origin.get("source")
+            id = data_origin.get("id")
+            config = data_state.get("dataset_config")
+            preview_state = data_state.get("preview", {})
+            camera_state = data_state.get("camera", {})
+
+            # load data and initial rendering setup
+            with self.state:
+                self._load_dataset(source, id, config)
+                self.state.update(preview_state)
+
+            # override computed color range using state values
+            with self.state:
+                self.state.update(preview_state)
+
+            # update camera and render
+            update_camera(self.renderer.active_camera, camera_state)
+            self._update_rendering()
+        finally:
+            self._import_pending = False
 
 
 # -----------------------------------------------------------------------------

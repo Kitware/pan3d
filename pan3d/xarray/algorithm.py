@@ -148,6 +148,12 @@ order: {self._order}
             self.Modified()
 
     @property
+    def x_size(self):
+        if self._x is None:
+            return 0
+        return int(self._input[self._x].size)
+
+    @property
     def y(self):
         return self._y
 
@@ -171,6 +177,12 @@ order: {self._order}
             self.Modified()
 
     @property
+    def y_size(self):
+        if self._y is None:
+            return 0
+        return int(self._input[self._y].size)
+
+    @property
     def z(self):
         return self._z
 
@@ -192,6 +204,12 @@ order: {self._order}
             self._z = z_array_name
             self._xarray_mesh = None
             self.Modified()
+
+    @property
+    def z_size(self):
+        if self._z is None:
+            return 0
+        return int(self._input[self._z].size)
 
     @property
     def t(self):
