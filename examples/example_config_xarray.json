@@ -1,19 +1,51 @@
 {
-    "data_origin": {
-        "source": "xarray",
-        "id": "eraint_uvz"
+  "data_origin": {
+    "source": "xarray",
+    "id": "eraint_uvz",
+    "order": "C"
+  },
+  "dataset_config": {
+    "x": "longitude",
+    "y": "latitude",
+    "z": "level",
+    "t": "month",
+    "slices": {
+      "month": 0
     },
-    "data_array": {
-        "name": "z",
-        "x": "longitude",
-        "y": "latitude",
-        "z": "level",
-        "t": "month",
-        "t_index": 0
-    },
-    "ui": {
-        "main_drawer": true,
-        "axis_drawer": true,
-        "expanded_coordinates": []
-    }
+    "t_index": 0,
+    "arrays": [
+      "u",
+      "v",
+      "z"
+    ]
+  },
+  "preview": {
+    "view_3d": true,
+    "color_by": "v",
+    "color_preset": "erdc_rainbow_dark",
+    "color_min": -14.062651643471892,
+    "color_max": 11.624951359641091,
+    "scale_x": 1,
+    "scale_y": 1,
+    "scale_z": "0.201"
+  },
+  "camera": {
+    "position": [
+      -220.55250607152138,
+      -173.50353604111396,
+      872.1418296455945
+    ],
+    "view_up": [
+      0.03426096578177488,
+      0.9725964517100821,
+      0.2299615801490718
+    ],
+    "focal_point": [
+      -0.375,
+      0.0,
+      105.525
+    ],
+    "parallel_projection": 0,
+    "parallel_scale": 211.26404391187822
+  }
 }

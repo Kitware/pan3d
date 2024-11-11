@@ -6,14 +6,17 @@ authors = [
     {name = "Kitware Inc."},
 ]
 dependencies = [
-    "aiohttp>=3.9",
+    # viz
+    "vtk>=9.4.0rc3",
+
+    # catalog handling
     "dask>=2023.10",
     "fsspec>=2023.9",
-    "netCDF4>=1.6",
-    "pyvista>=0.43",
-    "pyvista-xarray>=0.1",
     "requests>=2.31",
+
+    # xarray optional dep
     "xarray>=2023.8",
+    "netCDF4>=1.6",
     "zarr>=2.16",
 ]
 requires-python = ">=3.9"
@@ -32,11 +35,10 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-geotrame = [
+viewer = [
     "trame>=3.6",
     "trame-vtk>=2.6",
     "trame-vuetify>=2.4",
-    "geovista>=0.4",
 ]
 esgf = [
     "intake-esgf>=2024.1",
@@ -49,11 +51,10 @@ pangeo = [
     "gcsfs>=2024.2",
 ]
 all = [
-    # viewer
+    # viewers/explorers
     "trame>=3.6",
     "trame-vtk>=2.6",
     "trame-vuetify>=2.4",
-    "geovista>=0.4",
 
     # esgf
     "intake-esgf>=2024.1",
@@ -67,9 +68,9 @@ all = [
 ]
 
 [project.scripts]
-geotrame = "pan3d.serve_geotrame:serve"
-pan3d-preview = "pan3d.viewers.preview:main"
-slice-explorer = "pan3d.explorers.slice_explorer:main"
+xr-viewer = "pan3d.viewers.preview:main"
+xr-catalog = "pan3d.viewers.catalog:main"
+xr-slice = "pan3d.explorers.slice_explorer:main"
 
 [build-system]
 requires = ['setuptools', 'wheel']

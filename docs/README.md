@@ -19,13 +19,13 @@ For an introduction to this project, check out our [blog post][blog-post-link].
 
 ## Installation
 
-To install requirements for the Pan3D DatasetBuilder class only:
+To install requirements for the Pan3D VTK mesh builder class only:
 
     pip install pan3d
 
-To install requirements for the GeoTrame user interface:
+To install requirements for the graphical user interface (viewers + explorers):
 
-    pip install "pan3d[geotrame]"
+    pip install "pan3d[viewer]"
 
 **Optional**: to install requirements for Pangeo and ESGF catalogs, respectively:
 
@@ -39,43 +39,42 @@ To install requirements for the GeoTrame user interface:
 
 ## Quick Start
 
-`geotrame` is the main entrypoint for launching GeoTrame locally. Below are some example usages.
+`xr-viewer` is the main entrypoint for launching XArray Viewer locally. Below are some example usages.
 
-To launch GeoTrame without a target dataset to browse XArray examples:
+To launch XArray Viewer without a target dataset to browse XArray examples:
 
-    geotrame
+    xr-viewer
 
-To launch GeoTrame with a local path to a target dataset:
+To launch XArray Viewer with a local path to a target dataset:
 
-    geotrame --dataset=/path/to/dataset.zarr
+    xr-viewer --xarray-file ./examples/example_dataset.nc
 
-To launch GeoTrame with a remote URL to a target dataset:
+To launch XArray Viewer with a remote URL to a target dataset:
 
-    geotrame --dataset=https://host.org/link/to/dataset.zarr
+    xr-viewer --xarray-url https://host.org/link/to/dataset.zarr
 
-To launch GeoTrame with a compatible configuration file (see [examples][examples-link]):
+To launch XArray Viewer with a compatible configuration file (see [examples][examples-link]):
 
-    geotrame --config_path=/path/to/pan3d_state.json
+    xr-viewer --import-state ./examples/example_config_xarray.json
 
-To launch GeoTrame with the option to browse the Pangeo and ESGF Dataset Catalogs (see [Catalogs Tutorial](tutorials/catalogs.md)):
+To launch the Catalog browser will allow you to query the Pangeo and ESGF Dataset Catalogs (see [Catalogs Tutorial](tutorials/catalogs.md)) depending on the available dependencies:
 
-    geotrame --catalogs pangeo esgf
+    xr-catalog
 
-Or you may specify only one catalog:
+You may have to install the required dependencies:
 
-    geotrame --catalogs pangeo
+    pip install "pan3d[pangeo]"
+    pip install "pan3d[esgf]"
 
-    geotrame --catalogs esgf
 
-
-> The `geotrame` entrypoint will automatically launch your default browser to open `localhost:8080`.
+> The `xr-viewer` entrypoint will automatically launch your default browser to open `localhost:8080`.
 >
 > To launch without opening your browser, add the `--server` argument to your command.
 
 
 ## Tutorials
 
-- [How to use GeoTrame](tutorials/dataset_viewer.md)
+- [How to use XArray Viewer](tutorials/dataset_viewer.md)
 - [GeoTrame command line](tutorials/command_line.md)
 - [Catalogs Tutorial](tutorials/catalogs.md)
 - [How to use Pan3D in a Jupyter notebook](tutorials/jupyter_notebook.md)
