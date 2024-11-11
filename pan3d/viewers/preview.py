@@ -22,7 +22,7 @@ from pan3d.ui.preview import SummaryToolbar, ControlPanel
 
 
 @TrameApp()
-class XarrayPreview:
+class XArrayViewer:
     """Create a Trame GUI for a Pan3D Xarray dataset"""
 
     def __init__(
@@ -41,11 +41,15 @@ class XarrayPreview:
         # cli
         self.server.cli.add_argument(
             "--import-state",
-            help="Provide path to state file to import",
+            help="Pass a string with this argument to specify a startup configuration. This value must be a local path to a JSON file which adheres to the schema specified in the [Configuration Files documentation](../api/configuration.md). A dataset specified in this configuration will override any value passed to `--xarray-*`",
         )
         self.server.cli.add_argument(
             "--xarray-file",
             help="Provide path to xarray file",
+        )
+        self.server.cli.add_argument(
+            "--xarray-url",
+            help="Provide URL to xarray dataset",
         )
         self.ctrl.on_server_ready.add(self._process_cli)
 
@@ -109,7 +113,7 @@ class XarrayPreview:
     # -------------------------------------------------------------------------
 
     def _build_ui(self, **kwargs):
-        self.state.trame__title = "Pan3D Xarray Preview"
+        self.state.trame__title = "XArray Viewer"
 
         with VAppLayout(self.server, fill_height=True) as layout:
             self.ui = layout
@@ -205,6 +209,14 @@ class XarrayPreview:
         if self.actor.visibility:
             self.ctrl.view_reset_camera()
 
+    @change("data_origin_order")
+    def _on_order_change(self, **_):
+        if self.state.import_pending:
+            return
+
+        self.state.load_button_text = "Load"
+        self.state.can_load = True
+
     # -----------------------------------------------------
     # Triggers
     # -----------------------------------------------------
@@ -219,12 +231,20 @@ class XarrayPreview:
         if args.import_state:
             self._import_file_from_path(args.import_state)
 
-        # load xarray
+        # load xarray (file)
         elif args.xarray_file:
             self.state.import_pending = True
             with self.state:
                 self._load_dataset("file", args.xarray_file)
                 self.state.data_origin_id = str(Path(args.xarray_file).resolve())
+            self.state.import_pending = False
+
+        # load xarray (url)
+        elif args.xarray_url:
+            self.state.import_pending = True
+            with self.state:
+                self._load_dataset("url", args.xarray_url)
+                self.state.data_origin_id = args.xarray_url
             self.state.import_pending = False
 
     def _import_file_from_path(self, file_path):
@@ -235,7 +255,7 @@ class XarrayPreview:
         if file_path.exists():
             self.import_state(json.loads(file_path.read_text("utf-8")))
 
-    def _load_dataset(self, source, id, config=None):
+    def _load_dataset(self, source, id, order="C", config=None):
         self.state.data_origin_source = source
         self.state.data_origin_id = id
         self.state.load_button_text = "Loaded"
@@ -254,6 +274,7 @@ class XarrayPreview:
                     "data_origin": {
                         "source": source,
                         "id": id,
+                        "order": order,
                     },
                     "dataset_config": config,
                 }
@@ -321,13 +342,14 @@ class XarrayPreview:
             data_origin = data_state.get("data_origin")
             source = data_origin.get("source")
             id = data_origin.get("id")
+            order = data_origin.get("order", "C")
             config = data_state.get("dataset_config")
             preview_state = data_state.get("preview", {})
             camera_state = data_state.get("camera", {})
 
             # load data and initial rendering setup
             with self.state:
-                self._load_dataset(source, id, config)
+                self._load_dataset(source, id, order, config)
                 self.state.update(preview_state)
 
             # override computed color range using state values
@@ -347,8 +369,8 @@ class XarrayPreview:
 
 
 def main():
-    app = XarrayPreview()
-    app.server.start()
+    app = XArrayViewer()
+    app.start()
 
 
 if __name__ == "__main__":

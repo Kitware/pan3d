@@ -422,6 +422,8 @@ order: {self._order}
             self._data_origin["source"], self._data_origin["id"]
         )
 
+        self.order = self._data_origin.get("order", "C")
+
         dataset_config = data_info.get("dataset_config")
         if dataset_config is None:
             self.apply_coords()

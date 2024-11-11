@@ -131,6 +131,18 @@ class DataOrigin(CollapsableSection):
                         variant="solo",
                     )
 
+            # v3.VDivider()
+            # v3.VSwitch(
+            #     label=("`Order ${data_origin_order}`",),
+            #     v_model=("data_origin_order", "C"),
+            #     true_value="C",
+            #     false_value="F",
+            #     hide_details=True,
+            #     density="compact",
+            #     flat=True,
+            #     variant="solo",
+            #     classes="mx-6",
+            # )
             v3.VDivider()
             v3.VBtn(
                 "{{ load_button_text }}",
@@ -143,7 +155,7 @@ class DataOrigin(CollapsableSection):
                 color=("can_load ? 'primary': undefined",),
                 click=(
                     load_dataset,
-                    "[data_origin_source, data_origin_id]",
+                    "[data_origin_source, data_origin_id, data_origin_order]",
                 ),
             )
 
@@ -201,10 +213,17 @@ class DataInformation(CollapsableSection):
             icon = "mdi-variable"
             order = 3
             length = f'({",".join(xr[name].dims)})'
+            attrs = []
             if name in coords:
                 icon = "mdi-ruler"
                 order = 1
                 length = xr[name].size
+                attrs.append(
+                    {
+                        "key": "range",
+                        "value": f"[{xr[name].values[0]}, {xr[name].values[-1]}]",
+                    }
+                )
             if name in data:
                 icon = "mdi-database"
                 order = 2
@@ -215,7 +234,8 @@ class DataInformation(CollapsableSection):
                     "name": name,
                     "length": length,
                     "type": str(xr[name].dtype),
-                    "attrs": [
+                    "attrs": attrs
+                    + [
                         {"key": "type", "value": str(xr[name].dtype)},
                     ]
                     + [
@@ -794,7 +814,7 @@ class ControlPanel(v3.VCard):
                     )
                 v3.VSpacer()
                 html.Div(
-                    "Xarray Preview",
+                    "XArray Viewer",
                     v_show=toggle,
                     classes="text-h6 px-2",
                 )
@@ -813,7 +833,7 @@ class ControlPanel(v3.VCard):
                         with v3.VListItem(
                             title="Export state file",
                             disabled=("can_load",),
-                            click=f"utils.download('xarray-state.txt', trigger('{download_export}'), 'text/plain')",
+                            click=f"utils.download('xarray-state.json', trigger('{download_export}'), 'text/plain')",
                         ):
                             with html.Template(v_slot_prepend=True):
                                 v3.VIcon("mdi-cloud-download-outline", classes="mr-n5")
