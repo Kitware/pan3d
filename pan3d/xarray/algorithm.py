@@ -18,6 +18,16 @@ def get_time_labels(times):
     return [pd.to_datetime(time).strftime("%Y-%m-%d %H:%M:%S") for time in times]
 
 
+def is_time_type(dtype):
+    if np.issubdtype(dtype, np.datetime64):
+        return True
+
+    if np.issubdtype(dtype, np.dtype("O")):
+        return True
+
+    return False
+
+
 def slice_array(array_name, dataset, slice_info):
     if array_name is None:
         return np.zeros(1, dtype=np.float32)
@@ -44,16 +54,6 @@ def to_isel(slices_info, *array_names):
             slices[name] = slice(*info)
 
     return slices if slices else None
-
-
-def is_time_type(dtype):
-    if np.issubdtype(dtype, np.datetime64):
-        return True
-
-    if np.issubdtype(dtype, np.dtype("O")):
-        return True
-
-    return False
 
 
 # -----------------------------------------------------------------------------
@@ -290,6 +290,8 @@ order: {self._order}
 
         array_name = self.available_arrays[0]
         coords = self._input[array_name].dims
+        for name in self.available_arrays:
+            print(f"{name} : {self._input[name].dims}")
 
         # print("=" * 60)
         # for n in self.available_arrays:
@@ -302,6 +304,10 @@ order: {self._order}
         self.z = None
         self.t = None
 
+        print(
+            f"{coords=}",
+        )
+        print(f"{self._input.coords=}")
         # assign mapping
         axes = ["t", "z", "y", "x"]
         if len(coords) == 4:
@@ -390,7 +396,7 @@ order: {self._order}
 
         filtered_arrays = []
         max_dim = 0
-        coords = set(self.available_coords)
+        coords = set([k for k, v in self._input.coords.items() if len(v.shape) == 1])
         for name in set(self._input.data_vars.keys()) - set(self._input.coords.keys()):
             if name.endswith("_bnds") or name.endswith("_bounds"):
                 continue
