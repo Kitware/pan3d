@@ -36,14 +36,13 @@ class XArraySlicer:
         parser = self.server.cli
         parser.add_argument(
             "--import-state",
-            required=True,
             help="Pass a string with this argument to specify a startup configuration. This value must be a local path to a JSON file which adheres to the schema specified in the [Configuration Files documentation](../api/configuration.md).",
         )
         args, _ = parser.parse_known_args()
 
         # Check if we have what we need
-        config_file = Path(args.import_state)
-        if not config_file.exists() and source is None:
+        config_file = Path(args.import_state) if args.import_state else None
+        if (config_file is None or not config_file.exists()) and source is None:
             parser.print_help()
             sys.exit(0)
 
