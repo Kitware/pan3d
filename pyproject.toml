@@ -10,14 +10,10 @@ dependencies = [
     "vtk>=9.4.0rc3",
 
     # catalog handling
-    "dask>=2023.10",
-    "fsspec>=2023.9",
     "requests>=2.31",
 
-    # xarray optional dep
-    "xarray>=2023.8",
-    "netCDF4>=1.6",
-    "zarr>=2.16",
+    # XArray
+    "xarray[io, parallel]>=2023.8",
 ]
 requires-python = ">=3.9"
 readme = "docs/README.md"
