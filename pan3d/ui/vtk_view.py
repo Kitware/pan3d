@@ -8,9 +8,13 @@ from pan3d.ui.css import base, vtk_view
 @TrameApp()
 class Pan3DView(html.Div):
     def __init__(
-        self, render_window, import_pending="import_pending", axis_names="axis_names"
+        self,
+        render_window,
+        import_pending="import_pending",
+        axis_names="axis_names",
+        **kwargs,
     ):
-        super().__init__(classes="pan3d-view")
+        super().__init__(classes="pan3d-view", **kwargs)
 
         # Activate CSS
         self.server.enable_module(base)
@@ -26,6 +30,7 @@ class Pan3DView(html.Div):
 
         # Reserved state with default
         self.state.setdefault("view_3d", True)
+        self.state.setdefault(import_pending, False)
 
         with self:
             # 3D view

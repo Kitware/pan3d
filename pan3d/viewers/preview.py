@@ -23,13 +23,13 @@ from pan3d.ui.preview import SummaryToolbar, ControlPanel
 
 @TrameApp()
 class XArrayViewer:
-    """Create a Trame GUI for a Pan3D Xarray dataset"""
+    """Create a Trame GUI for a Pan3D XArray Viewer"""
 
     def __init__(
         self,
         server=None,
     ):
-        """Create an instance of the XarrayPreview class.
+        """Create an instance of the XArrayViewer class.
 
         Parameters:
             server: Trame server name or instance.

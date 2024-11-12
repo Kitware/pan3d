@@ -70,7 +70,7 @@ all = [
 [project.scripts]
 xr-viewer = "pan3d.viewers.preview:main"
 xr-catalog = "pan3d.viewers.catalog:main"
-xr-slice = "pan3d.explorers.slice_explorer:main"
+xr-slicer = "pan3d.explorers.slicer:main"
 
 [build-system]
 requires = ['setuptools', 'wheel']
