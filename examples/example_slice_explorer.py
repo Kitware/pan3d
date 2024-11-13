@@ -1,7 +1,6 @@
 from argparse import ArgumentParser, BooleanOptionalAction
 
-from pan3d import DatasetBuilder
-from pan3d import SliceExplorer
+from pan3d.explorers.slicer import XArraySlicer
 
 
 def serve():
@@ -10,15 +9,15 @@ def serve():
         description="Launch the Pan3D GeoTrame App",
     )
 
-    parser.add_argument("--config_path")
+    parser.add_argument("--import-state")
     parser.add_argument("--server", action=BooleanOptionalAction)
     parser.add_argument("--debug", action=BooleanOptionalAction)
-    args = parser.parse_args()
 
-    builder = DatasetBuilder()
-    builder.import_config(args.config_path)
-
-    viewer = SliceExplorer(builder)
+    """
+    The XarraySlicer will be configured using the path specified using 
+    the `--import-state` parameter
+    """
+    viewer = XArraySlicer()
     viewer.start()
 
 
