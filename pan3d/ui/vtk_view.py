@@ -1,5 +1,5 @@
 from trame.decorators import TrameApp, change
-from trame.widgets import html, vtk as vtkw, vuetify3 as v3
+from trame.widgets import html, vtk as vtkw, vuetify3 as v3, vtklocal as wasm
 
 from pan3d.utils.constants import VIEW_UPS
 from pan3d.ui.css import base, vtk_view
@@ -12,6 +12,8 @@ class Pan3DView(html.Div):
         render_window,
         import_pending="import_pending",
         axis_names="axis_names",
+        local_rendering=None,
+        widgets=None,
         **kwargs,
     ):
         super().__init__(classes="pan3d-view", **kwargs)
@@ -34,9 +36,25 @@ class Pan3DView(html.Div):
 
         with self:
             # 3D view
-            with vtkw.VtkRemoteView(self.render_window, interactive_ratio=1) as view:
-                self.ctrl.view_update = view.update
-                self.ctrl.view_reset_camera = view.reset_camera
+            if local_rendering is not None:
+                if local_rendering == "wasm":
+                    with wasm.LocalView(self.render_window, throttle_rate=10) as view:
+                        self.ctrl.view_update_force = view.update
+                        self.ctrl.view_update = view.update_throttle
+                        self.ctrl.view_reset_camera = view.reset_camera
+                        for w in widgets or []:
+                            view.register_widget(w)
+                else:
+                    with vtkw.VtkLocalView(self.render_window) as view:
+                        self.ctrl.view_update = view.update
+                        self.ctrl.view_reset_camera = view.reset_camera
+                        view.set_widgets(widgets or [])
+            else:
+                with vtkw.VtkRemoteView(
+                    self.render_window, interactive_ratio=1
+                ) as view:
+                    self.ctrl.view_update = view.update
+                    self.ctrl.view_reset_camera = view.reset_camera
 
             # Scroll locking overlay
             html.Div(v_show=("view_locked", False), classes="view-lock")
@@ -94,7 +112,9 @@ class Pan3DView(html.Div):
                             click=(self.rotate_camera, "[+1]"),
                         )
                 v3.VDivider(classes="my-1")
-                with v3.VTooltip(text=(f"`Look toward ${{ {axis_names}[0] }}`",)):
+                with v3.VTooltip(
+                    text=(f"`Look toward ${{ {axis_names}[0] || 'X' }}`",)
+                ):
                     with html.Template(v_slot_activator="{ props }"):
                         v3.VBtn(
                             v_bind="props",
@@ -103,7 +123,7 @@ class Pan3DView(html.Div):
                             icon="mdi-axis-x-arrow",
                             click=(self.reset_camera_to_axis, "[[1,0,0]]"),
                         )
-                with v3.VTooltip(text=(f"`Look toward ${{ {axis_names}[1]}}`",)):
+                with v3.VTooltip(text=(f"`Look toward ${{ {axis_names}[1] || 'Y'}}`",)):
                     with html.Template(v_slot_activator="{ props }"):
                         v3.VBtn(
                             v_bind="props",
@@ -113,7 +133,7 @@ class Pan3DView(html.Div):
                             click=(self.reset_camera_to_axis, "[[0,1,0]]"),
                         )
 
-                with v3.VTooltip(text=(f"`Look toward ${{ {axis_names}[2]}}`",)):
+                with v3.VTooltip(text=(f"`Look toward ${{ {axis_names}[2] || 'Z'}}`",)):
                     with html.Template(v_slot_activator="{ props }"):
                         v3.VBtn(
                             v_bind="props",

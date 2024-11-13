@@ -34,6 +34,7 @@ classifiers = [
 viewer = [
     "trame>=3.6",
     "trame-vtk>=2.6",
+    "trame-vtklocal",
     "trame-vuetify>=2.4",
 ]
 esgf = [
@@ -50,6 +51,7 @@ all = [
     # viewers/explorers
     "trame>=3.6",
     "trame-vtk>=2.6",
+    "trame-vtklocal",
     "trame-vuetify>=2.4",
 
     # esgf

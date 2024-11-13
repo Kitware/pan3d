@@ -25,10 +25,7 @@ from pan3d.ui.preview import SummaryToolbar, ControlPanel
 class XArrayViewer:
     """Create a Trame GUI for a Pan3D XArray Viewer"""
 
-    def __init__(
-        self,
-        server=None,
-    ):
+    def __init__(self, server=None, local_rendering=None):
         """Create an instance of the XArrayViewer class.
 
         Parameters:
@@ -51,6 +48,26 @@ class XArrayViewer:
             "--xarray-url",
             help="Provide URL to xarray dataset",
         )
+
+        # Local rendering setup
+        self.server.cli.add_argument(
+            "--wasm",
+            help="Use WASM for local rendering",
+            action="store_true",
+        )
+        self.server.cli.add_argument(
+            "--vtkjs",
+            help="Use vtk.js for local rendering",
+            action="store_true",
+        )
+        args, _ = self.server.cli.parse_known_args()
+        self.local_rendering = local_rendering
+        if args.wasm:
+            self.local_rendering = "wasm"
+        if args.vtkjs:
+            self.local_rendering = "vtkjs"
+
+        # Process CLI
         self.ctrl.on_server_ready.add(self._process_cli)
 
         self.ui = None
@@ -71,7 +88,12 @@ class XArrayViewer:
         self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
 
         self.source = vtkXArrayRectilinearSource()
-        self.mapper = vtk.vtkDataSetMapper(input_connection=self.source.output_port)
+
+        # Need explicit geometry extraction when used with WASM
+        self.geometry = vtk.vtkDataSetSurfaceFilter(
+            input_connection=self.source.output_port
+        )
+        self.mapper = vtk.vtkPolyDataMapper(input_connection=self.geometry.output_port)
         self.actor = vtk.vtkActor(mapper=self.mapper, visibility=0)
 
         self.interactor.Initialize()
@@ -80,10 +102,9 @@ class XArrayViewer:
         self.widget = vtkOrientationMarkerWidget()
         self.widget.SetOrientationMarker(axes_actor)
         self.widget.SetInteractor(self.interactor)
-        self.widget.EnabledOff()
         self.widget.SetViewport(0.85, 0, 1, 0.15)
-
-        self.renderer.AddActor(self.actor)
+        self.widget.EnabledOn()
+        self.widget.InteractiveOff()
 
     # -------------------------------------------------------------------------
     # Trame API
@@ -119,7 +140,11 @@ class XArrayViewer:
             self.ui = layout
 
             # 3D view
-            Pan3DView(self.render_window)
+            Pan3DView(
+                self.render_window,
+                local_rendering=self.local_rendering,
+                widgets=[self.widget],
+            )
 
             # Scalar bar
             Pan3DScalarBar(
@@ -207,6 +232,8 @@ class XArrayViewer:
             return
 
         if self.actor.visibility:
+            if self.local_rendering:
+                self.ctrl.view_update()
             self.ctrl.view_reset_camera()
 
     @change("data_origin_order")
@@ -279,7 +306,9 @@ class XArrayViewer:
                     "dataset_config": config,
                 }
             )
-            self.actor.visibility = 0
+            if self.actor.visibility:
+                self.renderer.RemoveActor(self.actor)
+                self.actor.visibility = 0
 
             # Extract UI
             self.ctrl.xr_update_info(self.source.input, self.source.available_arrays)
@@ -300,9 +329,14 @@ class XArrayViewer:
 
     def _update_rendering(self, reset_camera=False):
         self.state.dirty_data = False
-        self.actor.visibility = 1
-        self.widget.EnabledOn()
-        self.widget.InteractiveOff()
+
+        if self.actor.visibility == 0:
+            self.actor.visibility = 1
+            self.renderer.AddActor(self.actor)
+            self.renderer.ResetCamera()
+            if self.ctrl.view_update_force.exists():
+                self.ctrl.view_update_force(push_camera=True)
+
         if reset_camera:
             self.ctrl.view_reset_camera()
         else:
