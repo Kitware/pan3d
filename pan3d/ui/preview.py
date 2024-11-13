@@ -218,12 +218,14 @@ class DataInformation(CollapsableSection):
                 icon = "mdi-ruler"
                 order = 1
                 length = xr[name].size
-                attrs.append(
-                    {
-                        "key": "range",
-                        "value": f"[{xr[name].values[0]}, {xr[name].values[-1]}]",
-                    }
-                )
+                shape = xr[name].shape
+                if length > 1 and len(shape) == 1:
+                    attrs.append(
+                        {
+                            "key": "range",
+                            "value": f"[{xr[name].values[0]}, {xr[name].values[-1]}]",
+                        }
+                    )
             if name in data:
                 icon = "mdi-database"
                 order = 2
@@ -786,10 +788,27 @@ class ControlPanel(v3.VCard):
         with self:
             with v3.VCardTitle(
                 classes=(
-                    f"`d-flex pa-1 position-fixed bg-white border-b-thin ${{ {toggle} ? 'controller-content rounded-t':'rounded-circle'}}`",
+                    f"`d-flex pa-1 position-fixed bg-white ${{ {toggle} ? 'controller-content rounded-t border-b-thin':'rounded-circle'}}`",
                 ),
                 style="z-index: 1;",
             ):
+                v3.VProgressLinear(
+                    v_if=toggle,
+                    indeterminate=("trame__busy",),
+                    bg_color="rgba(0,0,0,0)",
+                    absolute=True,
+                    color="primary",
+                    location="bottom",
+                    height=2,
+                )
+                v3.VProgressCircular(
+                    v_else=True,
+                    bg_color="rgba(0,0,0,0)",
+                    indeterminate=("trame__busy",),
+                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;",
+                    color="primary",
+                    width=3,
+                )
                 v3.VBtn(
                     icon="mdi-close",
                     v_if=toggle,
@@ -854,6 +873,14 @@ class ControlPanel(v3.VCard):
                             )
                             with html.Template(v_slot_prepend=True):
                                 v3.VIcon("mdi-cloud-upload-outline", classes="mr-n5")
+                        v3.VDivider()
+                        with v3.VListItem(
+                            title="Save dataset to disk",
+                            disabled=("can_load",),
+                            click="show_save_dialog = true",
+                        ):
+                            with html.Template(v_slot_prepend=True):
+                                v3.VIcon("mdi-file-download-outline", classes="mr-n5")
 
             with v3.VCardText(
                 v_show=(toggle, True),

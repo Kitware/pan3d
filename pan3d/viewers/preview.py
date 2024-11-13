@@ -7,7 +7,7 @@ import traceback
 from pathlib import Path
 
 from trame.decorators import TrameApp, change
-from trame.app import get_server
+from trame.app import get_server, asynchronous
 
 from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import vuetify3 as v3
@@ -152,6 +152,33 @@ class XArrayViewer:
                 v_if="color_by",
                 img_src="preset_img",
             )
+
+            # Save dialog
+            with v3.VDialog(v_model=("show_save_dialog", False)):
+                with v3.VCard(classes="mx-auto w-50"):
+                    v3.VCardTitle("Save dataset to disk")
+                    v3.VDivider()
+                    with v3.VCardText():
+                        v3.VTextField(
+                            label="File path to save",
+                            v_model=("save_dataset_path", ""),
+                            hide_details=True,
+                        )
+                    with v3.VCardActions():
+                        v3.VSpacer()
+                        v3.VBtn(
+                            "Save",
+                            classes="text-none",
+                            variant="flat",
+                            color="primary",
+                            click=self.save_dataset,
+                        )
+                        v3.VBtn(
+                            "Cancel",
+                            classes="text-none",
+                            variant="flat",
+                            click="show_save_dialog=false",
+                        )
 
             # Error messages
             v3.VAlert(
@@ -395,6 +422,14 @@ class XArrayViewer:
             self._update_rendering()
         finally:
             self.state.import_pending = False
+
+    async def _save_dataset(self):
+        output_path = Path(self.state.save_dataset_path).resolve()
+        self.source.input.to_netcdf(output_path)
+
+    def save_dataset(self):
+        self.state.show_save_dialog = False
+        asynchronous.create_task(self._save_dataset())
 
 
 # -----------------------------------------------------------------------------
