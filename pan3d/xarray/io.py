@@ -5,7 +5,7 @@ import numpy as np
 import xarray as xr
 from xarray.backends import BackendEntrypoint
 
-from pvxarray.errors import DataCopyWarning
+from pan3d.xarray.errors import DataCopyWarning
 
 from vtkmodules.vtkIOXML import (
     vtkXMLImageDataReader,

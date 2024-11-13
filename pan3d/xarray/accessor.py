@@ -6,8 +6,6 @@ import xarray as xr
 from vtkmodules.vtkCommonDataModel import vtkDataSet
 from pan3d.xarray import datasets, algorithm
 
-# from pvxarray.vtk_source import PyVistaXarraySource
-
 
 class _LocIndexer:
     def __init__(self, parent: "VTKAccessor"):
