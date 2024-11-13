@@ -41,6 +41,18 @@ def list_availables():
     ]
 
 
+def list_availables_search():
+    # FIXME do a try import and if empty suggest pip install
+    return [
+        {"id": "esgf", "name": "ESGF", "search_terms": [{"key": "id", "options": []}]},
+        {
+            "id": "pangeo",
+            "name": "Pangeo Forge",
+            "search_terms": [{"key": "id", "options": []}],
+        },
+    ]
+
+
 __all__ = [
     get,
     get_search_options,

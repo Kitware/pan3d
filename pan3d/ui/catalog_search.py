@@ -16,15 +16,14 @@ class CatalogSearch(vuetify.VDialog):
         ui_catalog_search_message="ui_catalog_search_message",
     ):
         super().__init__(v_model=(ui_search_catalogs,), max_width=800)
+
+        self.state.setdefault(ui_search_catalogs, False)
+        self.state.setdefault(available_catalogs, [])
+        self.state.setdefault(catalog_current_search, {})
+        self.state.setdefault(ui_catalog_term_search_loading, False)
+        self.state.setdefault(ui_catalog_search_message, "")
+
         with self:
-            with vuetify.Template(v_slot_activator=("{ props }",)):
-                vuetify.VBtn(
-                    "Search Catalogs",
-                    click=f"{ui_search_catalogs} = true",
-                    size="small",
-                    block=True,
-                    classes="my-2",
-                )
             with vuetify.VCard():
                 with vuetify.VCardText():
                     vuetify.VBtn(

@@ -32,7 +32,11 @@ def search(**kwargs):
     try:
         search = catalog.search(**kwargs)
         results = [
-            {"name": id, "value": {"source": "esgf", "id": id}}
+            {
+                "id": id,
+                "subtitle": id,
+                "value": {"source": "esgf", "id": id},
+            }
             for id in search.df.id.explode().unique()
         ]
     except NoSearchResults:

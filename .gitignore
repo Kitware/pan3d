@@ -1,6 +1,8 @@
 .DS_Store
 node_modules
-.venv
+.venv*
+*.nc
+*.data-origin.json
 
 examples/jupyter/*.gif
 site/*
