@@ -342,6 +342,45 @@ class RenderingSettings(CollapsableSection):
                 flat=True,
                 variant="solo",
             )
+
+            with v3.VTooltip(
+                text=("`NaN Color (${nan_colors[nan_color]})`",),
+            ):
+                with html.Template(v_slot_activator="{ props }"):
+                    with v3.VItemGroup(
+                        v_model="nan_color",
+                        v_bind="props",
+                        classes="d-inline-flex ga-1 pa-2",
+                        mandatory="force",
+                    ):
+                        v3.VIcon(
+                            "mdi-eyedropper-variant",
+                            classes="my-auto mx-1 text-medium-emphasis",
+                        )
+                        with v3.VItem(
+                            v_for="(color, i) in nan_colors", key="i", value=("i",)
+                        ):
+                            with v3.Template(
+                                raw_attrs=['#default="{ isSelected, toggle }"']
+                            ):
+                                with v3.VAvatar(
+                                    density="compact",
+                                    color=("isSelected ? 'primary': 'transparent'",),
+                                ):
+                                    v3.VBtn(
+                                        "{{ color[3] < 0.1 ? 't' : '' }}",
+                                        density="compact",
+                                        border="md surface opacity-100",
+                                        color=(
+                                            "color[3] ? `rgb(${color[0] * 255}, ${color[1] * 255}, ${color[2] * 255})` : undefined",
+                                        ),
+                                        flat=True,
+                                        icon=True,
+                                        ripple=False,
+                                        size="small",
+                                        click="toggle",
+                                    )
+
             v3.VDivider()
             # X crop/cut
             with v3.VTooltip(

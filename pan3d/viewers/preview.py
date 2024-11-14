@@ -70,6 +70,17 @@ class XArrayViewer:
         # Process CLI
         self.ctrl.on_server_ready.add(self._process_cli)
 
+        self.state.nan_colors = [
+            [0, 0, 0, 1],
+            [0.99, 0.99, 0.99, 1],
+            [0.6, 0.6, 0.6, 1],
+            [1, 0, 0, 1],
+            [0, 1, 0, 1],
+            [0, 0, 1, 1],
+            [0.9, 0.9, 0.9, 0],
+        ]
+        self.state.nan_color = 2
+
         self.ui = None
         self.disable_rendering  # initialize state
         self._setup_vtk()
@@ -246,12 +257,15 @@ class XArrayViewer:
             self.state.color_min = 0
             self.state.color_max = 1
 
-    @change("color_preset", "color_min", "color_max")
-    def _on_color_preset(self, color_preset, color_min, color_max, **_):
+    @change("color_preset", "color_min", "color_max", "nan_color")
+    def _on_color_preset(
+        self, nan_color, nan_colors, color_preset, color_min, color_max, **_
+    ):
         color_min = float(color_min)
         color_max = float(color_max)
+        color = nan_colors[nan_color]
         self.mapper.SetScalarRange(color_min, color_max)
-        apply_preset(self.actor, [color_min, color_max], color_preset)
+        apply_preset(self.actor, [color_min, color_max], color_preset, color)
         self.state.preset_img = to_image(self.actor.mapper.lookup_table, 255)
 
         if self.disable_rendering:
