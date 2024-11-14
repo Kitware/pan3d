@@ -170,6 +170,10 @@ class Pan3DView(html.Div):
             direction * (a[0] * b[1] - a[1] * b[0]),
         ]
         camera.view_up = view_up
+
+        if self.state.disable_rendering:
+            return
+
         self.ctrl.view_update()
 
     @change("view_3d")

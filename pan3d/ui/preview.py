@@ -735,6 +735,10 @@ class RenderingSettings(CollapsableSection):
         self.source.slices = slices
         ds = self.source()
         self.state.dataset_bounds = ds.bounds
+
+        if self.state.disable_rendering:
+            return
+
         self.ctrl.view_reset_clipping_range()
         self.ctrl.view_update()
 
@@ -744,6 +748,10 @@ class RenderingSettings(CollapsableSection):
             return
 
         self.source.t_index = slice_t
+
+        if self.state.disable_rendering:
+            return
+
         self.ctrl.view_update()
 
     @change("data_arrays")

@@ -70,8 +70,8 @@ class XArrayViewer:
         # Process CLI
         self.ctrl.on_server_ready.add(self._process_cli)
 
-        self.disable_rendering = False
         self.ui = None
+        self.disable_rendering  # initialize state
         self._setup_vtk()
         self._build_ui()
 
@@ -129,6 +129,14 @@ class XArrayViewer:
     def ctrl(self):
         """Returns the Controller for the Trame server."""
         return self.server.controller
+
+    @property
+    def disable_rendering(self):
+        return self.state.setdefault("disable_rendering", False)
+
+    @disable_rendering.setter
+    def disable_rendering(self, v):
+        self.state.disable_rendering = v
 
     # -------------------------------------------------------------------------
     # UI
