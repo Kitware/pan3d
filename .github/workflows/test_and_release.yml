@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.9"]
+        python-version: ["3.10"]
         config:
         - {
             name: "Linux",
@@ -60,6 +60,7 @@ jobs:
       run: |
         pip install .
         pip install -r tests/requirements.txt
+        pytest -s ./tests/test_xarray.py
         pytest -s ./tests/test_builder.py
         pip install .[viewer]
         pytest -s ./tests/test_viewer.py
@@ -83,21 +84,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
-
-      - name: Set up NPM
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Install Vue component dependencies
-        run: npm ci
-        working-directory: pan3d-js
-      - name: Lint Vue components
-        run: npm run lint
-        working-directory: pan3d-js
-      - name: Build Vue components
-        run: npm run build
-        working-directory: pan3d-js
+          python-version: "3.10"
 
       # https://python-semantic-release.readthedocs.io/en/latest/migrating_from_v7.html#repurposing-of-version-and-publish-commands
       - name: Python Semantic Release

@@ -184,9 +184,9 @@ def structured(
 
     points, shape = _points(accessor, x=x, y=y, z=z, order=order, scales=scales)
 
-    print(f"{shape=}")
-    dataset = vtkStructuredGrid(points=points)
+    dataset = vtkStructuredGrid()
     dataset.SetDimensions(shape)
+    dataset.points = points
     dataset.point_data[accessor._xarray.name or "data"] = accessor.data.ravel(
         order=order
     )
