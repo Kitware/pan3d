@@ -5,10 +5,13 @@
   },
   "dataset_config": {
     "arrays": ["analysed_sst"],
+    "t_index": 5,
     "slices": {
-      "lat": [0, 500, 5],
-      "lon": [0, 500, 5],
-      "time": 5
+      "lat": [0, 3200, 50],
+      "lon": [550, 3600, 50]
     }
+  },
+  "preview": {
+    "color_by": "analysed_sst"
   }
 }

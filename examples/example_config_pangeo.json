@@ -1,34 +1,12 @@
 {
-    "data_origin": {
-        "source": "pangeo",
-        "id": "MITgcm_channel_flatbottom_02km_run01_phys_snap15D"
-    },
-    "data_array": {
-        "name": "T",
-        "x": "YC",
-        "y": "XC",
-        "z": "Z",
-        "t": "time",
-        "t_index": 0
-    },
-    "ui": {
-        "main_drawer": false,
-        "axis_drawer": false,
-        "unapplied_changes": false,
-        "error_message": null,
-        "more_info_link": null,
-        "expanded_coordinates": [],
-        "current_time_string": "139968000.0 seconds"
-    },
-    "render": {
-        "auto": true,
-        "x_scale": 1,
-        "y_scale": 1,
-        "z_scale": 100,
-        "scalar_warp": false,
-        "cartographic": false,
-        "transparency": false,
-        "transparency_function": "linear",
-        "colormap": "viridis"
-    }
+  "data_origin": {
+    "source": "pangeo",
+    "id": "MITgcm_channel_flatbottom_02km_run01_phys_snap15D"
+  },
+  "dataset_config": {
+    "arrays": ["T"]
+  },
+  "preview": {
+    "color_by": "T"
+  }
 }
