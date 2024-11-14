@@ -11,6 +11,7 @@ dependencies = [
 
     # catalog handling
     "requests>=2.31",
+    "aiohttp", # <= url catalog
 
     # XArray
     "xarray[io, parallel]>=2023.8",
