@@ -20,6 +20,7 @@ def test_ui_state():
 
     # fake server started to trigger callback
     viewer.state.ready()
+    viewer.disable_rendering = True
 
     viewer.import_state(
         {
@@ -50,6 +51,7 @@ def test_render_options_state():
 
     # fake server started to trigger callback
     viewer.state.ready()
+    viewer.disable_rendering = True
 
     viewer.import_state(
         {

@@ -70,6 +70,7 @@ class XArrayViewer:
         # Process CLI
         self.ctrl.on_server_ready.add(self._process_cli)
 
+        self.disable_rendering = False
         self.ui = None
         self._setup_vtk()
         self._build_ui()
@@ -243,9 +244,12 @@ class XArrayViewer:
         color_max = float(color_max)
         self.mapper.SetScalarRange(color_min, color_max)
         apply_preset(self.actor, [color_min, color_max], color_preset)
-        self.ctrl.view_update()
-
         self.state.preset_img = to_image(self.actor.mapper.lookup_table, 255)
+
+        if self.disable_rendering:
+            return
+
+        self.ctrl.view_update()
 
     @change("scale_x", "scale_y", "scale_z")
     def _on_scale_change(self, scale_x, scale_y, scale_z, **_):
@@ -256,6 +260,9 @@ class XArrayViewer:
         )
 
         if self.state.import_pending:
+            return
+
+        if self.disable_rendering:
             return
 
         if self.actor.visibility:
@@ -356,6 +363,9 @@ class XArrayViewer:
 
     def _update_rendering(self, reset_camera=False):
         self.state.dirty_data = False
+
+        if self.disable_rendering:
+            return
 
         if self.actor.visibility == 0:
             self.actor.visibility = 1
