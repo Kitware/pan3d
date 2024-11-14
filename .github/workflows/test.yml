@@ -56,7 +56,17 @@ jobs:
         if: matrix.config.os == 'ubuntu-latest'
         run: sudo apt-get install -y libosmesa6-dev
 
-      - name: Install and Run Tests
+      - name: Install and Run Tests (without viewer)
+        if: matrix.config.os == 'windows-latest'
+        run: |
+          pip install .
+          pip install -r tests/requirements.txt
+          pytest -s ./tests/test_xarray.py
+          pytest -s ./tests/test_builder.py
+        working-directory: .
+
+      - name: Install and Run Tests (with viewer)
+        if: matrix.config.os != 'windows-latest'
         run: |
           pip install .
           pip install -r tests/requirements.txt
