@@ -46,6 +46,16 @@ def to_isel(slices_info, *array_names):
     return slices if slices else None
 
 
+def is_time_type(dtype):
+    if np.issubdtype(dtype, np.datetime64):
+        return True
+
+    if np.issubdtype(dtype, np.dtype("O")):
+        return True
+
+    return False
+
+
 # -----------------------------------------------------------------------------
 # VTK Algorithms
 # -----------------------------------------------------------------------------
@@ -253,6 +263,11 @@ order: {self._order}
         array_name = self.available_arrays[0]
         coords = self._input[array_name].dims
 
+        # print("=" * 60)
+        # for n in self.available_arrays:
+        #     print(f"{n}: {self._input[n].dims}")
+        # print("=" * 60)
+
         # reset coords arrays
         self.x = None
         self.y = None
@@ -272,7 +287,7 @@ order: {self._order}
         elif len(coords) == 3:
             # Is it 2D dataset with time or 3D dataset ?
             outer_dtype = self._input[array_name][coords[0]].dtype
-            if np.issubdtype(outer_dtype, np.datetime64):
+            if is_time_type(outer_dtype):
                 axes.remove("z")
                 for key, value in zip(axes, coords):
                     setattr(self, key, value)
@@ -338,13 +353,19 @@ order: {self._order}
         if self._input is None:
             return []
 
-        return [
-            name
-            for name in (
-                set(self._input.data_vars.keys()) - set(self._input.coords.keys())
-            )
-            if not name.endswith("_bnds") and not name.endswith("_bounds")
-        ]
+        filtered_arrays = []
+        max_dim = 0
+        coords = set([k for k, v in self._input.coords.items() if len(v.shape) == 1])
+        for name in set(self._input.data_vars.keys()) - set(self._input.coords.keys()):
+            if name.endswith("_bnds") or name.endswith("_bounds"):
+                continue
+
+            dims = set(self._input[name].dims)
+            max_dim = max(max_dim, len(dims))
+            if dims.issubset(coords):
+                filtered_arrays.append(name)
+
+        return [n for n in filtered_arrays if len(self._input[n].shape) == max_dim]
 
     @property
     def slices(self):
