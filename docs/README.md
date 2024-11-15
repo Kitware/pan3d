@@ -1,6 +1,6 @@
 # Pan3D
 
-<img style="display: inline-block;" src="images/kitware.svg" alt="Kitware Logo" href="https://kitware.com" width="100">
+<img style="display: inline-block;" src="https://media.githubusercontent.com/media/Kitware/pan3d/main/docs/images/kitware.svg" alt="Kitware Logo" href="https://kitware.com" width="100">
 
 [![Documentation Status][docs-image]][docs-link]
 [![Binder][binder-image]][binder-link]
@@ -8,7 +8,7 @@
 [![PyPI Version][pypi-v-image]][pypi-v-link]
 [![License][apache-license-image]][license-link]
 
-Pan3D aims to be an utility package for viewing and processing a wide variety of multidimensional datasets. Any dataset that can be interpreted with [xarray][xarray-link] can be explored and rendered with Pan3D.
+Pan3D aims to be an utility package for viewing and processing a wide variety of multidimensional datasets. Any dataset that can be interpreted with [xarray][xarray-link] can be explored and rendered with Pan3D. [Read The Doc][docs-link] is available for additional information.
 
 XArray Viewer is a Pan3D application focused on geospatial rendering use cases. This is a graphical user interface leveraging the Pan3D infrastructure to help geospatial scientists explore data.
 

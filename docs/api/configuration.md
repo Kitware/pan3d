@@ -90,6 +90,7 @@ The following table describes keys available in this mapping schema.
 
 ## `camera` (Optional)
 The value for this key configure the VTK camera for any specific viewer or explorer. 
+
 | Key | Required? | Type | Value Description |
 |-----|-----------|------|-------------------|
 |`position`|NO (default=None)|`list[float]`|3D Coordinate of the camera position.|
