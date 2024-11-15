@@ -171,9 +171,6 @@ class Pan3DView(html.Div):
         ]
         camera.view_up = view_up
 
-        if self.state.disable_rendering:
-            return
-
         self.ctrl.view_update()
 
     @change("view_3d")

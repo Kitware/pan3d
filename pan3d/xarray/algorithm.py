@@ -62,6 +62,8 @@ def is_time_type(dtype):
 
 
 class vtkXArrayRectilinearSource(VTKPythonAlgorithmBase):
+    """vtkRectilinearGridAlgoritm for converting XArray as input"""
+
     def __init__(
         self,
         input: Optional[xr.Dataset] = None,
@@ -72,6 +74,18 @@ class vtkXArrayRectilinearSource(VTKPythonAlgorithmBase):
         arrays: Optional[List[str]] = None,
         order: str = "C",
     ):
+        """
+        Create vtkXArrayRectilinearSource
+
+        Parameters:
+            input (xr.Dataset): Provide an XArray to use as input. The load() method will replace it.
+            x (str): Name of the dimension to use for X. The dimension needs to work with the selected arrays.
+            y (str): Name of the dimension to use for Y. The dimension needs to work with the selected arrays.
+            z (str): Name of the dimension to use for Z. The dimension needs to work with the selected arrays.
+            t (str): Name of the dimension to use for time. The dimension needs to work with the selected arrays.
+            arrays (list[str]): List of field to load onto the generated VTK mesh.
+            order (str): C or F for the convention order (C or Fortran). (default: C)
+        """
         VTKPythonAlgorithmBase.__init__(
             self,
             nInputPorts=0,
@@ -125,10 +139,12 @@ order: {self._order}
 
     @property
     def input(self):
+        """return current input XArray"""
         return self._input
 
     @input.setter
     def input(self, xarray_dataset: xr.Dataset):
+        """update input with a new XArray"""
         self._input = xarray_dataset
         self._xarray_mesh = None
         self.Modified()
@@ -139,10 +155,12 @@ order: {self._order}
 
     @property
     def x(self):
+        """return the name that is currently mapped to the X axis"""
         return self._x
 
     @x.setter
     def x(self, x_array_name: str):
+        """update the coordinate name that is mapped to the X axis"""
         if x_array_name is None:
             if self._x is not None:
                 self._x = None
@@ -162,16 +180,19 @@ order: {self._order}
 
     @property
     def x_size(self):
+        """return the size of the coordinate used for the X axis"""
         if self._x is None:
             return 0
         return int(self._input[self._x].size)
 
     @property
     def y(self):
+        """return the name that is currently mapped to the Y axis"""
         return self._y
 
     @y.setter
     def y(self, y_array_name: str):
+        """update the coordinate name that is mapped to the Y axis"""
         if y_array_name is None:
             if self._y is not None:
                 self._y = None
@@ -191,16 +212,19 @@ order: {self._order}
 
     @property
     def y_size(self):
+        """return the size of the coordinate used for the Y axis"""
         if self._y is None:
             return 0
         return int(self._input[self._y].size)
 
     @property
     def z(self):
+        """return the name that is currently mapped to the Z axis"""
         return self._z
 
     @z.setter
     def z(self, z_array_name: str):
+        """update the coordinate name that is mapped to the Z axis"""
         if z_array_name is None:
             if self._z is not None:
                 self._z = None
@@ -220,16 +244,19 @@ order: {self._order}
 
     @property
     def z_size(self):
+        """return the size of the coordinate used for the Z axis"""
         if self._z is None:
             return 0
         return int(self._input[self._z].size)
 
     @property
     def t(self):
+        """return the name that is currently mapped to the time axis"""
         return self._t
 
     @t.setter
     def t(self, t_array_name: str):
+        """update the coordinate name that is mapped to the time axis"""
         if t_array_name is None:
             if self._t is not None:
                 self._t = None
@@ -249,6 +276,7 @@ order: {self._order}
 
     @property
     def slice_extents(self):
+        """return a dictionary for the X, Y, Z dimensions with the corresponding extent [0, size-1]"""
         return {
             coord_name: [0, self.input[coord_name].size - 1]
             for coord_name in [self.x, self.y, self.z]
@@ -256,7 +284,7 @@ order: {self._order}
         }
 
     def apply_coords(self):
-        """Use array dims to map coordinates"""
+        """Use array dims to automatically map coordinates (x,y,z,t)"""
         if self.input is None:
             return
 
@@ -298,10 +326,11 @@ order: {self._order}
 
     @property
     def available_coords(self):
+        """List available coordinates arrays that have are 1D"""
         if self._input is None:
             return []
 
-        return list(self._input.coords.keys())
+        return [k for k, v in self._input.coords.items() if len(v.shape) == 1]
 
     # -------------------------------------------------------------------------
     # Data sub-selection
@@ -309,10 +338,12 @@ order: {self._order}
 
     @property
     def t_index(self):
+        """return the current selected time index"""
         return self._t_index
 
     @t_index.setter
     def t_index(self, t_index: int):
+        """update the current selected time index"""
         if t_index != self._t_index:
             self._t_index = t_index
             self._xarray_mesh = None
@@ -320,12 +351,14 @@ order: {self._order}
 
     @property
     def t_size(self):
+        """return the size of the coordinate used for the time"""
         if self._t is None:
             return 0
         return int(self._input[self._t].size)
 
     @property
     def t_labels(self):
+        """return a list of string that match the various time values available"""
         if self._t is None:
             return []
 
@@ -337,10 +370,12 @@ order: {self._order}
 
     @property
     def arrays(self):
+        """return the list of arrays that are currently selected to be added to the generated VTK mesh"""
         return list(self._array_names)
 
     @arrays.setter
     def arrays(self, array_names: List[str]):
+        """update the list of arrays to load on the generated VTK mesh"""
         new_names = set(array_names or [])
         if new_names != self._array_names:
             self._array_names = new_names
@@ -349,13 +384,13 @@ order: {self._order}
 
     @property
     def available_arrays(self):
-        """List available data fields"""
+        """List all available data fields for the `arrays` option"""
         if self._input is None:
             return []
 
         filtered_arrays = []
         max_dim = 0
-        coords = set([k for k, v in self._input.coords.items() if len(v.shape) == 1])
+        coords = set(self.available_coords)
         for name in set(self._input.data_vars.keys()) - set(self._input.coords.keys()):
             if name.endswith("_bnds") or name.endswith("_bounds"):
                 continue
@@ -369,6 +404,7 @@ order: {self._order}
 
     @property
     def slices(self):
+        """return the current slicing information which include axes crop/cut and time selection"""
         result = dict(self._slices or {})
         if self.t is not None:
             result[self.t] = self.t_index
@@ -376,6 +412,7 @@ order: {self._order}
 
     @slices.setter
     def slices(self, v):
+        """update the slicing of the data along axes"""
         if v != self._slices:
             self._slices = v
             self._xarray_mesh = None
@@ -387,10 +424,12 @@ order: {self._order}
 
     @property
     def order(self):
+        """return the order used to decode numpy arrays"""
         return self._order
 
     @order.setter
     def order(self, order: str):
+        """update the order to use for decoding numpy arrays"""
         self._order = order
         self._xarray_mesh = None
         self.Modified()
@@ -401,10 +440,32 @@ order: {self._order}
 
     @property
     def computed(self):
+        """return the current description of the computed/derived fields on the VTK mesh"""
         return self._computed
 
     @computed.setter
     def computed(self, v):
+        """
+        update the computed/derived fields to add on the VTK mesh
+
+        The layout of the dictionary provided should be as follow:
+          - key: name of the field to be added
+          - value: formula to apply for the given field name. The syntax is captured in the document (https://docs.paraview.org/en/latest/UsersGuide/filteringData.html#calculator)
+
+        Then additional keys need to be provided to describe your formula dependencies:
+        `_use_scalars` and `_use_vectors` which should be a list of string matching the name of the fields you are using in your expression.
+
+
+        Please find below an example:
+
+        ```
+            {
+                "_use_scalars": ["u", "v"],       # (u,v) needed for "vec" and "m2"
+                "vec": "(u * iHat) + (v * jHat)", # 2D vector
+                "m2": "u*u + v*v",
+            }
+        ```
+        """
         if self._computed != v:
             self._computed = v or {}
             self._pipeline = None
@@ -433,6 +494,44 @@ order: {self._order}
             self.Modified()
 
     def load(self, data_info):
+        """
+        create a new XArray input with the `data_origin` and `dataset_config` information.
+
+        Here is an example of the layout of the parameter
+
+        ```
+        {
+          "data_origin": {
+            "source": "url", # one of [file, url, xarray, pangeo, esgf]
+            "id": "https://ncsa.osn.xsede.org/Pangeo/pangeo-forge/noaa-coastwatch-geopolar-sst-feedstock/noaa-coastwatch-geopolar-sst.zarr",
+            "order": "C"     # (optional) order to use in numpy
+          },
+          "dataset_config": {
+            "x": "lon",      # (optional) coord name for X
+            "y": "lat",      # (optional) coord name for Y
+            "z": null,       # (optional) coord name for Z
+            "t": "time",     # (optional) coord name for time
+            "slices": {      # (optional) array slicing
+              "lon": [
+                1000,
+                6000,
+                20
+              ],
+              "lat": [
+                500,
+                3000,
+                20
+              ],
+              "time": 5
+            },
+            "t_index": 5,    # (optional) selected time index
+            "arrays": [      # (optional) names of arrays to load onto VTK mesh.
+              "analysed_sst" #            If missing no array will be loaded
+            ]                #            onto the mesh.
+          }
+        }
+        ```
+        """
         if "data_origin" not in data_info:
             raise ValueError("Only state with data_origin can be loaded")
 
@@ -461,6 +560,7 @@ order: {self._order}
 
     @property
     def state(self):
+        """return current state that can be reused in a load() later on"""
         if self._data_origin is None:
             raise RuntimeError(
                 "No state available without data origin. Need to use the load method to set the data origin."
@@ -479,6 +579,7 @@ order: {self._order}
     # -------------------------------------------------------------------------
 
     def RequestData(self, request, inInfo, outInfo):
+        """implementation of the vtk algorithm for generating the VTK mesh"""
         # Use open data_array handle to fetch data at
         # desired Level of Detail
         try:

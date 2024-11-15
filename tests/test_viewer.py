@@ -19,7 +19,6 @@ def test_ui_state():
     viewer = XArrayViewer(server="test")
 
     # fake server started to trigger callback
-    viewer.disable_rendering = True
     viewer.state.ready()
 
     viewer.import_state(
@@ -50,7 +49,6 @@ def test_render_options_state():
     viewer = XArrayViewer(server="render_options")
 
     # fake server started to trigger callback
-    viewer.disable_rendering = True
     viewer.state.ready()
 
     viewer.import_state(

@@ -29,7 +29,18 @@ class XArrayViewer:
         """Create an instance of the XArrayViewer class.
 
         Parameters:
-            server: Trame server name or instance.
+            server (str/server): Trame server name or instance.
+            local_rendering (str): If provided (wasm, vtkjs) local rendering will be used
+
+        CLI options:
+            - `--import-state`: Pass a string with this argument to specify a startup configuration.
+                              This value must be a local path to a JSON file which adheres to the
+                              schema specified in the [Configuration Files documentation](../api/configuration.md).
+                              A dataset specified in this configuration will override any value passed to `--xarray-*`
+            - `--xarray-file`: Provide path to xarray file
+            - `--xarray-url`: Provide URL to xarray dataset
+            - `--wasm`: Use WASM for local rendering
+            - `--vtkjs`: Use vtk.js for local rendering
         """
         self.server = get_server(server, client_type="vue3")
         if self.server.hot_reload:
@@ -82,7 +93,6 @@ class XArrayViewer:
         self.state.nan_color = 2
 
         self.ui = None
-        self.disable_rendering  # initialize state
         self._setup_vtk()
         self._build_ui()
 
@@ -123,31 +133,23 @@ class XArrayViewer:
     # -------------------------------------------------------------------------
 
     def start(self, **kwargs):
-        """Initialize the UI and start the server for GeoTrame."""
+        """Initialize the UI and start the server for XArray Viewer."""
         self.ui.server.start(**kwargs)
 
     @property
     async def ready(self):
-        """Coroutine to wait for the GeoTrame server to be ready."""
+        """Start and wait for the XArray Viewer corroutine to be ready."""
         await self.ui.ready
 
     @property
     def state(self):
-        """Returns the current State of the Trame server."""
+        """Returns the current the trame server state."""
         return self.server.state
 
     @property
     def ctrl(self):
-        """Returns the Controller for the Trame server."""
+        """Returns the Controller for the trame server."""
         return self.server.controller
-
-    @property
-    def disable_rendering(self):
-        return self.state.setdefault("disable_rendering", False)
-
-    @disable_rendering.setter
-    def disable_rendering(self, v):
-        self.state.disable_rendering = v
 
     # -------------------------------------------------------------------------
     # UI
@@ -191,7 +193,7 @@ class XArrayViewer:
                             classes="text-none",
                             variant="flat",
                             color="primary",
-                            click=self.save_dataset,
+                            click=(self.save_dataset, "[save_dataset_path]"),
                         )
                         v3.VBtn(
                             "Cancel",
@@ -268,9 +270,6 @@ class XArrayViewer:
         apply_preset(self.actor, [color_min, color_max], color_preset, color)
         self.state.preset_img = to_image(self.actor.mapper.lookup_table, 255)
 
-        if self.disable_rendering:
-            return
-
         self.ctrl.view_update()
 
     @change("scale_x", "scale_y", "scale_z")
@@ -282,9 +281,6 @@ class XArrayViewer:
         )
 
         if self.state.import_pending:
-            return
-
-        if self.disable_rendering:
             return
 
         if self.actor.visibility:
@@ -386,9 +382,6 @@ class XArrayViewer:
     def _update_rendering(self, reset_camera=False):
         self.state.dirty_data = False
 
-        if self.disable_rendering:
-            return
-
         if self.actor.visibility == 0:
             self.actor.visibility = 1
             self.renderer.AddActor(self.actor)
@@ -406,6 +399,7 @@ class XArrayViewer:
     # -----------------------------------------------------
 
     def export_state(self):
+        """Return a json dump of the reader and viewer state"""
         camera = self.renderer.active_camera
         state_to_export = {
             **self.source.state,
@@ -430,6 +424,12 @@ class XArrayViewer:
         return json.dumps(state_to_export, indent=2)
 
     def import_state(self, data_state):
+        """
+        Read the current state to load the data and visualization setup if any.
+
+        Parameters:
+            - data_state (dict): reader (+viewer) state to reset to
+        """
         self.state.import_pending = True
         try:
             data_origin = data_state.get("data_origin")
@@ -455,13 +455,23 @@ class XArrayViewer:
         finally:
             self.state.import_pending = False
 
-    async def _save_dataset(self):
-        output_path = Path(self.state.save_dataset_path).resolve()
+    async def _save_dataset(self, file_path):
+        output_path = Path(file_path).resolve()
         self.source.input.to_netcdf(output_path)
 
-    def save_dataset(self):
+    def save_dataset(self, file_path):
+        """
+        Write XArray data into a file using a background task.
+        So when used programmatically, make sure you await the returned task.
+
+        Parameters:
+            - file_path (str): path to use for writing the file
+
+        Returns:
+            writing task
+        """
         self.state.show_save_dialog = False
-        asynchronous.create_task(self._save_dataset())
+        return asynchronous.create_task(self._save_dataset(file_path))
 
 
 # -----------------------------------------------------------------------------
