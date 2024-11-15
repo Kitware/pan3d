@@ -12,7 +12,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.10"
 
       # Install and run pre-commit
       - run: |
@@ -46,32 +46,32 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Set up NPM
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - name: Install Vue component dependencies
-        run: npm ci
-        working-directory: pan3d-js
-      - name: Lint Vue components
-        run: npm run lint
-        working-directory: pan3d-js
-      - name: Build Vue components
-        run: npm run build
-        working-directory: pan3d-js
-
       # Conditionally install pykdtree from source for MacOS only
       - name: Install pykdtree from source on macOS
         if: matrix.config.os == 'macos-latest'
         run: |
           export USE_OMP=0
           pip install --no-binary pykdtree pykdtree>=1.3.13 
+      - name: Install OSMesa for Linux
+        if: matrix.config.os == 'ubuntu-latest'
+        run: sudo apt-get install -y libosmesa6-dev
 
-      - name: Install and Run Tests
+      - name: Install and Run Tests (without viewer)
+        if: matrix.config.os == 'windows-latest'
         run: |
           pip install .
           pip install -r tests/requirements.txt
+          pytest -s ./tests/test_xarray.py
           pytest -s ./tests/test_builder.py
-          pip install .[geotrame]
+        working-directory: .
+
+      - name: Install and Run Tests (with viewer)
+        if: matrix.config.os != 'windows-latest'
+        run: |
+          pip install .
+          pip install -r tests/requirements.txt
+          pytest -s ./tests/test_xarray.py
+          pytest -s ./tests/test_builder.py
+          pip install .[viewer]
           pytest -s ./tests/test_viewer.py
         working-directory: .

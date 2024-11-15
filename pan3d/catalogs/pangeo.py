@@ -101,8 +101,8 @@ def search(**kwargs):
     all_entries = get_all_entries()
     results = [
         {
-            "name": entry["name"],
-            "description": entry["description"],
+            "id": entry["name"],
+            "subtitle": entry["description"],
             "value": {"source": "pangeo", "id": entry["name"]},
         }
         for entry in all_entries

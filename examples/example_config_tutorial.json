@@ -1,0 +1,34 @@
+{
+  "data_origin": {
+    "source": "url",
+    "id": "https://ncsa.osn.xsede.org/Pangeo/pangeo-forge/noaa-coastwatch-geopolar-sst-feedstock/noaa-coastwatch-geopolar-sst.zarr",
+    "order": "C"
+  },
+  "dataset_config": {
+    "x": "lon",
+    "y": "lat",
+    "t": "time",
+    "arrays": ["analysed_sst"],
+    "t_index": 5,
+    "slices": {
+      "lon": [1000, 6000, 20],
+      "lat": [500, 3000, 20]
+    }
+  },
+  "preview": {
+    "color_by": "analysed_sst",
+    "color_preset": "Cool to Warm",
+    "color_min": 271.1499938964844,
+    "color_max": 307.25,
+    "scale_x": 1,
+    "scale_y": 1,
+    "scale_z": 1
+  },
+  "camera": {
+    "position": [-98.15050480107477, -83.50869045811957, 523.163918104528],
+    "view_up": [0.013629864545575398, 0.9879006762359134, 0.15448780108828863],
+    "focal_point": [-5.475002288818359, -2.9749984741210938, 0.0],
+    "parallel_projection": 0,
+    "parallel_scale": 139.08361136330777
+  }
+}

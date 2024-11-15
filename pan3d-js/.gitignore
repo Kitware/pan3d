@@ -1,7 +1,0 @@
-serve
-serve/*.map
-serve/*.html
-serve/*.common.*
-serve/*-light.*
-serve/*.umd.js
-package-lock.json

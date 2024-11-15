@@ -1,2 +1,2 @@
 [codespell]
-skip = CHANGELOG.md
+skip = CHANGELOG.md,tests/data/*

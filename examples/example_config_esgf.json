@@ -1,32 +1,12 @@
 {
-    "data_origin": {
-        "source": "esgf",
-        "id": "CMIP6.PAMIP.MOHC.HadGEM3-GC31-MM.pdSST-futAntSIC.r102i1p1f2.day.sfcWind.gn.v20210311|eagle.alcf.anl.gov"
-    },
-    "data_array": {
-        "name": "sfcWind",
-        "x": "lon",
-        "y": "lat",
-        "t": "time"
-    },
-    "ui": {
-        "main_drawer": false,
-        "axis_drawer": true,
-        "unapplied_changes": false,
-        "error_message": null,
-        "more_info_link": null,
-        "expanded_coordinates": [],
-        "current_time_string": "Apr 01 2000 12:00"
-    },
-    "render": {
-        "auto": true,
-        "x_scale": 1,
-        "y_scale": 1,
-        "z_scale": 1,
-        "scalar_warp": false,
-        "cartographic": false,
-        "transparency": false,
-        "transparency_function": "linear",
-        "colormap": "cividis"
-    }
+  "data_origin": {
+    "source": "esgf",
+    "id": "CMIP6.PAMIP.MOHC.HadGEM3-GC31-MM.pdSST-futAntSIC.r102i1p1f2.day.sfcWind.gn.v20210311|eagle.alcf.anl.gov"
+  },
+  "dataset_config": {
+    "arrays": ["sfcWind"]
+  },
+  "preview": {
+    "color_by": "sfcWind"
+  }
 }

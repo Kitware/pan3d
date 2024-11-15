@@ -30,9 +30,33 @@ def load_dataset(catalog_name, id):
     return _call_catalog_function(catalog_name, "load_dataset", id=id)
 
 
+def list_availables():
+    # FIXME - make it dynamic
+    return [
+        {"value": "file", "title": "Local file"},
+        {"value": "url", "title": "Remote URL"},
+        {"value": "xarray", "title": "XArray Tutorial"},
+        # {"value": "esgf", "title": "ESGF"},
+        # {"value": "pangeo", "title": "Pangeo"},
+    ]
+
+
+def list_availables_search():
+    # FIXME do a try import and if empty suggest pip install
+    return [
+        {"id": "esgf", "name": "ESGF", "search_terms": [{"key": "id", "options": []}]},
+        {
+            "id": "pangeo",
+            "name": "Pangeo Forge",
+            "search_terms": [{"key": "id", "options": []}],
+        },
+    ]
+
+
 __all__ = [
     get,
     get_search_options,
     search,
     load_dataset,
+    list_availables,
 ]

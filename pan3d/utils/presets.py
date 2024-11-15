@@ -53,7 +53,9 @@ def convert_tfunc_to_lut(tfunc: vtk.vtkColorTransferFunction, tfrange):
     return lut
 
 
-def apply_preset(actor: vtk.vtkActor, srange, preset: str) -> None:
+def apply_preset(
+    actor: vtk.vtkActor, srange, preset: str, nan_color=[0, 0, 0, 0]
+) -> None:
     if preset in list(hsv_colors.keys()):
         lut = vtk.vtkLookupTable()
         lut.SetNumberOfTableValues(256)
@@ -66,12 +68,14 @@ def apply_preset(actor: vtk.vtkActor, srange, preset: str) -> None:
         lut.SetHueRange(hue[0], hue[1])
         lut.SetSaturationRange(sat[0], sat[1])
         lut.SetValueRange(rng[0], rng[1])
+        lut.SetNanColor(nan_color)
         lut.Build()
     elif preset in list(rgb_colors.keys()):
         info = rgb_colors[preset]
         tfunc = info["TF"]
         tfrange = info["Range"]
         lut = convert_tfunc_to_lut(tfunc, tfrange)
+        lut.SetNanColor(nan_color)
         mapper = actor.GetMapper()
         mapper.SetLookupTable(lut)
         mapper.SetScalarRange(srange[0], srange[1])
