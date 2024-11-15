@@ -2,6 +2,8 @@
 
 ## Introduction
 
+> Need to fix/update content with new code base
+
 Pan3D includes catalog modules to explore two existing third-party dataset repositories: the Pangeo datastore and the **E**arth **S**ystem **G**rid **F**ederation (ESGF) 2 datastore. The [Pangeo Catalog][pangeo-info] uses the Python package `intake` ([docs][pangeo-intake]) and the [ESGF Catalog][esgf-info] uses the Python package `intake-esgf` ([docs][esgf-intake]).
 
 After installing the necessary requirements and specifying that the application should be launched with these catalogs enabled, GeoTrame includes a dialog in the user interface to perform attribute-based filtering on the datasets available in each datastore. After performing a filter search, the returned set of datasets will be grouped and made available in the sidebar, at which point you can select any dataset in the group to explore.
