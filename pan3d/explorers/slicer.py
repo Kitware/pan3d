@@ -37,6 +37,7 @@ class XArraySlicer:
         parser.add_argument(
             "--import-state",
             help="Pass a string with this argument to specify a startup configuration. This value must be a local path to a JSON file which adheres to the schema specified in the [Configuration Files documentation](../api/configuration.md).",
+            required=(source is None),
         )
         args, _ = parser.parse_known_args()
 
