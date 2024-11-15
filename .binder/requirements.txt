@@ -1,3 +1,4 @@
 pan3d[all]
 imageio
+pyvista
 trame-jupyter-extension
