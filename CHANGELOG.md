@@ -1,6 +1,19 @@
 # CHANGELOG
 
 
+## v0.10.1 (2024-11-15)
+
+### Bug Fixes
+
+- **api**: Remove disable rendering and add api doc
+  ([`0d94995`](https://github.com/Kitware/pan3d/commit/0d949958bf0a392f064ff5bd5b4398e84a96d18e))
+
+### Documentation
+
+- Update names and tutorial images
+  ([`38b0935`](https://github.com/Kitware/pan3d/commit/38b0935fe64e75566db995f94399771fd88d4c72))
+
+
 ## v0.10.0 (2024-11-15)
 
 ### Bug Fixes
