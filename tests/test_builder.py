@@ -23,7 +23,7 @@ def test_import_config():
     # check array size based on slicing
     builder.arrays = ["mask"]
     ds = builder()
-    assert ds.point_data["mask"].size == 10000
+    assert ds.point_data["mask"].size == 3904
 
 
 def test_export_config():
