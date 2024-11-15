@@ -10,9 +10,9 @@
 
 Pan3D aims to be an utility package for viewing and processing a wide variety of multidimensional datasets. Any dataset that can be interpreted with [xarray][xarray-link] can be explored and rendered with Pan3D.
 
-GeoTrame is a Pan3D application focused on geospatial rendering use cases. This is a graphical user interface leveraging the Pan3D infrastructure to help geospatial scientists explore data.
+XArray Viewer is a Pan3D application focused on geospatial rendering use cases. This is a graphical user interface leveraging the Pan3D infrastructure to help geospatial scientists explore data.
 
-![](images/0.png)
+![](images/xr-viewer-esgf-00.jpg)
 
 For an introduction to this project, check out our [blog post][blog-post-link].
 
@@ -75,7 +75,7 @@ You may have to install the required dependencies:
 ## Tutorials
 
 - [How to use XArray Viewer](tutorials/dataset_viewer.md)
-- [GeoTrame command line](tutorials/command_line.md)
+- [XArray Viewer command line](tutorials/command_line.md)
 - [Catalogs Tutorial](tutorials/catalogs.md)
 - [How to use Pan3D in a Jupyter notebook](tutorials/jupyter_notebook.md)
 

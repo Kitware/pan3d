@@ -8,7 +8,7 @@ For more information about this dataset, visit [the C3S Catalog](https://surfobs
 
 ## Get started
 
-To follow along this tutorial, install Pan3D with GeoTrame enabled.
+To follow along this tutorial, install Pan3D with its viewer enabled.
 
 ```
 pip install pan3d[viewer]
