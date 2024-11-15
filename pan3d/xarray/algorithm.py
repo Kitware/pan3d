@@ -112,8 +112,8 @@ x: {self.x}
 y: {self.y}
 z: {self.z}
 t: {self.t} ({self.t_index + 1}/{self.t_size})
-arrays: {self.arrays}
-        {self.available_arrays}
+loaded: {self.arrays}
+all:    {self.available_arrays}
 slices: {json.dumps(self.slices, indent=2)}
 computed: {json.dumps(self.computed, indent=2)}
 order: {self._order}
