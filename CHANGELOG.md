@@ -1,6 +1,35 @@
 # CHANGELOG
 
 
+## v0.10.2 (2024-11-16)
+
+### Bug Fixes
+
+- **vtk**: Use explicit import
+  ([`628da61`](https://github.com/Kitware/pan3d/commit/628da61498e4bac0e55809ab3efb563e9cb99c59))
+
+### Chores
+
+- **binder**: Allow OSMesa to drive wasm
+  ([`bceea41`](https://github.com/Kitware/pan3d/commit/bceea418e550a70ba7d8395494436c42e6a8417e))
+
+- **binder**: Try to fix binder
+  ([`8757967`](https://github.com/Kitware/pan3d/commit/87579675e274efce3105f1448e65b7040d848b78))
+
+- **binder**: Remove vtk-osmesa post script
+  ([`1f6fe97`](https://github.com/Kitware/pan3d/commit/1f6fe977d2de1bba84420c69e91a67cd0247bf74))
+
+### Continuous Integration
+
+- Push only if a release was triggered
+  ([`bef1cb1`](https://github.com/Kitware/pan3d/commit/bef1cb135cec50fe707929758979baf244123c50))
+
+### Documentation
+
+- Fix readme links
+  ([`5fc4726`](https://github.com/Kitware/pan3d/commit/5fc47263f37d89b59e5dd6e21021ace0c6b6564d))
+
+
 ## v0.10.1 (2024-11-15)
 
 ### Bug Fixes
