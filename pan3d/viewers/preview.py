@@ -1,6 +1,18 @@
-import vtk
 from vtkmodules.vtkInteractionWidgets import vtkOrientationMarkerWidget
 from vtkmodules.vtkRenderingAnnotation import vtkAxesActor
+
+from vtkmodules.vtkRenderingCore import (
+    vtkRenderer,
+    vtkRenderWindowInteractor,
+    vtkRenderWindow,
+    vtkActor,
+    vtkPolyDataMapper,
+)
+from vtkmodules.vtkFiltersGeometry import vtkDataSetSurfaceFilter
+
+# VTK factory initialization
+from vtkmodules.vtkInteractionStyle import vtkInteractorStyleSwitch  # noqa
+import vtkmodules.vtkRenderingOpenGL2  # noqa
 
 import json
 import traceback
@@ -101,9 +113,9 @@ class XArrayViewer:
     # -------------------------------------------------------------------------
 
     def _setup_vtk(self):
-        self.renderer = vtk.vtkRenderer(background=(0.8, 0.8, 0.8))
-        self.interactor = vtk.vtkRenderWindowInteractor()
-        self.render_window = vtk.vtkRenderWindow(off_screen_rendering=1)
+        self.renderer = vtkRenderer(background=(0.8, 0.8, 0.8))
+        self.interactor = vtkRenderWindowInteractor()
+        self.render_window = vtkRenderWindow(off_screen_rendering=1)
 
         self.render_window.AddRenderer(self.renderer)
         self.interactor.SetRenderWindow(self.render_window)
@@ -112,11 +124,11 @@ class XArrayViewer:
         self.source = vtkXArrayRectilinearSource()
 
         # Need explicit geometry extraction when used with WASM
-        self.geometry = vtk.vtkDataSetSurfaceFilter(
+        self.geometry = vtkDataSetSurfaceFilter(
             input_connection=self.source.output_port
         )
-        self.mapper = vtk.vtkPolyDataMapper(input_connection=self.geometry.output_port)
-        self.actor = vtk.vtkActor(mapper=self.mapper, visibility=0)
+        self.mapper = vtkPolyDataMapper(input_connection=self.geometry.output_port)
+        self.actor = vtkActor(mapper=self.mapper, visibility=0)
 
         self.interactor.Initialize()
 
