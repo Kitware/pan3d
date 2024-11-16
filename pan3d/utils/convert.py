@@ -1,6 +1,9 @@
 import math
-import vtk
 import base64
+
+from vtkmodules.vtkCommonCore import vtkUnsignedCharArray
+from vtkmodules.vtkCommonDataModel import vtkImageData
+from vtkmodules.vtkIOImage import vtkPNGWriter
 
 
 def to_float(v):
@@ -26,7 +29,7 @@ def update_camera(camera, props):
 
 
 def to_image(lut, samples=255):
-    colorArray = vtk.vtkUnsignedCharArray()
+    colorArray = vtkUnsignedCharArray()
     colorArray.SetNumberOfComponents(3)
     colorArray.SetNumberOfTuples(samples)
 
@@ -34,7 +37,7 @@ def to_image(lut, samples=255):
     delta = (dataRange[1] - dataRange[0]) / float(samples)
 
     # Add the color array to an image data
-    imgData = vtk.vtkImageData()
+    imgData = vtkImageData()
     imgData.SetDimensions(samples, 1, 1)
     imgData.GetPointData().SetScalars(colorArray)
 
@@ -47,7 +50,7 @@ def to_image(lut, samples=255):
         b = int(round(rgb[2] * 255))
         colorArray.SetTuple3(i, r, g, b)
 
-    writer = vtk.vtkPNGWriter()
+    writer = vtkPNGWriter()
     writer.WriteToMemoryOn()
     writer.SetInputData(imgData)
     writer.SetCompressionLevel(6)

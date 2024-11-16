@@ -1,7 +1,9 @@
 import json
-import vtk
 from pathlib import Path
 import numpy as np
+
+from vtkmodules.vtkRenderingCore import vtkColorTransferFunction, vtkActor
+from vtkmodules.vtkCommonCore import vtkLookupTable
 
 hsv_colors = {
     "Rainbow": {
@@ -32,7 +34,7 @@ try:
     for cmap in data:
         name = cmap["Name"]
         srgb = np.array(cmap["RGBPoints"])
-        tfunc = vtk.vtkColorTransferFunction()
+        tfunc = vtkColorTransferFunction()
         for arr in np.split(srgb, len(srgb) / 4):
             tfunc.AddRGBPoint(arr[0], arr[1], arr[2], arr[3])
         info = {"TF": tfunc, "Range": (srgb[0], srgb[-4])}
@@ -41,8 +43,8 @@ except Exception as e:
     print("Error loading diverging color maps : ", e)
 
 
-def convert_tfunc_to_lut(tfunc: vtk.vtkColorTransferFunction, tfrange):
-    lut = vtk.vtkLookupTable()
+def convert_tfunc_to_lut(tfunc: vtkColorTransferFunction, tfrange):
+    lut = vtkLookupTable()
     lut.SetNumberOfTableValues(256)
     tflen = tfrange[1] - tfrange[0]
     for i in range(256):
@@ -53,11 +55,9 @@ def convert_tfunc_to_lut(tfunc: vtk.vtkColorTransferFunction, tfrange):
     return lut
 
 
-def apply_preset(
-    actor: vtk.vtkActor, srange, preset: str, nan_color=[0, 0, 0, 0]
-) -> None:
+def apply_preset(actor: vtkActor, srange, preset: str, nan_color=[0, 0, 0, 0]) -> None:
     if preset in list(hsv_colors.keys()):
-        lut = vtk.vtkLookupTable()
+        lut = vtkLookupTable()
         lut.SetNumberOfTableValues(256)
         mapper = actor.GetMapper()
         mapper.SetLookupTable(lut)
@@ -81,9 +81,7 @@ def apply_preset(
         mapper.SetScalarRange(srange[0], srange[1])
 
 
-def use_preset(
-    sactor: vtk.vtkActor, dactor: vtk.vtkActor, sbar: vtk.vtkActor, preset: str
-) -> None:
+def use_preset(sactor: vtkActor, dactor: vtkActor, sbar: vtkActor, preset: str) -> None:
     """
     Given the slice, data, and scalar bar actor, applies the provided preset
     and updates the actors and the scalar bar
@@ -99,7 +97,7 @@ def use_preset(
     sbar.SetLookupTable(sactor.GetMapper().GetLookupTable())
 
 
-def update_preset(actor: vtk.vtkActor, sbar: vtk.vtkActor, logcale: bool) -> None:
+def update_preset(actor: vtkActor, sbar: vtkActor, logcale: bool) -> None:
     """
     Given an actor, scalar bar, and the option for whether to use log scale,
     make changes to the lookup table for the actor, and update the scalar bar

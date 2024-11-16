@@ -1,7 +1,32 @@
 import sys
 import json
-import vtk
 from pathlib import Path
+
+from vtkmodules.vtkRenderingCore import (
+    vtkRenderer,
+    vtkRenderWindowInteractor,
+    vtkRenderWindow,
+    vtkDataSetMapper,
+    vtkActor,
+    vtkPolyDataMapper,
+    vtkTextProperty,
+)
+from vtkmodules.vtkRenderingAnnotation import (
+    vtkScalarBarActor,
+)
+from vtkmodules.vtkCommonDataModel import (
+    vtkPlane,
+)
+from vtkmodules.vtkFiltersModeling import (
+    vtkOutlineFilter,
+)
+from vtkmodules.vtkFiltersCore import (
+    vtkCutter,
+)
+
+# VTK factory initialization
+from vtkmodules.vtkInteractionStyle import vtkInteractorStyleSwitch  # noqa
+import vtkmodules.vtkRenderingOpenGL2  # noqa
 
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 
@@ -89,18 +114,18 @@ class XArraySlicer:
         color_range = ds.point_data[self.state.color_by].GetRange()
 
         # Build rendering pipeline
-        self.renderer = vtk.vtkRenderer()
-        self.interactor = vtk.vtkRenderWindowInteractor()
-        self.render_window = vtk.vtkRenderWindow()
+        self.renderer = vtkRenderer()
+        self.interactor = vtkRenderWindowInteractor()
+        self.render_window = vtkRenderWindow()
 
-        plane = vtk.vtkPlane()
+        plane = vtkPlane()
         plane.SetOrigin(self.origin)
         plane.SetNormal(self.normal)
-        cutter = vtk.vtkCutter()
+        cutter = vtkCutter()
         cutter.SetCutFunction(plane)
         cutter.input_connection = self.source.output_port
-        slice_actor = vtk.vtkActor()
-        slice_mapper = vtk.vtkDataSetMapper()
+        slice_actor = vtkActor()
+        slice_mapper = vtkDataSetMapper()
         slice_mapper.SetInputConnection(cutter.GetOutputPort())
         slice_mapper.SetScalarRange(*color_range)
         slice_mapper.SelectColorArray(self.state.color_by)
@@ -112,9 +137,9 @@ class XArraySlicer:
         self.slice_actor = slice_actor
         self.slice_mapper = slice_mapper
 
-        outline = vtk.vtkOutlineFilter()
-        outline_actor = vtk.vtkActor()
-        outline_mapper = vtk.vtkPolyDataMapper()
+        outline = vtkOutlineFilter()
+        outline_actor = vtkActor()
+        outline_mapper = vtkPolyDataMapper()
         outline.input_connection = self.source.output_port
         outline_mapper.SetInputConnection(outline.GetOutputPort())
         outline_actor.SetMapper(outline_mapper)
@@ -123,8 +148,8 @@ class XArraySlicer:
         self.outline_actor = outline_actor
         self.outline_mapper = outline_mapper
 
-        data_actor = vtk.vtkActor()
-        data_mapper = vtk.vtkDataSetMapper()
+        data_actor = vtkActor()
+        data_mapper = vtkDataSetMapper()
         data_mapper.input_connection = self.source.output_port
         data_mapper.SetScalarRange(*color_range)
         data_actor.SetMapper(data_mapper)
@@ -133,14 +158,14 @@ class XArraySlicer:
         self.data_actor = data_actor
         self.data_mapper = data_mapper
 
-        sbar_actor = vtk.vtkScalarBarActor()
+        sbar_actor = vtkScalarBarActor()
         sbar_actor.SetLookupTable(self.slice_mapper.GetLookupTable())
         sbar_actor.SetMaximumHeightInPixels(600)
         sbar_actor.SetMaximumWidthInPixels(100)
         sbar_actor.SetTitleRatio(0.2)
-        lprop: vtk.vtkTextProperty = sbar_actor.GetLabelTextProperty()
+        lprop: vtkTextProperty = sbar_actor.GetLabelTextProperty()
         lprop.SetColor(0.5, 0.5, 0.5)
-        tprop: vtk.vtkTextProperty = sbar_actor.GetTitleTextProperty()
+        tprop: vtkTextProperty = sbar_actor.GetTitleTextProperty()
         tprop.SetColor(0.5, 0.5, 0.5)
         self.sbar_actor = sbar_actor
 
