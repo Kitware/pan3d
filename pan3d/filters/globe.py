@@ -17,7 +17,7 @@ def ProcessPoint(point, radius, scale):
     return [x, y, z]
 
 
-class EAMSphere(VTKPythonAlgorithmBase):
+class ProjectToSphere(VTKPythonAlgorithmBase):
     def __init__(self):
         super().__init__(
             nInputPorts=1, nOutputPorts=1, outputType="vtkUnstructuredGrid"

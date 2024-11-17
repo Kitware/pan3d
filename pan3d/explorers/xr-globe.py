@@ -117,8 +117,6 @@ class XArrayGlobe:
 
         self.source = vtkXArrayRectilinearSource()
 
-        from pan3d.explorers.filters import EAMSphere
-
         from pan3d.utils.globe import (
             get_globe,
             get_globe_texture,
@@ -135,7 +133,9 @@ class XArrayGlobe:
         self.cmapper = vtk.vtkPolyDataMapper(input_data_object=self.continents)
         self.cactor = vtk.vtkActor(mapper=self.cmapper, visibility=1)
 
-        dglobe = EAMSphere()
+        from pan3d.filters.globe import ProjectToSphere
+
+        dglobe = ProjectToSphere()
         dglobe.isData = True
         dglobe.input_connection = self.source.output_port
         self.dglobe = dglobe
@@ -441,7 +441,7 @@ class XArrayGlobe:
         camera = self.renderer.active_camera
         state_to_export = {
             **self.source.state,
-            "preview": {
+            "xr-globe": {
                 "view_3d": self.state.view_3d,
                 "color_by": self.state.color_by,
                 "color_preset": self.state.color_preset,
@@ -475,17 +475,17 @@ class XArrayGlobe:
             id = data_origin.get("id")
             order = data_origin.get("order", "C")
             config = data_state.get("dataset_config")
-            preview_state = data_state.get("preview", {})
+            globe_state = data_state.get("xr-globe", {})
             camera_state = data_state.get("camera", {})
 
             # load data and initial rendering setup
             with self.state:
                 self._load_dataset(source, id, order, config)
-                self.state.update(preview_state)
+                self.state.update(globe_state)
 
             # override computed color range using state values
             with self.state:
-                self.state.update(preview_state)
+                self.state.update(globe_state)
 
             # update camera and render
             update_camera(self.renderer.active_camera, camera_state)

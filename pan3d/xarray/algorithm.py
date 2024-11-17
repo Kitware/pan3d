@@ -290,13 +290,6 @@ order: {self._order}
 
         array_name = self.available_arrays[0]
         coords = self._input[array_name].dims
-        for name in self.available_arrays:
-            print(f"{name} : {self._input[name].dims}")
-
-        # print("=" * 60)
-        # for n in self.available_arrays:
-        #     print(f"{n}: {self._input[n].dims}")
-        # print("=" * 60)
 
         # reset coords arrays
         self.x = None
@@ -304,10 +297,6 @@ order: {self._order}
         self.z = None
         self.t = None
 
-        print(
-            f"{coords=}",
-        )
-        print(f"{self._input.coords=}")
         # assign mapping
         axes = ["t", "z", "y", "x"]
         if len(coords) == 4:
@@ -396,7 +385,7 @@ order: {self._order}
 
         filtered_arrays = []
         max_dim = 0
-        coords = set([k for k, v in self._input.coords.items() if len(v.shape) == 1])
+        coords = set(self.available_coords)
         for name in set(self._input.data_vars.keys()) - set(self._input.coords.keys()):
             if name.endswith("_bnds") or name.endswith("_bounds"):
                 continue

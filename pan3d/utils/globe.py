@@ -4,7 +4,7 @@ import numpy as np
 from vtkmodules.numpy_interface import dataset_adapter as dsa
 from vtkmodules.util import numpy_support
 
-from pan3d.explorers.filters import EAMSphere
+from pan3d.filters.globe import ProjectToSphere
 
 
 def get_globe():
@@ -35,7 +35,7 @@ def get_globe():
     texture_coords = numpy_support.numpy_to_vtk(texture_coords_np)
     grid.GetPointData().SetTCoords(texture_coords)
 
-    globe = EAMSphere()
+    globe = ProjectToSphere()
     globe.input_data_object = grid
     # Need explicit geometry extraction when used with WASM
     geometry = vtk.vtkDataSetSurfaceFilter(input_connection=globe.output_port)
@@ -75,7 +75,7 @@ def get_continent_outlines():
     contour.SetNumberOfContours(1)
     contour.Update()
 
-    continents = EAMSphere()
+    continents = ProjectToSphere()
     continents.input_data_object = contour.output
     continents.Update()
     # Need explicit geometry extraction when used with WASM
