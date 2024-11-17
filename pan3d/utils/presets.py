@@ -6,16 +6,6 @@ from vtkmodules.vtkRenderingCore import vtkColorTransferFunction, vtkActor
 from vtkmodules.vtkCommonCore import vtkLookupTable
 
 hsv_colors = {
-    "Rainbow": {
-        "Hue": (0.666, 0.0),
-        "Saturation": (1.0, 1.0),
-        "Range": (1.0, 1.0),
-    },
-    "Inv Rainbow": {
-        "Hue": (0.0, 0.666),
-        "Saturation": (1.0, 1.0),
-        "Range": (1.0, 1.0),
-    },
     "Greyscale": {
         "Hue": (0.0, 0.0),
         "Saturation": (0.0, 0.0),
