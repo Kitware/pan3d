@@ -70,6 +70,7 @@ all = [
 xr-viewer = "pan3d.viewers.preview:main"
 xr-catalog = "pan3d.viewers.catalog:main"
 xr-slicer = "pan3d.explorers.slicer:main"
+xr-globe = "pan3d.explorers.globe:main"
 
 [build-system]
 requires = ['setuptools', 'wheel']
@@ -92,7 +93,8 @@ pan3d = [
     "**/module/serve/*.js",
     "**/ui/custom.css",
     "**/ui/css/*",
-    "**/utils/*.json"
+    "**/utils/*.json",
+    "**/utils/data/**"
 ]
 
 [tool.semantic_release]

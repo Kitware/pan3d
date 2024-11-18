@@ -18,6 +18,16 @@ def get_time_labels(times):
     return [pd.to_datetime(time).strftime("%Y-%m-%d %H:%M:%S") for time in times]
 
 
+def is_time_type(dtype):
+    if np.issubdtype(dtype, np.datetime64):
+        return True
+
+    if np.issubdtype(dtype, np.dtype("O")):
+        return True
+
+    return False
+
+
 def slice_array(array_name, dataset, slice_info):
     if array_name is None:
         return np.zeros(1, dtype=np.float32)
@@ -44,16 +54,6 @@ def to_isel(slices_info, *array_names):
             slices[name] = slice(*info)
 
     return slices if slices else None
-
-
-def is_time_type(dtype):
-    if np.issubdtype(dtype, np.datetime64):
-        return True
-
-    if np.issubdtype(dtype, np.dtype("O")):
-        return True
-
-    return False
 
 
 # -----------------------------------------------------------------------------
@@ -290,11 +290,6 @@ order: {self._order}
 
         array_name = self.available_arrays[0]
         coords = self._input[array_name].dims
-
-        # print("=" * 60)
-        # for n in self.available_arrays:
-        #     print(f"{n}: {self._input[n].dims}")
-        # print("=" * 60)
 
         # reset coords arrays
         self.x = None
