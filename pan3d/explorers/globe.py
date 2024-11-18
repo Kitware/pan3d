@@ -1,4 +1,14 @@
-import vtk
+from vtkmodules.vtkRenderingCore import (
+    vtkPolyDataMapper,
+    vtkActor,
+    vtkRenderer,
+    vtkRenderWindowInteractor,
+    vtkRenderWindow,
+)
+
+# need this unused import to set interactor style
+from vtkmodules.vtkInteractionStyle import vtkInteractorStyleTrackballCamera
+from vtkmodules.vtkFiltersGeometry import vtkDataSetSurfaceFilter
 from vtkmodules.vtkInteractionWidgets import vtkOrientationMarkerWidget
 from vtkmodules.vtkRenderingAnnotation import vtkAxesActor
 
@@ -22,7 +32,7 @@ from pan3d.ui.preview import SummaryToolbar, ControlPanel
 
 
 @TrameApp()
-class XArrayGlobe:
+class GlobeViewer:
     """
     A Trame based pan3D explorer to visualize 3D geographic data projected onto a globe
     representing the earth or projected using various cartographic projections.
@@ -107,12 +117,14 @@ class XArrayGlobe:
     # -------------------------------------------------------------------------
 
     def _setup_vtk(self):
-        self.renderer = vtk.vtkRenderer(background=(0.8, 0.8, 0.8))
-        self.interactor = vtk.vtkRenderWindowInteractor()
-        self.render_window = vtk.vtkRenderWindow(off_screen_rendering=1)
+        self.renderer = vtkRenderer(background=(0.8, 0.8, 0.8))
+        self.interactor = vtkRenderWindowInteractor()
+        self.render_window = vtkRenderWindow(off_screen_rendering=1)
 
         self.render_window.AddRenderer(self.renderer)
         self.interactor.SetRenderWindow(self.render_window)
+        # Following line fixes the unused import problem for setting interaction style
+        (vtkInteractorStyleTrackballCamera)
         self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
 
         self.source = vtkXArrayRectilinearSource()
@@ -125,13 +137,13 @@ class XArrayGlobe:
 
         self.globe = get_globe()
         self.texture = get_globe_texture()
-        self.gmapper = vtk.vtkPolyDataMapper(input_data_object=self.globe)
-        self.gactor = vtk.vtkActor(mapper=self.gmapper, visibility=1)
+        self.gmapper = vtkPolyDataMapper(input_data_object=self.globe)
+        self.gactor = vtkActor(mapper=self.gmapper, visibility=1)
         self.gactor.SetTexture(self.texture)
 
         self.continents = get_continent_outlines()
-        self.cmapper = vtk.vtkPolyDataMapper(input_data_object=self.continents)
-        self.cactor = vtk.vtkActor(mapper=self.cmapper, visibility=1)
+        self.cmapper = vtkPolyDataMapper(input_data_object=self.continents)
+        self.cactor = vtkActor(mapper=self.cmapper, visibility=1)
 
         from pan3d.filters.globe import ProjectToSphere
 
@@ -140,12 +152,12 @@ class XArrayGlobe:
         dglobe.input_connection = self.source.output_port
         self.dglobe = dglobe
         # Need explicit geometry extraction when used with WASM
-        self.geometry = vtk.vtkDataSetSurfaceFilter(
+        self.geometry = vtkDataSetSurfaceFilter(
             input_connection=self.dglobe.output_port
         )
 
-        self.mapper = vtk.vtkPolyDataMapper(input_connection=self.geometry.output_port)
-        self.actor = vtk.vtkActor(mapper=self.mapper, visibility=0)
+        self.mapper = vtkPolyDataMapper(input_connection=self.geometry.output_port)
+        self.actor = vtkActor(mapper=self.mapper, visibility=0)
 
         self.interactor.Initialize()
 
@@ -185,7 +197,7 @@ class XArrayGlobe:
     # -------------------------------------------------------------------------
 
     def _build_ui(self, **kwargs):
-        self.state.trame__title = "XArray Viewer"
+        self.state.trame__title = "Globe Viewer"
 
         with VAppLayout(self.server, fill_height=True) as layout:
             self.ui = layout
@@ -518,7 +530,7 @@ class XArrayGlobe:
 
 
 def main():
-    app = XArrayGlobe()
+    app = GlobeViewer()
     app.start()
 
 

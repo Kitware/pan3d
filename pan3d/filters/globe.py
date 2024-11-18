@@ -1,6 +1,7 @@
 import math
 import numpy as np
-from vtk import vtkAppendFilter, vtkPoints  # , vtkPythonAlgorithm
+from vtkmodules.vtkFiltersCore import vtkAppendFilter
+from vtkmodules.vtkCommonCore import vtkPoints
 
 from vtkmodules.numpy_interface import dataset_adapter as dsa
 from vtkmodules.util import vtkConstants, numpy_support
