@@ -1,12 +1,64 @@
 {
   "data_origin": {
     "source": "pangeo",
-    "id": "MITgcm_channel_flatbottom_02km_run01_phys_snap15D"
+    "id": "MITgcm_channel_flatbottom_02km_run01_phys_snap15D",
+    "order": "C"
   },
   "dataset_config": {
-    "arrays": ["T"]
+    "x": "XC",
+    "y": "YC",
+    "z": "Z",
+    "t": "time",
+    "slices": {
+      "time": 7,
+      "XC": [
+        0,
+        500,
+        1
+      ],
+      "YC": [
+        0,
+        1000,
+        1
+      ],
+      "Z": [
+        0,
+        76,
+        1
+      ]
+    },
+    "t_index": 7,
+    "arrays": [
+      "T"
+    ]
   },
   "preview": {
-    "color_by": "T"
+    "view_3d": true,
+    "color_by": "T",
+    "color_preset": "Cool to Warm",
+    "color_min": -0.5137946009635925,
+    "color_max": 7.957241058349609,
+    "scale_x": 1,
+    "scale_y": 1,
+    "scale_z": "200"
+  },
+  "camera": {
+    "position": [
+      3074329.439833259,
+      3574329.439833259,
+      2283012.935927009
+    ],
+    "view_up": [
+      0.0,
+      0.0,
+      1.0
+    ],
+    "focal_point": [
+      500000.0,
+      1000000.0,
+      -291316.50390625
+    ],
+    "parallel_projection": 0,
+    "parallel_scale": 1154040.3165173125
   }
 }
