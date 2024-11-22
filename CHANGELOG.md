@@ -1,6 +1,24 @@
 # CHANGELOG
 
 
+## v0.10.3 (2024-11-22)
+
+### Bug Fixes
+
+- **binder**: Update XArrayViewer to check for gpu
+  ([`12ab9c4`](https://github.com/Kitware/pan3d/commit/12ab9c43b62347982d0a21437e37ec1acc465c30))
+
+Also fix typo in esgf notebook
+
+### Documentation
+
+- **examples**: Update esgf example - add markup cells, update config
+  ([`c33fde6`](https://github.com/Kitware/pan3d/commit/c33fde6399feff0a22fe6640838609b2a6e31471))
+
+- **examples**: Update pangeo example - add markup cells, update config
+  ([`0965b0b`](https://github.com/Kitware/pan3d/commit/0965b0b35d2826660265f35e667d02998e2e2a6c))
+
+
 ## v0.10.2 (2024-11-16)
 
 ### Bug Fixes
