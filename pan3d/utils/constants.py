@@ -1,7 +1,7 @@
 import os
 
 
-def has_gpu_rendering():
+def has_gpu():
     # Detect known environments without gpu rendering
     target_env_vars = ["BINDER_REQUEST"]
     return not any(os.environ.get(k) for k in target_env_vars)

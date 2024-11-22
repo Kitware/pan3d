@@ -1,12 +1,59 @@
 {
   "data_origin": {
     "source": "esgf",
-    "id": "CMIP6.PAMIP.MOHC.HadGEM3-GC31-MM.pdSST-futAntSIC.r102i1p1f2.day.sfcWind.gn.v20210311|eagle.alcf.anl.gov"
+    "id": "CMIP6.PAMIP.MOHC.HadGEM3-GC31-MM.pdSST-futAntSIC.r102i1p1f2.day.sfcWind.gn.v20210311|eagle.alcf.anl.gov",
+    "order": "C"
   },
   "dataset_config": {
-    "arrays": ["sfcWind"]
+    "x": "lon",
+    "y": "lat",
+    "z": null,
+    "t": "time",
+    "slices": {
+      "time": 355,
+      "lon": [
+        0,
+        432,
+        1
+      ],
+      "lat": [
+        0,
+        324,
+        1
+      ]
+    },
+    "t_index": 1,
+    "arrays": [
+      "sfcWind"
+    ]
   },
   "preview": {
-    "color_by": "sfcWind"
+    "view_3d": true,
+    "color_by": "sfcWind",
+    "color_preset": "Cool to Warm",
+    "color_min": 0.19989013671875,
+    "color_max": 21.98614501953125,
+    "scale_x": 1,
+    "scale_y": 1,
+    "scale_z": 1
+  },
+  "camera": {
+    "position": [
+      179.9999898225069,
+      7.62939453125e-06,
+      775.6354152568821
+    ],
+    "view_up": [
+      0.0,
+      1.0,
+      0.0
+    ],
+    "focal_point": [
+      179.9999898225069,
+      7.62939453125e-06,
+      0.0
+    ],
+    "parallel_projection": 0,
+    "parallel_scale": 200.74921752448336
   }
 }
