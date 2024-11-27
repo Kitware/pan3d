@@ -38,10 +38,27 @@ class Pan3DView(html.Div):
             # 3D view
             if local_rendering is not None:
                 if local_rendering == "wasm":
-                    with wasm.LocalView(self.render_window, throttle_rate=10) as view:
+                    with wasm.LocalView(
+                        self.render_window,
+                        throttle_rate=10,
+                        listeners=("wasm_listeners", {}),
+                    ) as view:
                         self.ctrl.view_update_force = view.update
                         self.ctrl.view_update = view.update_throttle
                         self.ctrl.view_reset_camera = view.reset_camera
+                        camera_id = view.get_wasm_id(self.camera)
+                        self.state.setdefault("wasm_camera", None)
+                        self.state.wasm_listeners = {
+                            camera_id: {
+                                "ModifiedEvent": {
+                                    "wasm_camera": {
+                                        "position": [camera_id, "Position"],
+                                        "view_up": [camera_id, "ViewUp"],
+                                        "focal_point": [camera_id, "FocalPoint"],
+                                    }
+                                }
+                            }
+                        }
                         for w in widgets or []:
                             view.register_widget(w)
                 else:
@@ -158,7 +175,8 @@ class Pan3DView(html.Div):
         camera.focal_point = (0, 0, 0)
         camera.position = axis
         camera.view_up = VIEW_UPS.get(tuple(axis))
-        self.ctrl.view_reset_camera()
+        self.renderer.ResetCamera()
+        self.ctrl.view_update(push_camera=True)
 
     def rotate_camera(self, direction):
         camera = self.renderer.active_camera
@@ -171,7 +189,15 @@ class Pan3DView(html.Div):
         ]
         camera.view_up = view_up
 
-        self.ctrl.view_update()
+        self.ctrl.view_update(push_camera=True)
+
+    @change("wasm_camera")
+    def _on_camera(self, wasm_camera, **_):
+        if wasm_camera is None:
+            return
+
+        for k, v in wasm_camera.items():
+            setattr(self.camera, k, v)
 
     @change("view_3d")
     def _on_view_type_change(self, view_3d, **_):
