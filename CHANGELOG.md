@@ -1,6 +1,23 @@
 # CHANGELOG
 
 
+## v0.10.4 (2024-11-27)
+
+### Bug Fixes
+
+- **scaling**: Wasm camera handling
+  ([`4ca1922`](https://github.com/Kitware/pan3d/commit/4ca1922d16165e01d2a349f03ba042cfbde87d37))
+
+- **scroll**: Remove scrollbar on linux
+  ([`d311962`](https://github.com/Kitware/pan3d/commit/d311962fa47eb5ca11f8faa48c087720b3ae752d))
+
+- **wasm**: Better conditional widget initialization
+  ([`f93b143`](https://github.com/Kitware/pan3d/commit/f93b1430a93b5369165e64f58811c9eec7a690f7))
+
+- **wasm**: Properly handle camera sync
+  ([`272cb77`](https://github.com/Kitware/pan3d/commit/272cb7712e1371ed4fb2eb6af00be2d984c8104c))
+
+
 ## v0.10.3 (2024-11-22)
 
 ### Bug Fixes
