@@ -301,8 +301,11 @@ class XArrayViewer:
             return
 
         if self.actor.visibility:
+            self.renderer.ResetCamera()
+
             if self.local_rendering:
-                self.ctrl.view_update()
+                self.ctrl.view_update(push_camera=True)
+
             self.ctrl.view_reset_camera()
 
     @change("data_origin_order")
