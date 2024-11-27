@@ -23,7 +23,6 @@ from trame.app import get_server, asynchronous
 
 from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import vuetify3 as v3
-from trame.widgets import vtk as vtkw, vtklocal as vtkwasm
 
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 
@@ -95,10 +94,6 @@ class XArrayViewer:
         # If no GPU, use local rendering
         if self.local_rendering is None and not has_gpu():
             self.local_rendering = "wasm"
-
-        # Initialize conditional widgets
-        vtkw.initialize(self.server)
-        vtkwasm.initialize(self.server)
 
         # Process CLI
         self.ctrl.on_server_ready.add(self._process_cli)

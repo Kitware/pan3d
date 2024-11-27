@@ -22,6 +22,10 @@ class Pan3DView(html.Div):
         self.server.enable_module(base)
         self.server.enable_module(vtk_view)
 
+        # Initialize conditional widgets
+        vtkw.initialize(self.server)
+        wasm.initialize(self.server)
+
         self._import_pending = import_pending
         self.render_window = render_window
         self.renderer = render_window.GetRenderers().GetFirstRenderer()
