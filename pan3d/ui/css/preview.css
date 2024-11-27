@@ -1,3 +1,7 @@
+html {
+    overflow: hidden;
+}
+
 .summary-toolbar {
     position: absolute;
     top: 1rem;
