@@ -71,6 +71,7 @@ xr-viewer = "pan3d.viewers.preview:main"
 xr-catalog = "pan3d.viewers.catalog:main"
 xr-slicer = "pan3d.explorers.slicer:main"
 xr-globe = "pan3d.explorers.globe:main"
+xr-contour = "pan3d.explorers.contour:main"
 
 [build-system]
 requires = ['setuptools', 'wheel']

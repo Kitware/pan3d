@@ -14,7 +14,7 @@ html {
 }
 
 .controller {
-    position: absolute;
+    position: absolute !important;
     top: 1rem;
     left: 1rem;
     max-height: calc(100vh - 2rem);
