@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.11.2 (2024-12-09)
+
+### Bug Fixes
+
+- **preset**: Add x-margin for lut image
+  ([`915baad`](https://github.com/Kitware/pan3d/commit/915baad93ca915a6a6ef2168d2dea9c2353370c6))
+
+
 ## v0.11.1 (2024-12-09)
 
 ### Bug Fixes
