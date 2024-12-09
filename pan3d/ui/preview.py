@@ -327,11 +327,12 @@ class RenderingSettings(CollapsableSection):
                         click=self.reset_color_range,
                     )
             # v3.VDivider()
-            html.Img(
-                src=("preset_img", None),
-                style="height: 0.75rem; width: 100%;",
-                classes="rounded-lg border-thin",
-            )
+            with html.Div(classes="mx-2"):
+                html.Img(
+                    src=("preset_img", None),
+                    style="height: 0.75rem; width: 100%;",
+                    classes="rounded-lg border-thin",
+                )
             v3.VSelect(
                 placeholder="Color Preset",
                 prepend_inner_icon="mdi-palette",
