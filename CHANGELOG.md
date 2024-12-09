@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.12.0 (2024-12-09)
+
+### Features
+
+- **presets**: Use default ParaView color presets
+  ([`75d7575`](https://github.com/Kitware/pan3d/commit/75d7575cea65b6de1637c0892c01995683988ddc))
+
+
 ## v0.11.2 (2024-12-09)
 
 ### Bug Fixes

@@ -1,6 +1,6 @@
 [project]
 name = "pan3d"
-version = "0.11.2"
+version = "0.12.0"
 description = "Utility package for processing and visualizing 3D datasets"
 authors = [
     {name = "Kitware Inc."},
