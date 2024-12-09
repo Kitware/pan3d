@@ -7,7 +7,7 @@ from trame.widgets import html, vuetify3 as v3
 from pan3d import catalogs as pan3d_catalogs
 from pan3d.utils.constants import XYZ, SLICE_VARS
 from pan3d.utils.convert import max_str_length
-from pan3d.utils.presets import COLOR_PRESETS
+from pan3d.utils.presets import PRESETS
 
 from pan3d.ui.css import base, preview
 from pan3d.ui.collapsible import CollapsableSection
@@ -335,8 +335,8 @@ class RenderingSettings(CollapsableSection):
             v3.VSelect(
                 placeholder="Color Preset",
                 prepend_inner_icon="mdi-palette",
-                v_model=("color_preset", "Cool to Warm"),
-                items=("color_presets", COLOR_PRESETS),
+                v_model=("color_preset", "Fast"),
+                items=("color_presets", list(PRESETS.keys())),
                 hide_details=True,
                 density="compact",
                 flat=True,

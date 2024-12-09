@@ -1,5 +1,6 @@
 from vtkmodules.vtkInteractionWidgets import vtkOrientationMarkerWidget
 from vtkmodules.vtkRenderingAnnotation import vtkAxesActor
+from vtkmodules.vtkCommonCore import vtkLookupTable
 
 from vtkmodules.vtkRenderingCore import (
     vtkRenderer,
@@ -28,7 +29,7 @@ from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 
 from pan3d.utils.constants import has_gpu
 from pan3d.utils.convert import update_camera, to_image, to_float
-from pan3d.utils.presets import apply_preset
+from pan3d.utils.presets import set_preset
 
 from pan3d.ui.vtk_view import Pan3DView, Pan3DScalarBar
 from pan3d.ui.preview import SummaryToolbar, ControlPanel
@@ -126,13 +127,17 @@ class XArrayViewer:
         self.interactor.SetRenderWindow(self.render_window)
         self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
 
+        self.lut = vtkLookupTable()
         self.source = vtkXArrayRectilinearSource()
 
         # Need explicit geometry extraction when used with WASM
         self.geometry = vtkDataSetSurfaceFilter(
             input_connection=self.source.output_port
         )
-        self.mapper = vtkPolyDataMapper(input_connection=self.geometry.output_port)
+        self.mapper = vtkPolyDataMapper(
+            input_connection=self.geometry.output_port,
+            lookup_table=self.lut,
+        )
         self.actor = vtkActor(mapper=self.mapper, visibility=0)
 
         self.interactor.Initialize()
@@ -282,10 +287,13 @@ class XArrayViewer:
     ):
         color_min = float(color_min)
         color_max = float(color_max)
-        color = nan_colors[nan_color]
         self.mapper.SetScalarRange(color_min, color_max)
-        apply_preset(self.actor, [color_min, color_max], color_preset, color)
-        self.state.preset_img = to_image(self.actor.mapper.lookup_table, 255)
+
+        color = nan_colors[nan_color]
+        self.lut.SetNanColor(color)
+
+        set_preset(self.lut, color_preset)
+        self.state.preset_img = to_image(self.lut, 255)
 
         self.ctrl.view_update()
 
