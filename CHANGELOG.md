@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.11.1 (2024-12-09)
+
+### Bug Fixes
+
+- **colors**: Better color preset helpers
+  ([`37f352d`](https://github.com/Kitware/pan3d/commit/37f352d6471446114a0413273ad1d698849c8a9e))
+
+
 ## v0.11.0 (2024-12-06)
 
 ### Features
