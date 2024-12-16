@@ -11,6 +11,7 @@ from vtkmodules.vtkInteractionStyle import vtkInteractorStyleTrackballCamera
 from vtkmodules.vtkFiltersGeometry import vtkDataSetSurfaceFilter
 from vtkmodules.vtkInteractionWidgets import vtkOrientationMarkerWidget
 from vtkmodules.vtkRenderingAnnotation import vtkAxesActor
+from vtkmodules.vtkCommonCore import vtkLookupTable
 
 import json
 import traceback
@@ -25,7 +26,7 @@ from trame.widgets import vuetify3 as v3
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 
 from pan3d.utils.convert import update_camera, to_image, to_float
-from pan3d.utils.presets import apply_preset
+from pan3d.utils.presets import set_preset
 
 from pan3d.ui.vtk_view import Pan3DView, Pan3DScalarBar
 from pan3d.ui.preview import SummaryToolbar, ControlPanel
@@ -135,6 +136,8 @@ class GlobeViewer:
             get_continent_outlines,
         )
 
+        self.lut = vtkLookupTable()
+
         self.globe = get_globe()
         self.texture = get_globe_texture()
         self.gmapper = vtkPolyDataMapper(input_data_object=self.globe)
@@ -156,7 +159,9 @@ class GlobeViewer:
             input_connection=self.dglobe.output_port
         )
 
-        self.mapper = vtkPolyDataMapper(input_connection=self.geometry.output_port)
+        self.mapper = vtkPolyDataMapper(
+            input_connection=self.geometry.output_port, lookup_table=self.lut
+        )
         self.actor = vtkActor(mapper=self.mapper, visibility=0)
 
         self.interactor.Initialize()
@@ -306,10 +311,13 @@ class GlobeViewer:
     ):
         color_min = float(color_min)
         color_max = float(color_max)
-        color = nan_colors[nan_color]
         self.mapper.SetScalarRange(color_min, color_max)
-        apply_preset(self.actor, [color_min, color_max], color_preset, color)
-        self.state.preset_img = to_image(self.actor.mapper.lookup_table, 255)
+
+        set_preset(self.lut, color_preset)
+        self.state.preset_img = to_image(self.lut, 255)
+
+        color = nan_colors[nan_color]
+        self.lut.SetNanColor(color)
 
         self.ctrl.view_update()
 
