@@ -29,7 +29,9 @@ from pan3d.utils.convert import update_camera, to_image, to_float
 from pan3d.utils.presets import set_preset
 
 from pan3d.ui.vtk_view import Pan3DView, Pan3DScalarBar
-from pan3d.ui.preview import SummaryToolbar, ControlPanel
+from pan3d.ui.globe import SummaryToolbar, ControlPanel
+
+from pan3d.utils.globe import get_globe, get_globe_textures, get_continent_outlines
 
 
 @TrameApp()
@@ -98,6 +100,9 @@ class GlobeViewer:
         # Process CLI
         self.ctrl.on_server_ready.add(self._process_cli)
 
+        self.textures = get_globe_textures()
+        self.state.textures = list(self.textures.keys())
+
         self.state.nan_colors = [
             [0, 0, 0, 1],
             [0.99, 0.99, 0.99, 1],
@@ -130,19 +135,9 @@ class GlobeViewer:
 
         self.source = vtkXArrayRectilinearSource()
 
-        from pan3d.utils.globe import (
-            get_globe,
-            get_globe_texture,
-            get_continent_outlines,
-        )
-
-        self.lut = vtkLookupTable()
-
         self.globe = get_globe()
-        self.texture = get_globe_texture()
         self.gmapper = vtkPolyDataMapper(input_data_object=self.globe)
         self.gactor = vtkActor(mapper=self.gmapper, visibility=1)
-        self.gactor.SetTexture(self.texture)
 
         self.continents = get_continent_outlines()
         self.cmapper = vtkPolyDataMapper(input_data_object=self.continents)
@@ -305,9 +300,16 @@ class GlobeViewer:
             self.state.color_min = 0
             self.state.color_max = 1
 
-    @change("color_preset", "color_min", "color_max", "nan_color")
+    @change("color_preset", "color_min", "color_max", "nan_color", "opacity")
     def _on_color_preset(
-        self, nan_color, nan_colors, color_preset, color_min, color_max, **_
+        self,
+        nan_color,
+        nan_colors,
+        color_preset,
+        color_min,
+        color_max,
+        opacity,
+        **_,
     ):
         color_min = float(color_min)
         color_max = float(color_max)
@@ -321,21 +323,10 @@ class GlobeViewer:
 
         self.ctrl.view_update()
 
-    @change("scale_x", "scale_y", "scale_z")
-    def _on_scale_change(self, scale_x, scale_y, scale_z, **_):
-        self.actor.SetScale(
-            to_float(scale_x),
-            to_float(scale_y),
-            to_float(scale_z),
-        )
-
-        if self.state.import_pending:
-            return
-
-        if self.actor.visibility:
-            if self.local_rendering:
-                self.ctrl.view_update()
-            self.ctrl.view_reset_camera()
+    @change("texture")
+    def _on_texture_preset(self, texture, **_):
+        self.gactor.SetTexture(self.textures[texture])
+        self.ctrl.view_update()
 
     @change("data_origin_order")
     def _on_order_change(self, **_):
@@ -432,7 +423,7 @@ class GlobeViewer:
         self.state.dirty_data = False
 
         self.gactor.visibility = 1
-        self.gactor.SetTexture(self.texture)
+        self.gactor.SetTexture(self.textures[self.state.texture])
         self.renderer.AddActor(self.gactor)
 
         self.cactor.visibility = 1

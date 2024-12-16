@@ -50,7 +50,8 @@ def get_globe():
     return geometry.output
 
 
-def get_globe_texture():
+"""
+def get_globe_texture() -> map:
     # Load a texture (JPEG image in this case)
     jpeg_reader = vtkJPEGReader()
     jpeg_reader.SetFileName(
@@ -64,6 +65,32 @@ def get_globe_texture():
     texture.InterpolateOn()
 
     return texture
+"""
+
+
+def get_globe_textures():
+    textures = {}
+    textures_dir = datadir + os.path.sep + "globe_textures"
+    files = os.listdir(textures_dir)
+    for file in files:
+        if file.endswith(".md"):
+            continue
+        texture_name = file[:-4].capitalize()
+        texture_path = textures_dir + os.path.sep + file
+
+        # Load a texture (JPEG image in this case)
+        jpeg_reader = vtkJPEGReader()
+        jpeg_reader.SetFileName(texture_path)
+        jpeg_reader.Update()
+
+        # Create a vtkTexture object
+        texture = vtkTexture()
+        texture.SetInputConnection(jpeg_reader.GetOutputPort())
+        texture.InterpolateOn()
+
+        textures[texture_name] = texture
+
+    return textures
 
 
 def get_continent_outlines():
