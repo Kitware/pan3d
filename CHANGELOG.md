@@ -1,6 +1,16 @@
 # CHANGELOG
 
 
+## v0.12.1 (2024-12-17)
+
+### Bug Fixes
+
+- **lookup tables**: Adding lookup table changes to explorers
+  ([`dad4830`](https://github.com/Kitware/pan3d/commit/dad4830a510a483b82aa9735a03c29009f54fe7c))
+
+-- Adding to fix issue https://github.com/Kitware/pan3d/issues/143
+
+
 ## v0.12.0 (2024-12-09)
 
 ### Features
