@@ -16,6 +16,7 @@ from vtkmodules.vtkFiltersModeling import (
     vtkLoopSubdivisionFilter,
 )
 from vtkmodules.vtkFiltersCore import vtkAssignAttribute
+from vtkmodules.vtkCommonCore import vtkLookupTable
 
 # VTK factory initialization
 from vtkmodules.vtkInteractionStyle import vtkInteractorStyleSwitch  # noqa
@@ -31,7 +32,7 @@ from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import vuetify3 as v3, html
 
 from pan3d.utils.convert import to_float, to_image
-from pan3d.utils.presets import apply_preset, COLOR_PRESETS
+from pan3d.utils.presets import set_preset, PRESETS
 
 from pan3d.ui.vtk_view import Pan3DView
 from pan3d.ui.css import base, preview
@@ -88,6 +89,8 @@ class ContourExplorer:
     # -------------------------------------------------------------------------
 
     def _setup_vtk(self):
+        self.lut = vtkLookupTable()
+
         self.renderer = vtkRenderer(background=(0.8, 0.8, 0.8))
         self.interactor = vtkRenderWindowInteractor()
         self.render_window = vtkRenderWindow(off_screen_rendering=1)
@@ -118,6 +121,7 @@ class ContourExplorer:
             input_connection=self.bands.output_port,
             scalar_visibility=1,
             interpolate_scalars_before_mapping=1,
+            lookup_table=self.lut,
         )
         self.mapper.SelectColorArray("scalars")
         self.mapper.SetScalarModeToUsePointFieldData()
@@ -366,7 +370,7 @@ class ContourExplorer:
                         placeholder="Color Preset",
                         prepend_inner_icon="mdi-palette",
                         v_model=("color_preset", "Cool to Warm"),
-                        items=("color_presets", COLOR_PRESETS),
+                        items=("color_presets", list(PRESETS.keys())),
                         hide_details=True,
                         density="compact",
                         flat=True,
@@ -463,8 +467,8 @@ class ContourExplorer:
     ):
         if self.last_preset != color_preset:
             self.last_preset = color_preset
-            apply_preset(self.actor, [color_min, color_max], color_preset)
-            self.state.preset_img = to_image(self.actor.mapper.lookup_table, 255)
+            set_preset(self.lut, color_preset)
+            self.state.preset_img = to_image(self.lut, 255)
 
         self.mapper.SetScalarRange(color_min, color_max)
         self.bands.GenerateValues(nb_contours, [color_min, color_max])

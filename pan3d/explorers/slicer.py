@@ -2,6 +2,8 @@ import sys
 import json
 from pathlib import Path
 
+from vtkmodules.vtkCommonCore import vtkLookupTable
+
 from vtkmodules.vtkRenderingCore import (
     vtkRenderer,
     vtkRenderWindowInteractor,
@@ -11,6 +13,7 @@ from vtkmodules.vtkRenderingCore import (
     vtkPolyDataMapper,
     vtkTextProperty,
 )
+
 from vtkmodules.vtkRenderingAnnotation import (
     vtkScalarBarActor,
 )
@@ -38,7 +41,7 @@ from trame.widgets import vuetify3 as v3, html, client
 
 from pan3d.ui.vtk_view import Pan3DView
 from pan3d.ui.common import NumericField
-from pan3d.utils.presets import update_preset, use_preset, COLOR_PRESETS
+from pan3d.utils.presets import set_preset, PRESETS
 
 
 @TrameApp()
@@ -113,6 +116,9 @@ class XArraySlicer:
 
         color_range = ds.point_data[self.state.color_by].GetRange()
 
+        # Create lookup table
+        self.lut = vtkLookupTable()
+
         # Build rendering pipeline
         self.renderer = vtkRenderer()
         self.interactor = vtkRenderWindowInteractor()
@@ -125,7 +131,7 @@ class XArraySlicer:
         cutter.SetCutFunction(plane)
         cutter.input_connection = self.source.output_port
         slice_actor = vtkActor()
-        slice_mapper = vtkDataSetMapper()
+        slice_mapper = vtkDataSetMapper(lookup_table=self.lut)
         slice_mapper.SetInputConnection(cutter.GetOutputPort())
         slice_mapper.SetScalarRange(*color_range)
         slice_mapper.SelectColorArray(self.state.color_by)
@@ -139,7 +145,7 @@ class XArraySlicer:
 
         outline = vtkOutlineFilter()
         outline_actor = vtkActor()
-        outline_mapper = vtkPolyDataMapper()
+        outline_mapper = vtkPolyDataMapper(lookup_table=self.lut)
         outline.input_connection = self.source.output_port
         outline_mapper.SetInputConnection(outline.GetOutputPort())
         outline_actor.SetMapper(outline_mapper)
@@ -149,7 +155,7 @@ class XArraySlicer:
         self.outline_mapper = outline_mapper
 
         data_actor = vtkActor()
-        data_mapper = vtkDataSetMapper()
+        data_mapper = vtkDataSetMapper(lookup_table=self.lut)
         data_mapper.input_connection = self.source.output_port
         data_mapper.SetScalarRange(*color_range)
         data_actor.SetMapper(data_mapper)
@@ -159,7 +165,7 @@ class XArraySlicer:
         self.data_mapper = data_mapper
 
         sbar_actor = vtkScalarBarActor()
-        sbar_actor.SetLookupTable(self.slice_mapper.GetLookupTable())
+        sbar_actor.SetLookupTable(self.lut)
         sbar_actor.SetMaximumHeightInPixels(600)
         sbar_actor.SetMaximumWidthInPixels(100)
         sbar_actor.SetTitleRatio(0.2)
@@ -294,7 +300,7 @@ class XArraySlicer:
         Performs all the steps necessary to visualize correct data when the
         color map is updated
         """
-        use_preset(self.slice_actor, self.data_actor, self.sbar_actor, cmap)
+        set_preset(self.lut, cmap)
         self.ctrl.view_update()
 
     @change("logscale")
@@ -302,7 +308,11 @@ class XArraySlicer:
         """
         Performs all the steps necessary when user toggles log scale for color map
         """
-        update_preset(self.slice_actor, self.sbar_actor, logscale)
+        if logscale:
+            self.lut.SetScaleToLog10()
+        else:
+            self.lut.SetScaleToLinear()
+
         self.ctrl.view_update()
 
     def _set_view_2D(self, axis):
@@ -660,8 +670,8 @@ class XArraySlicer:
                             )
                         v3.VSelect(
                             label="Preset",
-                            v_model=("cmap", COLOR_PRESETS[0]),
-                            items=("colormaps", COLOR_PRESETS),
+                            v_model=("cmap", "Fast"),
+                            items=("colormaps", list(PRESETS.keys())),
                             outlined=True,
                             **style,
                         )
