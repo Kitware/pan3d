@@ -1,6 +1,22 @@
 # CHANGELOG
 
 
+## v0.12.2 (2024-12-18)
+
+### Bug Fixes
+
+- **globe explorer revision**: Adding updates to globe explorer
+  ([`6fe397b`](https://github.com/Kitware/pan3d/commit/6fe397b2cf21c33c010140c46ff24a76f6f96558))
+
+Adding to fix issue https://github.com/Kitware/pan3d/issues/142
+
+- **rebase**: Rebasing over lookup table changes
+  ([`f1ff447`](https://github.com/Kitware/pan3d/commit/f1ff447bbb8520b1f8890d1a74ad271a24eebacb))
+
+- **review**: Adding changes from feedback
+  ([`92f7c50`](https://github.com/Kitware/pan3d/commit/92f7c507a775a47f4f437068dabc9daf42cebf63))
+
+
 ## v0.12.1 (2024-12-17)
 
 ### Bug Fixes
