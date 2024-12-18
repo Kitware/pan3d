@@ -25,7 +25,7 @@ from trame.widgets import vuetify3 as v3
 
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 
-from pan3d.utils.convert import update_camera, to_image, to_float
+from pan3d.utils.convert import update_camera, to_image
 from pan3d.utils.presets import set_preset
 
 from pan3d.ui.vtk_view import Pan3DView, Pan3DScalarBar
@@ -124,6 +124,8 @@ class GlobeViewer:
     # -------------------------------------------------------------------------
 
     def _setup_vtk(self):
+        self.lut = vtkLookupTable()
+
         self.renderer = vtkRenderer(background=(0.8, 0.8, 0.8))
         self.interactor = vtkRenderWindowInteractor()
         self.render_window = vtkRenderWindow(off_screen_rendering=1)
@@ -328,6 +330,7 @@ class GlobeViewer:
     def _on_change_opacity(self, opacity, **_):
         opacity = float(opacity)
         self.actor.GetProperty().SetOpacity(opacity)
+        self.ctrl.view_update()
 
     @change("texture")
     def _on_texture_preset(self, texture, **_):

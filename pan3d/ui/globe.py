@@ -412,7 +412,7 @@ class RenderingSettings(CollapsableSection):
         with self.state:
             self.state.data_arrays_available = source.available_arrays
             self.state.data_arrays = source.arrays
-            self.state.color_by = None
+            self.state.color_by = self.state.data_arrays[0]
             self.state.axis_names = [source.x, source.y, source.z]
             self.state.slice_extents = source.slice_extents
             slices = source.slices
