@@ -9,235 +9,8 @@ from pan3d.utils.constants import XYZ, SLICE_VARS
 from pan3d.utils.convert import max_str_length
 from pan3d.utils.presets import PRESETS
 
-from pan3d.ui.css import base, preview
 from pan3d.ui.collapsible import CollapsableSection
-
-
-class SummaryToolbar(v3.VCard):
-    def __init__(
-        self,
-        t_labels="t_labels",
-        slice_t="slice_t",
-        slice_t_max="slice_t_max",
-        color_by="color_by",
-        data_arrays="data_arrays",
-        max_time_width="max_time_width",
-        max_time_index_width="max_time_index_width",
-        **kwargs,
-    ):
-        super().__init__(
-            classes="summary-toolbar",
-            rounded="pill",
-            **kwargs,
-        )
-
-        # Activate CSS
-        self.server.enable_module(base)
-        self.server.enable_module(preview)
-
-        with self:
-            with v3.VToolbar(
-                classes="pl-2",
-                height=50,
-                elevation=1,
-                style="background: none;",
-            ):
-                v3.VIcon("mdi-clock-outline")
-                html.Pre(
-                    f"{{{{ {t_labels}[slice_t] }}}}",
-                    classes="mx-2 text-left",
-                    style=(f"`min-width: ${{ {max_time_width} }}rem;`",),
-                )
-                v3.VSlider(
-                    prepend_inner_icon="mdi-clock-outline",
-                    v_model=(slice_t, 0),
-                    min=0,
-                    max=(slice_t_max, 0),
-                    step=1,
-                    hide_details=True,
-                    density="compact",
-                    flat=True,
-                    variant="solo",
-                    classes="mx-2",
-                )
-                html.Div(
-                    f"{{{{ {slice_t} + 1 }}}}/{{{{ {slice_t_max} + 1 }}}}",
-                    classes="mx-2 text-right",
-                    style=(f"`min-width: ${{ {max_time_index_width} }}rem;`",),
-                )
-                v3.VSelect(
-                    placeholder="Color By",
-                    prepend_inner_icon="mdi-format-color-fill",
-                    v_model=(color_by, None),
-                    items=(data_arrays, []),
-                    clearable=True,
-                    hide_details=True,
-                    density="compact",
-                    flat=True,
-                    variant="solo",
-                    max_width=200,
-                )
-
-
-class DataOrigin(CollapsableSection):
-    def __init__(self, load_dataset):
-        super().__init__("Data origin", "show_data_origin", True)
-
-        self.state.load_button_text = "Load"
-        self.state.can_load = True
-        self.state.data_origin_id_to_desc = {}
-
-        with self.content:
-            v3.VSelect(
-                label="Source",
-                v_model=("data_origin_source", "xarray"),
-                items=(
-                    "data_origin_sources",
-                    pan3d_catalogs.list_availables(),
-                ),
-                hide_details=True,
-                density="compact",
-                flat=True,
-                variant="solo",
-            )
-            v3.VDivider()
-            v3.VTextField(
-                placeholder="Location",
-                v_if="['file', 'url'].includes(data_origin_source)",
-                v_model=("data_origin_id", ""),
-                hide_details=True,
-                density="compact",
-                flat=True,
-                variant="solo",
-                append_inner_icon=(
-                    "data_origin_id_error ? 'mdi-file-document-alert-outline' : undefined",
-                ),
-                error=("data_origin_id_error", False),
-            )
-
-            with v3.VTooltip(
-                v_else=True,
-                text=("`${ data_origin_id_to_desc[data_origin_id] }`",),
-            ):
-                with html.Template(v_slot_activator="{ props }"):
-                    v3.VSelect(
-                        v_bind="props",
-                        label="Name",
-                        v_model="data_origin_id",
-                        items=("data_origin_ids", []),
-                        hide_details=True,
-                        density="compact",
-                        flat=True,
-                        variant="solo",
-                    )
-
-            v3.VDivider()
-            v3.VBtn(
-                "{{ load_button_text }}",
-                block=True,
-                classes="text-none",
-                flat=True,
-                density="compact",
-                rounded=0,
-                disabled=("!data_origin_id?.length || !can_load",),
-                color=("can_load ? 'primary': undefined",),
-                click=(
-                    load_dataset,
-                    "[data_origin_source, data_origin_id, data_origin_order]",
-                ),
-            )
-
-
-class DataInformation(CollapsableSection):
-    def __init__(self, xarray_info="xarray_info"):
-        super().__init__("Data information", "show_data_information")
-
-        self._var_name = xarray_info
-        self.state.setdefault(xarray_info, [])
-
-        with self.content:
-            with v3.VTable(density="compact", hover=True):
-                with html.Tbody():
-                    with html.Template(v_for=f"item, i in {xarray_info}", key="i"):
-                        with v3.VTooltip():
-                            with html.Template(v_slot_activator="{ props }"):
-                                with html.Tr(v_bind="props", classes="pointer"):
-                                    with html.Td(
-                                        classes="d-flex align-center text-no-wrap"
-                                    ):
-                                        v3.VIcon(
-                                            "{{ item.icon }}",
-                                            size="sm",
-                                            classes="mr-2",
-                                        )
-                                        html.Div("{{ item.name }}")
-                                    html.Td(
-                                        "{{ item.length }}",
-                                        classes="text-right",
-                                    )
-
-                            with v3.VTable(
-                                density="compact",
-                                theme="dark",
-                                classes="no-bg ma-0 pa-0",
-                            ):
-                                with html.Tbody():
-                                    with html.Tr(
-                                        v_for="attr, j in item.attrs",
-                                        key="j",
-                                    ):
-                                        html.Td(
-                                            "{{ attr.key }}",
-                                        )
-                                        html.Td(
-                                            "{{ attr.value }}",
-                                        )
-
-    def update_information(self, xr, available_arrays=None):
-        xarray_info = []
-        coords = set(xr.coords.keys())
-        data = set(available_arrays or [])
-        for name in xr.variables:
-            icon = "mdi-variable"
-            order = 3
-            length = f'({",".join(xr[name].dims)})'
-            attrs = []
-            if name in coords:
-                icon = "mdi-ruler"
-                order = 1
-                length = xr[name].size
-                shape = xr[name].shape
-                if length > 1 and len(shape) == 1:
-                    attrs.append(
-                        {
-                            "key": "range",
-                            "value": f"[{xr[name].values[0]}, {xr[name].values[-1]}]",
-                        }
-                    )
-            if name in data:
-                icon = "mdi-database"
-                order = 2
-            xarray_info.append(
-                {
-                    "order": order,
-                    "icon": icon,
-                    "name": name,
-                    "length": length,
-                    "type": str(xr[name].dtype),
-                    "attrs": attrs
-                    + [
-                        {"key": "type", "value": str(xr[name].dtype)},
-                    ]
-                    + [
-                        {"key": str(k), "value": str(v)}
-                        for k, v in xr[name].attrs.items()
-                    ],
-                }
-            )
-        xarray_info.sort(key=lambda item: item["order"])
-
-        # Update UI
-        self.state[self._var_name] = xarray_info
+from pan3d.ui.preview import DataOrigin, DataInformation
 
 
 @TrameApp()
@@ -331,17 +104,25 @@ class RenderingSettings(CollapsableSection):
                 flat=True,
                 variant="solo",
             )
-            v3.VSlider(
-                classes="pr-3 ml-3",
-                prepend_icon="mdi-opacity",
-                v_model=("opacity", 1.0),
-                min=0.0,
-                max=1.0,
-                hide_details=True,
-                density="compact",
-                flat=True,
-                variant="solo",
-            )
+            with v3.VTooltip(
+                text=("`Opacity: ${opacity.toFixed(2)}`",),
+            ):
+                with html.Template(v_slot_activator="{ props }"):
+                    with html.Div(
+                        classes="d-flex pr-2",
+                        v_bind="props",
+                    ):
+                        v3.VSlider(
+                            classes="pr-3 ml-3",
+                            prepend_icon="mdi-opacity",
+                            v_model=("opacity", 1.0),
+                            min=0.0,
+                            max=1.0,
+                            hide_details=True,
+                            density="compact",
+                            flat=True,
+                            variant="solo",
+                        )
             with v3.VTooltip(
                 text=("`NaN Color (${nan_colors[nan_color]})`",),
             ):
@@ -379,17 +160,25 @@ class RenderingSettings(CollapsableSection):
                                         size="small",
                                         click="toggle",
                                     )
-            v3.VSelect(
-                placeholder="Globe Texture",
-                prepend_inner_icon="mdi-earth",
-                v_model=("texture", self.state.textures[0]),
-                items=("textures",),
-                hide_details=True,
-                density="compact",
-                flat=True,
-                variant="solo",
-            )
-            v3.VDivider()
+            with v3.VTooltip(
+                text=("`Globe texture: ${texture}`",),
+            ):
+                with html.Template(v_slot_activator="{ props }"):
+                    with html.Div(
+                        classes="d-flex pr-2",
+                        v_bind="props",
+                    ):
+                        v3.VSelect(
+                            placeholder="Globe Texture",
+                            prepend_inner_icon="mdi-earth",
+                            v_model=("texture", self.state.textures[0]),
+                            items=("textures",),
+                            hide_details=True,
+                            density="compact",
+                            flat=True,
+                            variant="solo",
+                        )
+                    v3.VDivider()
             # X crop/cut
             with v3.VTooltip(
                 v_if="axis_names?.[0]",

@@ -29,7 +29,8 @@ from pan3d.utils.convert import update_camera, to_image, to_float
 from pan3d.utils.presets import set_preset
 
 from pan3d.ui.vtk_view import Pan3DView, Pan3DScalarBar
-from pan3d.ui.globe import SummaryToolbar, ControlPanel
+from pan3d.ui.preview import SummaryToolbar
+from pan3d.ui.globe import ControlPanel
 
 from pan3d.utils.globe import get_globe, get_globe_textures, get_continent_outlines
 
@@ -300,7 +301,7 @@ class GlobeViewer:
             self.state.color_min = 0
             self.state.color_max = 1
 
-    @change("color_preset", "color_min", "color_max", "nan_color", "opacity")
+    @change("color_preset", "color_min", "color_max", "nan_color")
     def _on_color_preset(
         self,
         nan_color,
@@ -322,6 +323,11 @@ class GlobeViewer:
         self.lut.SetNanColor(color)
 
         self.ctrl.view_update()
+
+    @change("opacity")
+    def _on_change_opacity(self, opacity, **_):
+        opacity = float(opacity)
+        self.actor.GetProperty().SetOpacity(opacity)
 
     @change("texture")
     def _on_texture_preset(self, texture, **_):
