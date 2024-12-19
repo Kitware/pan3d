@@ -32,13 +32,16 @@ class Pan3DAccessor:
         self.accessor_id = 0
 
     @property
-    async def preview(self):
+    def preview(self):
         from pan3d.viewers.preview import XArrayViewer
 
-        viewer = XArrayViewer(xarray=self.xarray, server=self.next_id())
-        await viewer.ui.ready
+        return XArrayViewer(xarray=self.xarray, server=self.next_id())
 
-        return viewer.ui
+    @property
+    def slicer(self):
+        from pan3d.explorers.slicer import XArraySlicer
+
+        return XArraySlicer(xarray=self.xarray, server=self.next_id())
 
 
 @xr.register_dataarray_accessor("vtk")

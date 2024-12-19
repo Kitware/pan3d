@@ -33,7 +33,7 @@ import vtkmodules.vtkRenderingOpenGL2  # noqa
 
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 
-from trame.app import get_server
+from trame.app import get_server, asynchronous
 from trame_client.widgets.core import TrameDefault
 from trame.decorators import TrameApp, change
 from trame.ui.vuetify3 import SinglePageWithDrawerLayout
@@ -54,7 +54,7 @@ class XArraySlicer:
     using VTK while interacting with the slice in 2D or 3D.
     """
 
-    def __init__(self, source=None, server=None):
+    def __init__(self, xarray=None, source=None, server=None):
         # trame setup
         self.server = get_server(server)
         if self.server.hot_reload:
@@ -65,23 +65,29 @@ class XArraySlicer:
         parser.add_argument(
             "--import-state",
             help="Pass a string with this argument to specify a startup configuration. This value must be a local path to a JSON file which adheres to the schema specified in the [Configuration Files documentation](../api/configuration.md).",
-            required=(source is None),
+            required=(source is None and xarray is None),
         )
         args, _ = parser.parse_known_args()
 
         # Check if we have what we need
         config_file = Path(args.import_state) if args.import_state else None
-        if (config_file is None or not config_file.exists()) and source is None:
+        if (
+            (config_file is None or not config_file.exists())
+            and source is None
+            and xarray is None
+        ):
             parser.print_help()
             sys.exit(0)
 
         # Build Viz and UI
         self.ui = None
-        self._setup_vtk(source, config_file)
+        self._setup_vtk(xarray, source, config_file)
         self._build_ui()
 
-    def _setup_vtk(self, source=None, import_state=None):
-        if source is not None:
+    def _setup_vtk(self, xarray=None, source=None, import_state=None):
+        if xarray is not None:
+            self.source = vtkXArrayRectilinearSource(input=xarray)
+        elif source is not None:
             self.source = source
         elif import_state is not None:
             self.source = vtkXArrayRectilinearSource()
@@ -785,6 +791,13 @@ class XArraySlicer:
                         step=1,
                     )
             return layout
+
+    async def _async_display(self):
+        await self.ui.ready
+        self.ui._ipython_display_()
+
+    def _ipython_display_(self):
+        asynchronous.create_task(self._async_display())
 
 
 def main():

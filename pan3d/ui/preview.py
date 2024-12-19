@@ -399,7 +399,7 @@ class RenderingSettings(CollapsableSection):
                         v3.VRangeSlider(
                             v_if="slice_x_type === 'range'",
                             prepend_icon="mdi-axis-x-arrow",
-                            v_model=("slice_x_range", [0, 1]),
+                            v_model=("slice_x_range", None),
                             min=("slice_extents[axis_names[0]][0]",),
                             max=("slice_extents[axis_names[0]][1]",),
                             step=1,
@@ -448,7 +448,7 @@ class RenderingSettings(CollapsableSection):
                         v3.VRangeSlider(
                             v_if="slice_y_type === 'range'",
                             prepend_icon="mdi-axis-y-arrow",
-                            v_model=("slice_y_range", [0, 1]),
+                            v_model=("slice_y_range", None),
                             min=("slice_extents[axis_names[1]][0]",),
                             max=("slice_extents[axis_names[1]][1]",),
                             step=1,
@@ -496,7 +496,7 @@ class RenderingSettings(CollapsableSection):
                         v3.VRangeSlider(
                             v_if="slice_z_type === 'range'",
                             prepend_icon="mdi-axis-z-arrow",
-                            v_model=("slice_z_range", [0, 1]),
+                            v_model=("slice_z_range", None),
                             min=("slice_extents[axis_names[2]][0]",),
                             max=("slice_extents[axis_names[2]][1]",),
                             step=1,
@@ -764,6 +764,8 @@ class RenderingSettings(CollapsableSection):
                 continue
 
             if self.state[f"slice_{axis}_type"] == "range":
+                if self.state[f"slice_{axis}_range"] is None:
+                    continue
                 slices[axis_name] = [
                     *self.state[f"slice_{axis}_range"],
                     int(self.state[f"slice_{axis}_step"]),

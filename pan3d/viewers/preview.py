@@ -509,6 +509,13 @@ class XArrayViewer:
         self.state.show_save_dialog = False
         return asynchronous.create_task(self._save_dataset(file_path))
 
+    async def _async_display(self):
+        await self.ui.ready
+        self.ui._ipython_display_()
+
+    def _ipython_display_(self):
+        asynchronous.create_task(self._async_display())
+
 
 # -----------------------------------------------------------------------------
 # Main executable
