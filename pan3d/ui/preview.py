@@ -804,6 +804,7 @@ class RenderingSettings(CollapsableSection):
 class ControlPanel(v3.VCard):
     def __init__(
         self,
+        enable_data_selection,
         source,
         toggle,
         load_dataset,
@@ -890,13 +891,16 @@ class ControlPanel(v3.VCard):
                             classes="mx-1",
                         )
                     with v3.VList(density="compact"):
-                        with v3.VListItem(
-                            title="Export state file",
-                            disabled=("can_load",),
-                            click=f"utils.download('xarray-state.json', trigger('{download_export}'), 'text/plain')",
-                        ):
-                            with html.Template(v_slot_prepend=True):
-                                v3.VIcon("mdi-cloud-download-outline", classes="mr-n5")
+                        if enable_data_selection:
+                            with v3.VListItem(
+                                title="Export state file",
+                                disabled=("can_load",),
+                                click=f"utils.download('xarray-state.json', trigger('{download_export}'), 'text/plain')",
+                            ):
+                                with html.Template(v_slot_prepend=True):
+                                    v3.VIcon(
+                                        "mdi-cloud-download-outline", classes="mr-n5"
+                                    )
 
                         with v3.VListItem(
                             title="Import state file",
@@ -927,7 +931,8 @@ class ControlPanel(v3.VCard):
                 v_show=(toggle, True),
                 classes="controller-content py-1 mt-10",
             ):
-                DataOrigin(load_dataset)
+                if enable_data_selection:
+                    DataOrigin(load_dataset)
                 self.ctrl[xr_update_info] = DataInformation().update_information
                 self.ctrl[source_update_rendering] = RenderingSettings(
                     source,

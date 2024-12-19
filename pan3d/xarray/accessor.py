@@ -18,6 +18,29 @@ class _LocIndexer:
         self.parent._xarray.__setitem__(self, key, value)
 
 
+@xr.register_dataset_accessor("pan3d")
+class Pan3DAccessor:
+    accessor_id = 0
+
+    @classmethod
+    def next_id(cls):
+        cls.accessor_id += 1
+        return f"pan3d_accessor_{cls.accessor_id}"
+
+    def __init__(self, xarray):
+        self.xarray = xarray
+        self.accessor_id = 0
+
+    @property
+    async def preview(self):
+        from pan3d.viewers.preview import XArrayViewer
+
+        viewer = XArrayViewer(xarray=self.xarray, server=self.next_id())
+        await viewer.ui.ready
+
+        return viewer.ui
+
+
 @xr.register_dataarray_accessor("vtk")
 class VTKAccessor:
     def __init__(self, xarray_obj: xr.DataArray):
