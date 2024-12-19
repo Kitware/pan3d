@@ -39,7 +39,7 @@ from pan3d.ui.preview import SummaryToolbar, ControlPanel
 class XArrayViewer:
     """Create a Trame GUI for a Pan3D XArray Viewer"""
 
-    def __init__(self, server=None, local_rendering=None):
+    def __init__(self, xarray=None, server=None, local_rendering=None):
         """Create an instance of the XArrayViewer class.
 
         Parameters:
@@ -56,6 +56,7 @@ class XArrayViewer:
             - `--wasm`: Use WASM for local rendering
             - `--vtkjs`: Use vtk.js for local rendering
         """
+        self.xarray = xarray
         self.server = get_server(server, client_type="vue3")
         if self.server.hot_reload:
             self.ctrl.on_server_reload.add(self._build_ui)
@@ -128,7 +129,7 @@ class XArrayViewer:
         self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
 
         self.lut = vtkLookupTable()
-        self.source = vtkXArrayRectilinearSource()
+        self.source = vtkXArrayRectilinearSource(input=self.xarray)
 
         # Need explicit geometry extraction when used with WASM
         self.geometry = vtkDataSetSurfaceFilter(
@@ -245,6 +246,7 @@ class XArrayViewer:
 
             # Control panel
             ControlPanel(
+                enable_data_selection=(self.xarray is None),
                 source=self.source,
                 toggle="control_expended",
                 load_dataset=self._load_dataset,
@@ -353,6 +355,12 @@ class XArrayViewer:
                 self._load_dataset("url", args.xarray_url)
                 self.state.data_origin_id = args.xarray_url
             self.state.import_pending = False
+
+        # Load given XArray
+        elif self.xarray is not None:
+            self.state.show_data_information = True
+            self.ctrl.xr_update_info(self.source.input, self.source.available_arrays)
+            self.ctrl.source_update_rendering_panel(self.source)
 
     def _import_file_from_path(self, file_path):
         if file_path is None:
@@ -500,6 +508,13 @@ class XArrayViewer:
         """
         self.state.show_save_dialog = False
         return asynchronous.create_task(self._save_dataset(file_path))
+
+    async def _async_display(self):
+        await self.ui.ready
+        self.ui._ipython_display_()
+
+    def _ipython_display_(self):
+        asynchronous.create_task(self._async_display())
 
 
 # -----------------------------------------------------------------------------

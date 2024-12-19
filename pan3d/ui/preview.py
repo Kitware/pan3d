@@ -399,7 +399,7 @@ class RenderingSettings(CollapsableSection):
                         v3.VRangeSlider(
                             v_if="slice_x_type === 'range'",
                             prepend_icon="mdi-axis-x-arrow",
-                            v_model=("slice_x_range", [0, 1]),
+                            v_model=("slice_x_range", None),
                             min=("slice_extents[axis_names[0]][0]",),
                             max=("slice_extents[axis_names[0]][1]",),
                             step=1,
@@ -448,7 +448,7 @@ class RenderingSettings(CollapsableSection):
                         v3.VRangeSlider(
                             v_if="slice_y_type === 'range'",
                             prepend_icon="mdi-axis-y-arrow",
-                            v_model=("slice_y_range", [0, 1]),
+                            v_model=("slice_y_range", None),
                             min=("slice_extents[axis_names[1]][0]",),
                             max=("slice_extents[axis_names[1]][1]",),
                             step=1,
@@ -496,7 +496,7 @@ class RenderingSettings(CollapsableSection):
                         v3.VRangeSlider(
                             v_if="slice_z_type === 'range'",
                             prepend_icon="mdi-axis-z-arrow",
-                            v_model=("slice_z_range", [0, 1]),
+                            v_model=("slice_z_range", None),
                             min=("slice_extents[axis_names[2]][0]",),
                             max=("slice_extents[axis_names[2]][1]",),
                             step=1,
@@ -764,6 +764,8 @@ class RenderingSettings(CollapsableSection):
                 continue
 
             if self.state[f"slice_{axis}_type"] == "range":
+                if self.state[f"slice_{axis}_range"] is None:
+                    continue
                 slices[axis_name] = [
                     *self.state[f"slice_{axis}_range"],
                     int(self.state[f"slice_{axis}_step"]),
@@ -804,6 +806,7 @@ class RenderingSettings(CollapsableSection):
 class ControlPanel(v3.VCard):
     def __init__(
         self,
+        enable_data_selection,
         source,
         toggle,
         load_dataset,
@@ -890,13 +893,16 @@ class ControlPanel(v3.VCard):
                             classes="mx-1",
                         )
                     with v3.VList(density="compact"):
-                        with v3.VListItem(
-                            title="Export state file",
-                            disabled=("can_load",),
-                            click=f"utils.download('xarray-state.json', trigger('{download_export}'), 'text/plain')",
-                        ):
-                            with html.Template(v_slot_prepend=True):
-                                v3.VIcon("mdi-cloud-download-outline", classes="mr-n5")
+                        if enable_data_selection:
+                            with v3.VListItem(
+                                title="Export state file",
+                                disabled=("can_load",),
+                                click=f"utils.download('xarray-state.json', trigger('{download_export}'), 'text/plain')",
+                            ):
+                                with html.Template(v_slot_prepend=True):
+                                    v3.VIcon(
+                                        "mdi-cloud-download-outline", classes="mr-n5"
+                                    )
 
                         with v3.VListItem(
                             title="Import state file",
@@ -927,7 +933,8 @@ class ControlPanel(v3.VCard):
                 v_show=(toggle, True),
                 classes="controller-content py-1 mt-10",
             ):
-                DataOrigin(load_dataset)
+                if enable_data_selection:
+                    DataOrigin(load_dataset)
                 self.ctrl[xr_update_info] = DataInformation().update_information
                 self.ctrl[source_update_rendering] = RenderingSettings(
                     source,
