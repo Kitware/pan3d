@@ -30,18 +30,30 @@ class Pan3DAccessor:
     def __init__(self, xarray):
         self.xarray = xarray
         self.accessor_id = 0
+        self._viewer_preview = None
+        self._viewer_slicer = None
 
     @property
     def preview(self):
         from pan3d.viewers.preview import XArrayViewer
 
-        return XArrayViewer(xarray=self.xarray, server=self.next_id())
+        if self._viewer_preview is None:
+            self._viewer_preview = XArrayViewer(
+                xarray=self.xarray, server=self.next_id()
+            )
+
+        return self._viewer_preview
 
     @property
     def slicer(self):
         from pan3d.explorers.slicer import XArraySlicer
 
-        return XArraySlicer(xarray=self.xarray, server=self.next_id())
+        if self._viewer_slicer is None:
+            self._viewer_slicer = XArraySlicer(
+                xarray=self.xarray, server=self.next_id()
+            )
+
+        return self._viewer_slicer
 
 
 @xr.register_dataarray_accessor("vtk")
