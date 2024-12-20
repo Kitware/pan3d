@@ -32,6 +32,7 @@ class Pan3DAccessor:
         self.accessor_id = 0
         self._viewer_preview = None
         self._viewer_slicer = None
+        self._viewer_globe = None
 
     @property
     def preview(self):
@@ -54,6 +55,15 @@ class Pan3DAccessor:
             )
 
         return self._viewer_slicer
+
+    @property
+    def globe(self):
+        from pan3d.explorers.globe import GlobeViewer
+
+        if self._viewer_globe is None:
+            self._viewer_globe = GlobeViewer(xarray=self.xarray, server=self.next_id())
+
+        return self._viewer_globe
 
 
 @xr.register_dataarray_accessor("vtk")

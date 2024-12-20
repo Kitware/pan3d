@@ -14,6 +14,9 @@ class Pan3DView(html.Div):
         axis_names="axis_names",
         local_rendering=None,
         widgets=None,
+        disable_style_toggle=False,
+        disable_roll=False,
+        disable_axis_align=False,
         **kwargs,
     ):
         super().__init__(classes="pan3d-view", **kwargs)
@@ -103,76 +106,89 @@ class Pan3DView(html.Div):
                             icon="mdi-crop-free",
                             click=self.ctrl.view_reset_camera,
                         )
-                v3.VDivider(classes="my-1")
-                with v3.VTooltip(text="Toggle between 3D/2D interaction"):
-                    with html.Template(v_slot_activator="{ props }"):
-                        v3.VBtn(
-                            v_bind="props",
-                            flat=True,
-                            density="compact",
-                            icon=("view_3d ? 'mdi-rotate-orbit' : 'mdi-cursor-move'",),
-                            click="view_3d = !view_3d",
-                        )
-                v3.VDivider(classes="my-1")
-                with v3.VTooltip(text="Rotate left 90"):
-                    with html.Template(v_slot_activator="{ props }"):
-                        v3.VBtn(
-                            v_bind="props",
-                            flat=True,
-                            density="compact",
-                            icon="mdi-rotate-left",
-                            click=(self.rotate_camera, "[-1]"),
-                        )
-                with v3.VTooltip(text="Rotate right 90"):
-                    with html.Template(v_slot_activator="{ props }"):
-                        v3.VBtn(
-                            v_bind="props",
-                            flat=True,
-                            density="compact",
-                            icon="mdi-rotate-right",
-                            click=(self.rotate_camera, "[+1]"),
-                        )
-                v3.VDivider(classes="my-1")
-                with v3.VTooltip(
-                    text=(f"`Look toward ${{ {axis_names}[0] || 'X' }}`",)
-                ):
-                    with html.Template(v_slot_activator="{ props }"):
-                        v3.VBtn(
-                            v_bind="props",
-                            flat=True,
-                            density="compact",
-                            icon="mdi-axis-x-arrow",
-                            click=(self.reset_camera_to_axis, "[[1,0,0]]"),
-                        )
-                with v3.VTooltip(text=(f"`Look toward ${{ {axis_names}[1] || 'Y'}}`",)):
-                    with html.Template(v_slot_activator="{ props }"):
-                        v3.VBtn(
-                            v_bind="props",
-                            flat=True,
-                            density="compact",
-                            icon="mdi-axis-y-arrow",
-                            click=(self.reset_camera_to_axis, "[[0,1,0]]"),
-                        )
 
-                with v3.VTooltip(text=(f"`Look toward ${{ {axis_names}[2] || 'Z'}}`",)):
-                    with html.Template(v_slot_activator="{ props }"):
-                        v3.VBtn(
-                            v_bind="props",
-                            flat=True,
-                            density="compact",
-                            icon="mdi-axis-z-arrow",
-                            click=(self.reset_camera_to_axis, "[[0,0,1]]"),
-                        )
-                v3.VDivider(classes="my-1")
-                with v3.VTooltip(text="Look toward at an angle"):
-                    with html.Template(v_slot_activator="{ props }"):
-                        v3.VBtn(
-                            v_bind="props",
-                            flat=True,
-                            density="compact",
-                            icon="mdi-axis-arrow",
-                            click=(self.reset_camera_to_axis, "[[1,1,1]]"),
-                        )
+                if not (disable_style_toggle and disable_roll and disable_axis_align):
+                    v3.VDivider(classes="my-1")
+
+                if not disable_style_toggle:
+                    with v3.VTooltip(text="Toggle between 3D/2D interaction"):
+                        with html.Template(v_slot_activator="{ props }"):
+                            v3.VBtn(
+                                v_bind="props",
+                                flat=True,
+                                density="compact",
+                                icon=(
+                                    "view_3d ? 'mdi-rotate-orbit' : 'mdi-cursor-move'",
+                                ),
+                                click="view_3d = !view_3d",
+                            )
+                    v3.VDivider(classes="my-1")
+                if not disable_roll:
+                    with v3.VTooltip(text="Rotate left 90"):
+                        with html.Template(v_slot_activator="{ props }"):
+                            v3.VBtn(
+                                v_bind="props",
+                                flat=True,
+                                density="compact",
+                                icon="mdi-rotate-left",
+                                click=(self.rotate_camera, "[-1]"),
+                            )
+                    with v3.VTooltip(text="Rotate right 90"):
+                        with html.Template(v_slot_activator="{ props }"):
+                            v3.VBtn(
+                                v_bind="props",
+                                flat=True,
+                                density="compact",
+                                icon="mdi-rotate-right",
+                                click=(self.rotate_camera, "[+1]"),
+                            )
+                    v3.VDivider(classes="my-1")
+
+                if not disable_axis_align:
+                    with v3.VTooltip(
+                        text=(f"`Look toward ${{ {axis_names}[0] || 'X' }}`",)
+                    ):
+                        with html.Template(v_slot_activator="{ props }"):
+                            v3.VBtn(
+                                v_bind="props",
+                                flat=True,
+                                density="compact",
+                                icon="mdi-axis-x-arrow",
+                                click=(self.reset_camera_to_axis, "[[1,0,0]]"),
+                            )
+                    with v3.VTooltip(
+                        text=(f"`Look toward ${{ {axis_names}[1] || 'Y'}}`",)
+                    ):
+                        with html.Template(v_slot_activator="{ props }"):
+                            v3.VBtn(
+                                v_bind="props",
+                                flat=True,
+                                density="compact",
+                                icon="mdi-axis-y-arrow",
+                                click=(self.reset_camera_to_axis, "[[0,1,0]]"),
+                            )
+
+                    with v3.VTooltip(
+                        text=(f"`Look toward ${{ {axis_names}[2] || 'Z'}}`",)
+                    ):
+                        with html.Template(v_slot_activator="{ props }"):
+                            v3.VBtn(
+                                v_bind="props",
+                                flat=True,
+                                density="compact",
+                                icon="mdi-axis-z-arrow",
+                                click=(self.reset_camera_to_axis, "[[0,0,1]]"),
+                            )
+                    v3.VDivider(classes="my-1")
+                    with v3.VTooltip(text="Look toward at an angle"):
+                        with html.Template(v_slot_activator="{ props }"):
+                            v3.VBtn(
+                                v_bind="props",
+                                flat=True,
+                                density="compact",
+                                icon="mdi-axis-arrow",
+                                click=(self.reset_camera_to_axis, "[[1,1,1]]"),
+                            )
 
     def reset_camera_to_axis(self, axis):
         camera = self.renderer.active_camera

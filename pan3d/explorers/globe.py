@@ -6,12 +6,15 @@ from vtkmodules.vtkRenderingCore import (
     vtkRenderWindow,
 )
 
-# need this unused import to set interactor style
-from vtkmodules.vtkInteractionStyle import vtkInteractorStyleTrackballCamera
+# VTK factory initialization
+from vtkmodules.vtkInteractionStyle import vtkInteractorStyleSwitch  # noqa
+import vtkmodules.vtkRenderingOpenGL2  # noqa
+
+from vtkmodules.vtkInteractionStyle import vtkInteractorStyleTerrain
 from vtkmodules.vtkFiltersGeometry import vtkDataSetSurfaceFilter
 from vtkmodules.vtkInteractionWidgets import vtkOrientationMarkerWidget
 from vtkmodules.vtkRenderingAnnotation import vtkAxesActor
-from vtkmodules.vtkCommonCore import vtkLookupTable
+from vtkmodules.vtkCommonCore import vtkLookupTable, vtkObject
 
 import json
 import traceback
@@ -34,6 +37,9 @@ from pan3d.ui.globe import ControlPanel
 
 from pan3d.utils.globe import get_globe, get_globe_textures, get_continent_outlines
 
+# Prevent view-up warning
+vtkObject.GlobalWarningDisplayOff()
+
 
 @TrameApp()
 class GlobeViewer:
@@ -45,7 +51,7 @@ class GlobeViewer:
     relevant data and visualizes it using VTK while interacting with the slice in 2D or 3D.
     """
 
-    def __init__(self, server=None, local_rendering=None):
+    def __init__(self, xarray=None, source=None, server=None, local_rendering=None):
         """Create an instance of the XArrayViewer class.
 
         Parameters:
@@ -62,6 +68,9 @@ class GlobeViewer:
             - `--wasm`: Use WASM for local rendering
             - `--vtkjs`: Use vtk.js for local rendering
         """
+        self.xarray = xarray
+        self.source = source
+
         self.server = get_server(server, client_type="vue3")
         if self.server.hot_reload:
             self.ctrl.on_server_reload.add(self._build_ui)
@@ -132,11 +141,10 @@ class GlobeViewer:
 
         self.render_window.AddRenderer(self.renderer)
         self.interactor.SetRenderWindow(self.render_window)
-        # Following line fixes the unused import problem for setting interaction style
-        (vtkInteractorStyleTrackballCamera)
-        self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
+        self.interactor.SetInteractorStyle(vtkInteractorStyleTerrain())
 
-        self.source = vtkXArrayRectilinearSource()
+        if self.source is None:
+            self.source = vtkXArrayRectilinearSource(input=self.xarray)
 
         self.globe = get_globe()
         self.gmapper = vtkPolyDataMapper(input_data_object=self.globe)
@@ -161,6 +169,13 @@ class GlobeViewer:
             input_connection=self.geometry.output_port, lookup_table=self.lut
         )
         self.actor = vtkActor(mapper=self.mapper, visibility=0)
+
+        # Camera
+        camera = self.renderer.GetActiveCamera()
+        camera.SetFocalPoint(0, 0, 0)
+        camera.SetPosition(0, -1, 0)
+        camera.SetViewUp(0, 0, 1)
+        self.renderer.ResetCamera()
 
         self.interactor.Initialize()
 
@@ -210,6 +225,9 @@ class GlobeViewer:
                 self.render_window,
                 local_rendering=self.local_rendering,
                 widgets=[self.widget],
+                disable_style_toggle=True,
+                disable_roll=True,
+                disable_axis_align=True,
             )
 
             # Scalar bar
@@ -267,6 +285,7 @@ class GlobeViewer:
 
             # Control panel
             ControlPanel(
+                enable_data_selection=(self.source.input is None),
                 source=self.source,
                 toggle="control_expended",
                 load_dataset=self._load_dataset,
@@ -326,10 +345,23 @@ class GlobeViewer:
 
         self.ctrl.view_update()
 
-    @change("opacity")
-    def _on_change_opacity(self, opacity, **_):
-        opacity = float(opacity)
-        self.actor.GetProperty().SetOpacity(opacity)
+    @change("opacity", "representation", "cell_size", "render_shadow")
+    def _on_change_opacity(
+        self, representation, opacity, cell_size, render_shadow, **_
+    ):
+        property = self.actor.property
+        property.render_lines_as_tubes = render_shadow
+        property.render_points_as_spheres = render_shadow
+        property.line_width = cell_size
+        property.point_size = cell_size
+        property.opacity = float(opacity) if representation == 2 else 1
+        property.representation = representation
+
+        self.ctrl.view_update()
+
+    @change("bump_radius")
+    def _on_bump_radius_change(self, bump_radius, **_):
+        self.dglobe.bump_radius = bump_radius
         self.ctrl.view_update()
 
     @change("texture")
@@ -354,6 +386,16 @@ class GlobeViewer:
 
     def _process_cli(self, **_):
         args, _ = self.server.cli.parse_known_args()
+
+        # Skip if xarray provided
+        if self.source.input:
+            if not self.source.arrays:
+                self.source.arrays = self.source.available_arrays
+            self.ctrl.xr_update_info(self.source.input, self.source.available_arrays)
+            self.ctrl.source_update_rendering_panel(self.source)
+            self._update_rendering(reset_camera=True)
+            self.state.show_rendering = True
+            return
 
         # import state
         if args.import_state:
@@ -410,6 +452,10 @@ class GlobeViewer:
             if self.actor.visibility:
                 self.renderer.RemoveActor(self.actor)
                 self.actor.visibility = 0
+
+            # Make sure arrays are available
+            if not self.source.arrays:
+                self.source.arrays = self.source.available_arrays
 
             # Extract UI
             self.ctrl.xr_update_info(self.source.input, self.source.available_arrays)
@@ -530,6 +576,13 @@ class GlobeViewer:
         """
         self.state.show_save_dialog = False
         return asynchronous.create_task(self._save_dataset(file_path))
+
+    async def _async_display(self):
+        await self.ui.ready
+        self.ui._ipython_display_()
+
+    def _ipython_display_(self):
+        asynchronous.create_task(self._async_display())
 
 
 # -----------------------------------------------------------------------------
