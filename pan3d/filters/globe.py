@@ -27,6 +27,7 @@ class ProjectToSphere(VTKPythonAlgorithmBase):
         self.isData = False
         self.radius = 6378
         self.scale = 1.0
+        self._bump_radius = 10
 
     def SetDataLayer(self, isData_):
         if not self.isData == isData_:
@@ -36,6 +37,16 @@ class ProjectToSphere(VTKPythonAlgorithmBase):
     def SetScalingFactor(self, scale_):
         if not self.scale == float(scale_):
             self.scale = float(scale_)
+            self.Modified()
+
+    @property
+    def bump_radius(self):
+        return self._bump_radius
+
+    @bump_radius.setter
+    def bump_radius(self, v):
+        if v != self._bump_radius:
+            self._bump_radius = v
             self.Modified()
 
     def RequestData(self, request, inInfo, outInfo):
@@ -52,7 +63,7 @@ class ProjectToSphere(VTKPythonAlgorithmBase):
         outWrap = dsa.WrapDataObject(outData)
         try:
             inPoints = np.array(outWrap.Points)
-            pRadius = (self.radius + 10) if self.isData else self.radius
+            pRadius = (self.radius + self._bump_radius) if self.isData else self.radius
             outPoints = np.array(
                 list(map(lambda x: ProcessPoint(x, pRadius, self.scale), inPoints))
             )

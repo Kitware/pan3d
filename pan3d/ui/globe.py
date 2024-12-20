@@ -25,6 +25,7 @@ class RenderingSettings(CollapsableSection):
         self.state.setdefault("max_time_width", 0)
         self.state.setdefault("max_time_index_width", 0)
         self.state.setdefault("dataset_bounds", [0, 1, 0, 1, 0, 1])
+        self.state.setdefault("render_shadow", False)
 
         with self.content:
             v3.VSelect(
@@ -104,25 +105,7 @@ class RenderingSettings(CollapsableSection):
                 flat=True,
                 variant="solo",
             )
-            with v3.VTooltip(
-                text=("`Opacity: ${opacity.toFixed(2)}`",),
-            ):
-                with html.Template(v_slot_activator="{ props }"):
-                    with html.Div(
-                        classes="d-flex pr-2",
-                        v_bind="props",
-                    ):
-                        v3.VSlider(
-                            classes="pr-3 ml-3",
-                            prepend_icon="mdi-opacity",
-                            v_model=("opacity", 1.0),
-                            min=0.0,
-                            max=1.0,
-                            hide_details=True,
-                            density="compact",
-                            flat=True,
-                            variant="solo",
-                        )
+
             with v3.VTooltip(
                 text=("`NaN Color (${nan_colors[nan_color]})`",),
             ):
@@ -160,25 +143,107 @@ class RenderingSettings(CollapsableSection):
                                         size="small",
                                         click="toggle",
                                     )
+
+            v3.VDivider()
+            v3.VSelect(
+                placeholder="Globe Texture",
+                prepend_inner_icon="mdi-earth",
+                v_model=("texture", self.state.textures[0]),
+                items=("textures", []),
+                hide_details=True,
+                density="compact",
+                flat=True,
+                variant="solo",
+            )
+            v3.VDivider()
+            v3.VSelect(
+                placeholder="Data Representation",
+                prepend_inner_icon=(
+                    "['mdi-dots-triangle', 'mdi-triangle-outline','mdi-triangle'][representation]",
+                ),
+                v_model=("representation", 2),
+                items=(
+                    "representations",
+                    [
+                        dict(title="Surface", value=2),
+                        dict(title="Wireframe", value=1),
+                        dict(title="Points", value=0),
+                    ],
+                ),
+                hide_details=True,
+                density="compact",
+                flat=True,
+                variant="solo",
+            )
+            v3.VDivider()
             with v3.VTooltip(
-                text=("`Globe texture: ${texture}`",),
+                v_if="representation !== 2",
+                text=(
+                    "`${representation ? 'Line Size' : 'Point Size' }: ${cell_size} - Shadow: ${render_shadow ? 'On': 'Off'}`",
+                ),
             ):
                 with html.Template(v_slot_activator="{ props }"):
                     with html.Div(
                         classes="d-flex pr-2",
                         v_bind="props",
                     ):
-                        v3.VSelect(
-                            placeholder="Globe Texture",
-                            prepend_inner_icon="mdi-earth",
-                            v_model=("texture", self.state.textures[0]),
-                            items=("textures",),
+                        v3.VSlider(
+                            classes="pr-3 ml-3",
+                            prepend_icon="mdi-format-line-weight",
+                            v_model=("cell_size", 1),
+                            min=1,
+                            max=100,
+                            step=1,
+                            hide_details=True,
+                            density="compact",
+                            flat=True,
+                            variant="solo",
+                            click_prepend="render_shadow = !render_shadow",
+                        )
+            with v3.VTooltip(
+                v_if="representation === 2",
+                text=("`Opacity: ${opacity.toFixed(2)}`",),
+            ):
+                with html.Template(v_slot_activator="{ props }"):
+                    with html.Div(
+                        classes="d-flex pr-2",
+                        v_bind="props",
+                    ):
+                        v3.VSlider(
+                            classes="pr-3 ml-3",
+                            prepend_icon="mdi-circle-opacity",
+                            v_model=("opacity", 1.0),
+                            min=0.0,
+                            max=1.0,
                             hide_details=True,
                             density="compact",
                             flat=True,
                             variant="solo",
                         )
-                    v3.VDivider()
+
+            with v3.VTooltip(
+                text=("`Bump Radius: ${bump_radius}`",),
+            ):
+                with html.Template(v_slot_activator="{ props }"):
+                    with html.Div(
+                        classes="d-flex pr-2",
+                        v_bind="props",
+                    ):
+                        v3.VSlider(
+                            classes="pr-3 ml-3",
+                            prepend_icon="mdi-signal-distance-variant",
+                            v_model=("bump_radius", 10),
+                            min=10,
+                            max=1000,
+                            step=10,
+                            hide_details=True,
+                            density="compact",
+                            flat=True,
+                            variant="solo",
+                        )
+
+            v3.VDivider()
+
             # X crop/cut
             with v3.VTooltip(
                 v_if="axis_names?.[0]",
@@ -195,7 +260,7 @@ class RenderingSettings(CollapsableSection):
                         v3.VRangeSlider(
                             v_if="slice_x_type === 'range'",
                             prepend_icon="mdi-axis-x-arrow",
-                            v_model=("slice_x_range", [0, 1]),
+                            v_model=("slice_x_range", None),
                             min=("slice_extents[axis_names[0]][0]",),
                             max=("slice_extents[axis_names[0]][1]",),
                             step=1,
@@ -244,7 +309,7 @@ class RenderingSettings(CollapsableSection):
                         v3.VRangeSlider(
                             v_if="slice_y_type === 'range'",
                             prepend_icon="mdi-axis-y-arrow",
-                            v_model=("slice_y_range", [0, 1]),
+                            v_model=("slice_y_range", None),
                             min=("slice_extents[axis_names[1]][0]",),
                             max=("slice_extents[axis_names[1]][1]",),
                             step=1,
@@ -292,7 +357,7 @@ class RenderingSettings(CollapsableSection):
                         v3.VRangeSlider(
                             v_if="slice_z_type === 'range'",
                             prepend_icon="mdi-axis-z-arrow",
-                            v_model=("slice_z_range", [0, 1]),
+                            v_model=("slice_z_range", None),
                             min=("slice_extents[axis_names[2]][0]",),
                             max=("slice_extents[axis_names[2]][1]",),
                             step=1,
@@ -324,7 +389,7 @@ class RenderingSettings(CollapsableSection):
                             size="sm",
                             classes="mx-2",
                         )
-                    v3.VDivider()
+            v3.VDivider()
 
             # Slice steps
             with v3.VTooltip(text="Level Of Details / Slice stepping"):
@@ -392,7 +457,7 @@ class RenderingSettings(CollapsableSection):
                             flat=True,
                             variant="solo",
                         )
-                    v3.VDivider()
+            v3.VDivider()
             v3.VBtn(
                 "Update 3D view",
                 block=True,
@@ -501,6 +566,9 @@ class RenderingSettings(CollapsableSection):
                 continue
 
             if self.state[f"slice_{axis}_type"] == "range":
+                if self.state[f"slice_{axis}_range"] is None:
+                    continue
+
                 slices[axis_name] = [
                     *self.state[f"slice_{axis}_range"],
                     int(self.state[f"slice_{axis}_step"]),
@@ -541,6 +609,7 @@ class RenderingSettings(CollapsableSection):
 class ControlPanel(v3.VCard):
     def __init__(
         self,
+        enable_data_selection,
         source,
         toggle,
         load_dataset,
@@ -627,31 +696,37 @@ class ControlPanel(v3.VCard):
                             classes="mx-1",
                         )
                     with v3.VList(density="compact"):
-                        with v3.VListItem(
-                            title="Export state file",
-                            disabled=("can_load",),
-                            click=f"utils.download('xarray-state.json', trigger('{download_export}'), 'text/plain')",
-                        ):
-                            with html.Template(v_slot_prepend=True):
-                                v3.VIcon("mdi-cloud-download-outline", classes="mr-n5")
+                        if enable_data_selection:
+                            with v3.VListItem(
+                                title="Export state file",
+                                disabled=("can_load",),
+                                click=f"utils.download('xarray-state.json', trigger('{download_export}'), 'text/plain')",
+                            ):
+                                with html.Template(v_slot_prepend=True):
+                                    v3.VIcon(
+                                        "mdi-cloud-download-outline", classes="mr-n5"
+                                    )
 
-                        with v3.VListItem(
-                            title="Import state file",
-                            click="trame.utils.get('document').querySelector('#fileImport').click()",
-                        ):
-                            html.Input(
-                                id="fileImport",
-                                hidden=True,
-                                type="file",
-                                change=(
-                                    import_file_upload,
-                                    "[$event.target.files]",
-                                ),
-                                __events=["change"],
-                            )
-                            with html.Template(v_slot_prepend=True):
-                                v3.VIcon("mdi-cloud-upload-outline", classes="mr-n5")
-                        v3.VDivider()
+                            with v3.VListItem(
+                                title="Import state file",
+                                click="trame.utils.get('document').querySelector('#fileImport').click()",
+                            ):
+                                html.Input(
+                                    id="fileImport",
+                                    hidden=True,
+                                    type="file",
+                                    change=(
+                                        import_file_upload,
+                                        "[$event.target.files]",
+                                    ),
+                                    __events=["change"],
+                                )
+                                with html.Template(v_slot_prepend=True):
+                                    v3.VIcon(
+                                        "mdi-cloud-upload-outline", classes="mr-n5"
+                                    )
+                            v3.VDivider()
+
                         with v3.VListItem(
                             title="Save dataset to disk",
                             disabled=("can_load",),
@@ -664,7 +739,9 @@ class ControlPanel(v3.VCard):
                 v_show=(toggle, True),
                 classes="controller-content py-1 mt-10",
             ):
-                DataOrigin(load_dataset)
+                if enable_data_selection:
+                    DataOrigin(load_dataset)
+
                 self.ctrl[xr_update_info] = DataInformation().update_information
                 self.ctrl[source_update_rendering] = RenderingSettings(
                     source,

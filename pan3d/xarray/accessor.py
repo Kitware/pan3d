@@ -18,6 +18,54 @@ class _LocIndexer:
         self.parent._xarray.__setitem__(self, key, value)
 
 
+@xr.register_dataset_accessor("pan3d")
+class Pan3DAccessor:
+    accessor_id = 0
+
+    @classmethod
+    def next_id(cls):
+        cls.accessor_id += 1
+        return f"pan3d_accessor_{cls.accessor_id}"
+
+    def __init__(self, xarray):
+        self.xarray = xarray
+        self.accessor_id = 0
+        self._viewer_preview = None
+        self._viewer_slicer = None
+        self._viewer_globe = None
+
+    @property
+    def preview(self):
+        from pan3d.viewers.preview import XArrayViewer
+
+        if self._viewer_preview is None:
+            self._viewer_preview = XArrayViewer(
+                xarray=self.xarray, server=self.next_id()
+            )
+
+        return self._viewer_preview
+
+    @property
+    def slicer(self):
+        from pan3d.explorers.slicer import XArraySlicer
+
+        if self._viewer_slicer is None:
+            self._viewer_slicer = XArraySlicer(
+                xarray=self.xarray, server=self.next_id()
+            )
+
+        return self._viewer_slicer
+
+    @property
+    def globe(self):
+        from pan3d.explorers.globe import GlobeViewer
+
+        if self._viewer_globe is None:
+            self._viewer_globe = GlobeViewer(xarray=self.xarray, server=self.next_id())
+
+        return self._viewer_globe
+
+
 @xr.register_dataarray_accessor("vtk")
 class VTKAccessor:
     def __init__(self, xarray_obj: xr.DataArray):
