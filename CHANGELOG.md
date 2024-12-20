@@ -1,6 +1,28 @@
 # CHANGELOG
 
 
+## v0.13.0 (2024-12-20)
+
+### Documentation
+
+- **example**: Cleanup notebook
+  ([`3a69c49`](https://github.com/Kitware/pan3d/commit/3a69c4941f07bc976a99fe773c7a65033a8f016c))
+
+### Features
+
+- **accessor**: Enable caching on viewer instantiation
+  ([`8b554c9`](https://github.com/Kitware/pan3d/commit/8b554c9af9b3d600f0c7ad9f8b3b192a78257d02))
+
+- **globe**: Enable globe as accessor
+  ([`c8510f8`](https://github.com/Kitware/pan3d/commit/c8510f8f3f878daf1b2a0846a36d9ce3e363419a))
+
+- **preview**: Preview can support xarray an input
+  ([`7267aa6`](https://github.com/Kitware/pan3d/commit/7267aa6775e0e808e7632cd59427afd152b5a647))
+
+- **slicer**: Explorer available as accessor
+  ([`7058ade`](https://github.com/Kitware/pan3d/commit/7058ade8dc34fd10beb1f5104e7ff0db97534492))
+
+
 ## v0.12.2 (2024-12-18)
 
 ### Bug Fixes
