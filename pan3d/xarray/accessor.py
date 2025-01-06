@@ -62,23 +62,23 @@ class Pan3DAccessor:
 
     @property
     def slicer(self):
-        from pan3d.explorers.slicer import XArraySlicer
+        from pan3d.explorers.slicer import SliceExplorer
 
         if self._viewer_slicer is None:
-            self._viewer_slicer = XArraySlicer(
+            self._viewer_slicer = SliceExplorer(
                 xarray=self.xarray,
                 server=self.next_id(),
-                # local_rendering=self._local_rendering, # FIXME Abhishek
+                local_rendering=self._local_rendering,
             )
 
         return self._viewer_slicer
 
     @property
     def globe(self):
-        from pan3d.explorers.globe import GlobeViewer
+        from pan3d.explorers.globe import GlobeExplorer
 
         if self._viewer_globe is None:
-            self._viewer_globe = GlobeViewer(
+            self._viewer_globe = GlobeExplorer(
                 xarray=self.xarray,
                 server=self.next_id(),
                 local_rendering=self._local_rendering,

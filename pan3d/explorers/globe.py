@@ -42,7 +42,7 @@ vtkObject.GlobalWarningDisplayOff()
 
 
 @TrameApp()
-class GlobeViewer:
+class GlobeExplorer:
     """
     A Trame based pan3D explorer to visualize 3D geographic data projected onto a globe
     representing the earth or projected using various cartographic projections.
@@ -591,7 +591,7 @@ class GlobeViewer:
 
 
 def main():
-    app = GlobeViewer()
+    app = GlobeExplorer()
     app.start()
 
 
