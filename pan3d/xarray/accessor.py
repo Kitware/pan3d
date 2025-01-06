@@ -34,6 +34,7 @@ class Pan3DAccessor:
         self._viewer_preview = None
         self._viewer_slicer = None
         self._viewer_globe = None
+        self._viewer_contour = None
 
     @property
     def local(self):
