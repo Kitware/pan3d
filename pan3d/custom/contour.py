@@ -1,6 +1,3 @@
-import sys
-import json
-
 from vtkmodules.vtkInteractionWidgets import vtkOrientationMarkerWidget
 from vtkmodules.vtkRenderingAnnotation import vtkAxesActor
 from vtkmodules.vtkRenderingCore import (
@@ -12,7 +9,8 @@ from vtkmodules.vtkRenderingCore import (
 )
 from vtkmodules.vtkCommonDataModel import vtkDataObject, vtkDataSetAttributes
 from vtkmodules.vtkFiltersGeometry import vtkDataSetSurfaceFilter
-from vtkmodules.vtkFiltersCore import vtkCellDataToPointData, vtkTriangleFilter
+from vtkmodules.vtkIOLegacy import vtkDataSetReader
+from vtkmodules.vtkFiltersCore import vtkCellDataToPointData
 from vtkmodules.vtkFiltersModeling import (
     vtkBandedPolyDataContourFilter,
     vtkLoopSubdivisionFilter,
@@ -24,9 +22,8 @@ from vtkmodules.vtkCommonCore import vtkLookupTable
 from vtkmodules.vtkInteractionStyle import vtkInteractorStyleSwitch  # noqa
 import vtkmodules.vtkRenderingOpenGL2  # noqa
 
+import xarray as xr
 from pathlib import Path
-
-from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 
 from trame.decorators import TrameApp, change
 from trame.app import get_server
@@ -43,30 +40,34 @@ from pan3d.ui.css import base, preview
 
 @TrameApp()
 class ContourExplorer:
-    def __init__(self, xarray=None, source=None, server=None, local_rendering=None):
+    def __init__(self, server=None, local_rendering=None):
         self.server = get_server(server, client_type="vue3")
         self.server.enable_module(base)
         self.server.enable_module(preview)
 
         # CLI
-        parser = self.server.cli
-        parser.add_argument(
+        self.server.cli.add_argument(
             "--wasm",
             help="Use WASM for local rendering",
             action="store_true",
         )
-        parser.add_argument(
+        self.server.cli.add_argument(
             "--vtkjs",
             help="Use vtk.js for local rendering",
             action="store_true",
         )
-        parser.add_argument(
-            "--import-state",
-            help="Pass a string with this argument to specify a startup configuration. This value must be a local path to a JSON file which adheres to the schema specified in the [Configuration Files documentation](../api/configuration.md).",
-            required=(source is None and xarray is None),
+        self.server.cli.add_argument(
+            "--mesh",
+            help="Geometry file",
+        )
+        self.server.cli.add_argument(
+            "--fields",
+            help="Fields HDF5 file",
         )
 
-        args, _ = parser.parse_known_args()
+        args, _ = self.server.cli.parse_known_args()
+        mesh_file = Path(args.mesh).resolve()
+        fields_file = Path(args.fields).resolve()
 
         # Local rendering
         self.local_rendering = local_rendering
@@ -75,48 +76,19 @@ class ContourExplorer:
         if args.vtkjs:
             self.local_rendering = "vtkjs"
 
-        # Check if we have what we need
-        config_file = Path(args.import_state) if args.import_state else None
-        if (
-            (config_file is None or not config_file.exists())
-            and source is None
-            and xarray is None
-        ):
-            parser.print_help()
-            sys.exit(0)
-
         # setup
         self.last_field = None
         self.last_preset = None
-        self._setup_vtk(xarray, source, config_file)
+        self.xr = xr.open_dataset(fields_file, engine="netcdf4")
+        self.mesh = vtkDataSetReader(file_name=str(mesh_file))()
+        self._setup_vtk()
         self._build_ui()
 
     # -------------------------------------------------------------------------
     # VTK Setup
     # -------------------------------------------------------------------------
 
-    def _setup_vtk(self, xarray=None, source=None, import_state=None):
-        if xarray is not None:
-            self.source = vtkXArrayRectilinearSource(input=xarray)
-        elif source is not None:
-            self.source = source
-        elif import_state is not None:
-            self.source = vtkXArrayRectilinearSource()
-            config = json.loads(import_state.read_text())
-            self.source.load(config)
-            try:
-                field = config["preview"]["color_by"]
-            except KeyError:
-                field = None
-        else:
-            print(
-                "XArrayContour can only work when passed a data source or a state to import."
-            )
-            sys.exit(1)
-
-        self.source.arrays = [field] if field is not None else None
-        ds = self.source()
-
+    def _setup_vtk(self):
         self.lut = vtkLookupTable()
 
         self.renderer = vtkRenderer(background=(0.8, 0.8, 0.8))
@@ -128,19 +100,16 @@ class ContourExplorer:
         self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
 
         # Need explicit geometry extraction when used with WASM
-        self.geometry = vtkDataSetSurfaceFilter(
-            input_connection=self.source.output_port
-        )
-        self.triangle = vtkTriangleFilter(input_connection=self.geometry.output_port)
+        self.geometry = vtkDataSetSurfaceFilter(input_data=self.mesh)
         self.cell2point = vtkCellDataToPointData(
-            input_connection=self.triangle.output_port
+            input_connection=self.geometry.output_port
         )
         self.refine = vtkLoopSubdivisionFilter(
             input_connection=self.cell2point.output_port, number_of_subdivisions=1
         )
         self.assign = vtkAssignAttribute(input_connection=self.refine.output_port)
         self.assign.Assign(
-            field,
+            "scalars",
             vtkDataSetAttributes.SCALARS,
             vtkDataObject.FIELD_ASSOCIATION_POINTS,
         )
@@ -154,7 +123,7 @@ class ContourExplorer:
             interpolate_scalars_before_mapping=1,
             lookup_table=self.lut,
         )
-        self.mapper.SelectColorArray(field)
+        self.mapper.SelectColorArray("scalars")
         self.mapper.SetScalarModeToUsePointFieldData()
         self.actor = vtkActor(mapper=self.mapper)
 
@@ -169,7 +138,7 @@ class ContourExplorer:
         self.renderer.AddActor(self.actor)
         self.renderer.AddActor(self.actor_lines)
 
-        self.renderer.ResetCamera(ds.bounds)
+        self.renderer.ResetCamera(self.mesh.bounds)
 
         self.interactor.Initialize()
 
@@ -212,9 +181,9 @@ class ContourExplorer:
             }
         )
 
-        fields = list(self.source.available_arrays)
+        fields = list(self.xr.keys())
         active_field = fields[0]
-        nb_times = self.source.input[active_field].shape[0]
+        nb_times = self.xr[active_field].shape[0]
 
         with VAppLayout(self.server, fill_height=True) as layout:
             self.ui = layout
@@ -481,15 +450,9 @@ class ContourExplorer:
 
     @change("field", "time_idx")
     def _on_update_data(self, field, time_idx, **_):
-        self.source.t_index = time_idx
-        self.source.arrays = [field]
-        self.assign.Assign(
-            field,
-            vtkDataSetAttributes.SCALARS,
-            vtkDataObject.FIELD_ASSOCIATION_POINTS,
-        )
-        self.mapper.SelectColorArray(field)
-        self.mapper.Update()
+        # update array
+        array = self.xr[field][time_idx].values
+        self.mesh.cell_data["scalars"] = array
 
         # update range
         if self.last_field != field:
@@ -515,7 +478,7 @@ class ContourExplorer:
         if self.state.field is None:
             return
 
-        field_array = self.source.input[self.state.field].values
+        field_array = self.xr[self.state.field].values
         with self.state:
             self.state.color_min = float(field_array.min())
             self.state.color_max = float(field_array.max())
