@@ -45,7 +45,7 @@ from pan3d.utils.presets import set_preset, PRESETS
 
 
 @TrameApp()
-class XArraySlicer:
+class SliceExplorer:
     """
     A Trame based pan3D explorer to visualize 3D using slices along different dimensions
 
@@ -54,7 +54,7 @@ class XArraySlicer:
     using VTK while interacting with the slice in 2D or 3D.
     """
 
-    def __init__(self, xarray=None, source=None, server=None):
+    def __init__(self, xarray=None, source=None, server=None, local_rendering=None):
         # trame setup
         self.server = get_server(server)
         if self.server.hot_reload:
@@ -67,9 +67,26 @@ class XArraySlicer:
             help="Pass a string with this argument to specify a startup configuration. This value must be a local path to a JSON file which adheres to the schema specified in the [Configuration Files documentation](../api/configuration.md).",
             required=(source is None and xarray is None),
         )
-        args, _ = parser.parse_known_args()
+        # Local rendering setup
+        parser.add_argument(
+            "--wasm",
+            help="Use WASM for local rendering",
+            action="store_true",
+        )
+        parser.add_argument(
+            "--vtkjs",
+            help="Use vtk.js for local rendering",
+            action="store_true",
+        )
 
+        args, _ = parser.parse_known_args()
+        self.local_rendering = local_rendering
+        if args.wasm:
+            self.local_rendering = "wasm"
+        if args.vtkjs:
+            self.local_rendering = "vtkjs"
         # Check if we have what we need
+
         config_file = Path(args.import_state) if args.import_state else None
         if (
             (config_file is None or not config_file.exists())
@@ -703,6 +720,7 @@ class XArraySlicer:
                 # 3D view
                 Pan3DView(
                     self.render_window,
+                    local_rendering=self.local_rendering,
                     axis_names="slice_axes",
                     style="position: absolute; left: 0; top: var(--v-layout-top); bottom: var(--v-layout-bottom); z-index: 0; width: 100%;",
                 )
@@ -801,7 +819,7 @@ class XArraySlicer:
 
 
 def main():
-    app = XArraySlicer()
+    app = SliceExplorer()
     app.start()
 
 
