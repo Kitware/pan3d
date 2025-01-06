@@ -86,6 +86,19 @@ class Pan3DAccessor:
 
         return self._viewer_globe
 
+    @property
+    def contour(self):
+        from pan3d.explorers.contour import ContourExplorer
+
+        if self._viewer_contour is None:
+            self._viewer_contour = ContourExplorer(
+                xarray=self.xarray,
+                server=self.next_id(),
+                local_rendering=self._local_rendering,
+            )
+
+        return self._viewer_contour
+
 
 @xr.register_dataarray_accessor("vtk")
 class VTKAccessor:
