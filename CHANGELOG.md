@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.13.1 (2025-01-06)
+
+### Bug Fixes
+
+- **accessor**: Add .local/.remote option
+  ([`a90d6f2`](https://github.com/Kitware/pan3d/commit/a90d6f250e8b53bc9ab2b16e0666d9c283acb02f))
+
+
 ## v0.13.0 (2024-12-20)
 
 ### Documentation
