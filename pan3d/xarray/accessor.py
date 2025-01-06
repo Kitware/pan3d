@@ -30,9 +30,22 @@ class Pan3DAccessor:
     def __init__(self, xarray):
         self.xarray = xarray
         self.accessor_id = 0
+        self._local_rendering = None
         self._viewer_preview = None
         self._viewer_slicer = None
         self._viewer_globe = None
+
+    @property
+    def local(self):
+        """Builder pattern for viewer creation using local rendering"""
+        self._local_rendering = "wasm"
+        return self
+
+    @property
+    def remote(self):
+        """Builder pattern for viewer creation using remote rendering"""
+        self._local_rendering = None
+        return self
 
     @property
     def preview(self):
@@ -40,7 +53,9 @@ class Pan3DAccessor:
 
         if self._viewer_preview is None:
             self._viewer_preview = XArrayViewer(
-                xarray=self.xarray, server=self.next_id()
+                xarray=self.xarray,
+                server=self.next_id(),
+                local_rendering=self._local_rendering,
             )
 
         return self._viewer_preview
@@ -51,7 +66,9 @@ class Pan3DAccessor:
 
         if self._viewer_slicer is None:
             self._viewer_slicer = XArraySlicer(
-                xarray=self.xarray, server=self.next_id()
+                xarray=self.xarray,
+                server=self.next_id(),
+                # local_rendering=self._local_rendering, # FIXME Abhishek
             )
 
         return self._viewer_slicer
@@ -61,7 +78,11 @@ class Pan3DAccessor:
         from pan3d.explorers.globe import GlobeViewer
 
         if self._viewer_globe is None:
-            self._viewer_globe = GlobeViewer(xarray=self.xarray, server=self.next_id())
+            self._viewer_globe = GlobeViewer(
+                xarray=self.xarray,
+                server=self.next_id(),
+                local_rendering=self._local_rendering,
+            )
 
         return self._viewer_globe
 
