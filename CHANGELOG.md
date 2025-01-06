@@ -1,6 +1,22 @@
 # CHANGELOG
 
 
+## v0.14.0 (2025-01-06)
+
+### Bug Fixes
+
+- **contour explorere**: Adding contour explorer to the accessor
+  ([`ac2aab6`](https://github.com/Kitware/pan3d/commit/ac2aab6638c49a85e2062d8d18f5072cfc7ac4f3))
+
+- **missing varaible**: Adding missing class member variable to constructor
+  ([`5bd326a`](https://github.com/Kitware/pan3d/commit/5bd326a3448f09a8d31053199009a27c86874653))
+
+### Features
+
+- **contour explorer**: Adding general countour explorer
+  ([`715f8f1`](https://github.com/Kitware/pan3d/commit/715f8f1ae22ab50f73305dc450c18397bf563fba))
+
+
 ## v0.13.1 (2025-01-06)
 
 ### Bug Fixes
