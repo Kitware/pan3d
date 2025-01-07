@@ -129,7 +129,12 @@ class XArrayViewer:
         self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
 
         self.lut = vtkLookupTable()
-        self.source = vtkXArrayRectilinearSource(input=self.xarray)
+        try:
+            from pan3d.xarray.vtk import vtkXArraySource
+
+            self.source = vtkXArraySource(input=self.xarray)
+        except ImportError:
+            self.source = vtkXArrayRectilinearSource(input=self.xarray)
 
         # Need explicit geometry extraction when used with WASM
         self.geometry = vtkDataSetSurfaceFilter(
@@ -267,6 +272,9 @@ class XArrayViewer:
             return
 
         ds = self.source()
+        print("=" * 60)
+        print(ds)
+        print("=" * 60)
         if color_by in ds.point_data.keys():
             array = ds.point_data[color_by]
             min_value, max_value = array.GetRange()

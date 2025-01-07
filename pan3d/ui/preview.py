@@ -776,6 +776,10 @@ class RenderingSettings(CollapsableSection):
 
         self.source.slices = slices
         ds = self.source()
+
+        if ds.GetClassName() == "vtkDataObject":
+            return  # no mesh produced yet
+
         self.state.dataset_bounds = ds.bounds
 
         self.ctrl.view_reset_clipping_range()
