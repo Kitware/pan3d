@@ -272,9 +272,6 @@ class XArrayViewer:
             return
 
         ds = self.source()
-        print("=" * 60)
-        print(ds)
-        print("=" * 60)
         if color_by in ds.point_data.keys():
             array = ds.point_data[color_by]
             min_value, max_value = array.GetRange()
@@ -284,6 +281,17 @@ class XArrayViewer:
 
             self.mapper.SelectColorArray(color_by)
             self.mapper.SetScalarModeToUsePointFieldData()
+            self.mapper.InterpolateScalarsBeforeMappingOn()
+            self.mapper.SetScalarVisibility(1)
+        elif color_by in ds.cell_data.keys():
+            array = ds.cell_data[color_by]
+            min_value, max_value = array.GetRange()
+
+            self.state.color_min = min_value
+            self.state.color_max = max_value
+
+            self.mapper.SelectColorArray(color_by)
+            self.mapper.SetScalarModeToUseCellFieldData()
             self.mapper.InterpolateScalarsBeforeMappingOn()
             self.mapper.SetScalarVisibility(1)
         else:

@@ -3,11 +3,11 @@ from typing import List, Optional
 import xarray as xr
 import numpy as np
 import pandas as pd
-import traceback
 
 from vtkmodules.util.vtkAlgorithm import VTKPythonAlgorithmBase
 from vtkmodules.vtkCommonCore import vtkVariant
-from vtkmodules.vtkCommonDataModel import vtkImageData
+from vtkmodules.vtkCommonExecutionModel import vtkStreamingDemandDrivenPipeline
+from vtkmodules.vtkCommonDataModel import vtkImageData, vtkDataObject
 from vtkmodules.vtkFiltersCore import vtkArrayCalculator
 from vtkmodules.util import numpy_support, xarray_support
 
@@ -74,6 +74,7 @@ class vtkXArraySource(VTKPythonAlgorithmBase):
             self,
             nInputPorts=0,
             nOutputPorts=1,
+            outputType="vtkDataObject",
         )
         # Data source
         self._input = input
@@ -174,24 +175,14 @@ class vtkXArraySource(VTKPythonAlgorithmBase):
             for name in time_names:
                 if accessor.IsCOARDSCoordinate(name):
                     reader.SetTimeDimensionName(name)
-                    self._t = name
                     break
 
         # Extract coordinate mapping
         reader.UpdateInformation()
-        vtk_str_array = reader.GetAllDimensions()
-        coords = []
-        coords_names = ["_x", "_y", "_z"]
-        if vtk_str_array.GetNumberOfValues() == 1 and ", " in vtk_str_array.GetValue(0):
-            print("vtk reader.GetAllDimensions() is not properly working...")
-            coords = vtk_str_array.GetValue(0)[1:-1].split(", ")
-        else:
-            for i in range(vtk_str_array.GetNumberOfValues()):
-                coords.append(vtk_str_array.GetValue(i))
-        while len(coords):
-            coord_name = coords.pop()  # (Z, Y, X)
-            attr_name = coords_names.pop(0)  # (X, Y, Z)
-            setattr(self, attr_name, coord_name)
+        self._x = reader.GetLongitudeDimensionName()
+        self._y = reader.GetLatitudeDimensionName()
+        self._z = reader.GetVerticalDimensionName()
+        self._t = reader.GetTimeDimensionName()
 
     # -------------------------------------------------------------------------
     # Information
@@ -324,6 +315,11 @@ class vtkXArraySource(VTKPythonAlgorithmBase):
         new_names = set(array_names or [])
         if new_names != self._array_names:
             self._array_names = new_names
+
+            for name in self.available_arrays:
+                active = 1 if name in self._array_names else 0
+                self._reader.SetVariableArrayStatus(name, active)
+
             self.Modified()
 
     @property
@@ -495,42 +491,45 @@ class vtkXArraySource(VTKPythonAlgorithmBase):
     # Algorithm
     # -------------------------------------------------------------------------
 
+    def RequestDataObject(self, request, inInfo, outInfo):
+        output = vtkImageData()
+        if self._reader:
+            self._reader.UpdateDataObject()
+            output = self._reader.GetOutputDataObject(0).NewInstance()
+
+        outInfo.GetInformationObject(0).Set(vtkDataObject.DATA_OBJECT(), output)
+        return 1
+
+    def RequestInformation(self, request, inInfo, outInfo):
+        if self._reader:
+            self._reader.UpdateInformation()
+            info = self._reader.GetOutputInformation(0)
+            whole_extent = info.Get(vtkStreamingDemandDrivenPipeline.WHOLE_EXTENT())
+            outInfo.GetInformationObject(0).Set(
+                vtkStreamingDemandDrivenPipeline.WHOLE_EXTENT(), *whole_extent
+            )
+
+        return 1
+
     def RequestData(self, request, inInfo, outInfo):
         """implementation of the vtk algorithm for generating the VTK mesh"""
         # Use open data_array handle to fetch data at
         # desired Level of Detail
-        if self._reader is None:
-            return 0
-
-        try:
-            output = None
+        if self._reader is not None:
+            pdo = self.GetOutputData(outInfo, 0)
 
             if self.t_size:
                 t = self._arrays[self.t][self.t_index]
                 self._reader.UpdateTimeStep(t)
-                # print("Update VTK time", t)
 
-            # update arrays
-            for name in self.available_arrays:
-                active = 1 if name in self._array_names else 0
-                self._reader.SetVariableArrayStatus(name, active)
-
-            # generate the mesh
             mesh = self._reader()
 
             # Compute derived quantity
             if self._pipeline is not None:
-                output = self._pipeline(mesh)
+                mesh = self._pipeline(mesh)
+                pdo.ShallowCopy(mesh)
             else:
-                output = mesh
+                pdo.ShallowCopy(mesh)
 
-            # set it as output
-            print("output => ", output.GetClassName())
-            filter_output = VTK_DATASETS[output.GetClassName()].GetData(outInfo)
-            print(f"{filter_output=}")  # <= it is None...
-            filter_output.ShallowCopy(output)
-
-        except Exception as e:
-            traceback.print_exc()
-            raise e
-        return 1
+            return 1
+        return 0
