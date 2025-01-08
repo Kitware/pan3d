@@ -39,7 +39,7 @@ viewer = [
     "trame-vuetify>=2.4",
 ]
 esgf = [
-    "intake-esgf>=2024.1",
+    "intake-esgf>=2024.1,<=2024.7.15",
 ]
 pangeo = [
     "intake==0.7.0",  # latest has plugin errors
