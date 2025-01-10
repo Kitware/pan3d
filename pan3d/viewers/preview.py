@@ -1,3 +1,4 @@
+import os
 from vtkmodules.vtkInteractionWidgets import vtkOrientationMarkerWidget
 from vtkmodules.vtkRenderingAnnotation import vtkAxesActor
 from vtkmodules.vtkCommonCore import vtkLookupTable
@@ -129,11 +130,14 @@ class XArrayViewer:
         self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
 
         self.lut = vtkLookupTable()
-        try:
-            from pan3d.xarray.vtk import vtkXArraySource
+        if "PAN3D_USE_VTK_XARRAY" in os.environ:
+            try:
+                from pan3d.xarray.vtk import vtkXArraySource
 
-            self.source = vtkXArraySource(input=self.xarray)
-        except ImportError:
+                self.source = vtkXArraySource(input=self.xarray)
+            except ImportError:
+                self.source = vtkXArrayRectilinearSource(input=self.xarray)
+        else:
             self.source = vtkXArrayRectilinearSource(input=self.xarray)
 
         # Need explicit geometry extraction when used with WASM
