@@ -79,12 +79,13 @@ def structured_grid_to_dataset(mesh):
             "StructuredGrid dataset engine duplicates data - VTK data not shared with xarray."
         )
     )
-
+    dims = [0, 0, 0]
+    mesh.GetDimensions(dims)
     return xr.Dataset(
         {
             name: (
                 ["xi", "yi", "zi"],
-                mesh.point_data[name].ravel().reshape(mesh.dimensions),
+                mesh.point_data[name].ravel().reshape(dims),
             )
             for name in mesh.point_data.keys()
         },
