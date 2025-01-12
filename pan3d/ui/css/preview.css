@@ -22,6 +22,15 @@ html {
     z-index: 2;
 }
 
+.controllerbr {
+    position: absolute !important;
+    bottom: 1rem;
+    right: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow: auto;
+    z-index: 2;
+}
+
 .controller-content {
     width: clamp(20rem, 25vw, 30rem);
 }
