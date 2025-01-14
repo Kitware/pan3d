@@ -27,6 +27,7 @@ html {
     bottom: 1rem;
     right: 1rem;
     max-height: calc(100vh - 2rem);
+    max-width: calc(100vh - 2rem);
     overflow: auto;
     z-index: 2;
 }
