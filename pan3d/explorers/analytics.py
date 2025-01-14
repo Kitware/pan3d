@@ -32,7 +32,8 @@ from pan3d.utils.convert import update_camera, to_image, to_float
 from pan3d.utils.presets import set_preset
 
 from pan3d.ui.vtk_view import Pan3DView, Pan3DScalarBar
-from pan3d.ui.analytics import SummaryToolbar, ControlPanel, ChartPanel
+from pan3d.ui.preview import SummaryToolbar, ControlPanel
+from pan3d.ui.analytics import Plotting
 
 
 @TrameApp()
@@ -259,7 +260,7 @@ class AnalyticsExplorer:
                 source_update_rendering="source_update_rendering_panel",
             )
 
-            ChartPanel(source=self.source, toggle="chart_expanded")
+            self.plotting = Plotting(source=self.source, toggle="chart_expanded")
 
     # -----------------------------------------------------
     # State change callbacks
