@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.14.1 (2025-01-17)
+
+### Bug Fixes
+
+- **deprecation**: Replace removed dimensions property
+  ([`dba3f1e`](https://github.com/Kitware/pan3d/commit/dba3f1e1f97e446df10175f5875f1c26813deece))
+
+
 ## v0.14.0 (2025-01-06)
 
 ### Bug Fixes
