@@ -776,6 +776,7 @@ class RenderingSettings(CollapsableSection):
 
         self.source.slices = slices
         ds = self.source()
+
         self.state.dataset_bounds = ds.bounds
 
         self.ctrl.view_reset_clipping_range()

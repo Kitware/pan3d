@@ -3,6 +3,7 @@ node_modules
 .venv*
 *.nc
 *.data-origin.json
+*.vtk
 
 examples/jupyter/*.gif
 site/*

@@ -1,2 +1,3 @@
 [codespell]
 skip = CHANGELOG.md,tests/data/*
+ignore-words-list = degreee

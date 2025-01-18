@@ -1,3 +1,4 @@
+import os
 from vtkmodules.vtkInteractionWidgets import vtkOrientationMarkerWidget
 from vtkmodules.vtkRenderingAnnotation import vtkAxesActor
 from vtkmodules.vtkCommonCore import vtkLookupTable
@@ -129,7 +130,15 @@ class XArrayViewer:
         self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
 
         self.lut = vtkLookupTable()
-        self.source = vtkXArrayRectilinearSource(input=self.xarray)
+        if "PAN3D_USE_VTK_XARRAY" in os.environ:
+            try:
+                from pan3d.xarray.vtk import vtkXArraySource
+
+                self.source = vtkXArraySource(input=self.xarray)
+            except ImportError:
+                self.source = vtkXArrayRectilinearSource(input=self.xarray)
+        else:
+            self.source = vtkXArrayRectilinearSource(input=self.xarray)
 
         # Need explicit geometry extraction when used with WASM
         self.geometry = vtkDataSetSurfaceFilter(
@@ -276,6 +285,17 @@ class XArrayViewer:
 
             self.mapper.SelectColorArray(color_by)
             self.mapper.SetScalarModeToUsePointFieldData()
+            self.mapper.InterpolateScalarsBeforeMappingOn()
+            self.mapper.SetScalarVisibility(1)
+        elif color_by in ds.cell_data.keys():
+            array = ds.cell_data[color_by]
+            min_value, max_value = array.GetRange()
+
+            self.state.color_min = min_value
+            self.state.color_max = max_value
+
+            self.mapper.SelectColorArray(color_by)
+            self.mapper.SetScalarModeToUseCellFieldData()
             self.mapper.InterpolateScalarsBeforeMappingOn()
             self.mapper.SetScalarVisibility(1)
         else:
