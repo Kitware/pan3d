@@ -96,6 +96,9 @@ def generate_bound_cells(metadata, dimensions, time_index, spherical):
 def generate_mesh_points(metadata, dimensions, time_index, spherical):
     data_location = "point_data"
 
+    if metadata.coords_1d and metadata.uniform_spacing:
+        print("Should put data on cell!")
+
     # 2D or 3D
     dims_size = len(dimensions)
     assert dims_size == 2 or dims_size == 3

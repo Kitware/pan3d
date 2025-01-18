@@ -327,8 +327,10 @@ Coordinates:
   - vertical  : {self.vertical}
   - time      : {self.time}
 Computed:
-  - has_bound : {self.coords_has_bounds}
-  - uniform   : {self.uniform_spacing}
+  - has_bound     : {self.coords_has_bounds}
+  - uniform (2D)  : {self.uniform_lat_lon}
+  - uniform (all) : {self.uniform_spacing}
+  - coords 1d     : {self.coords_1d}
 Data:
 {data_str}
 """
@@ -343,12 +345,16 @@ Data:
         return lon_bnd is not None and lat_bnd is not None
 
     @property
-    def uniform_spacing(self):
-        uniform = (
+    def uniform_lat_lon(self):
+        return (
             self.coords_1d
             and is_uniform(self.xr_dataset[self.longitude].values)
             and is_uniform(self.xr_dataset[self.latitude].values)
         )
+
+    @property
+    def uniform_spacing(self):
+        uniform = self.uniform_lat_lon
 
         if self.vertical is not None and uniform:
             uniform = len(self.xr_dataset[self.vertical].dims) == 1 and is_uniform(
