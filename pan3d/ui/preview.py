@@ -264,6 +264,7 @@ class RenderingSettings(CollapsableSection):
         self.state.setdefault("max_time_width", 0)
         self.state.setdefault("max_time_index_width", 0)
         self.state.setdefault("dataset_bounds", [0, 1, 0, 1, 0, 1])
+        self.state.setdefault("projection_mode", "spherical")
 
         with self.content:
             v3.VSelect(
@@ -576,63 +577,115 @@ class RenderingSettings(CollapsableSection):
                                 type="number",
                             )
 
-            # Actor scaling
-            with v3.VTooltip(text="Representation scaling"):
+            # Projection mode + scaling
+            with v3.VTooltip(
+                text=(
+                    "projection_mode === 'spherical' ? `Spherical Projection: scaling=${spherical_scale} bias=${spherical_bias}` : 'Euclidian Projection'",
+                )
+            ):
                 with html.Template(v_slot_activator="{ props }"):
-                    with v3.VRow(
+                    with v3.VCol(
                         v_bind="props",
                         no_gutter=True,
-                        classes="align-center my-0 mx-0 border-b-thin",
+                        classes="align-center pa-0 my-0 mx-0 border-b-thin",
                     ):
-                        v3.VIcon(
-                            "mdi-ruler-square",
-                            classes="ml-2 text-medium-emphasis",
+                        v3.VSelect(
+                            prepend_inner_icon=(
+                                "projection_mode === 'spherical' ? 'mdi-earth' : 'mdi-earth-box'",
+                            ),
+                            v_model=("projection_mode", "spherical"),
+                            items=("['spherical', 'euclidian']",),
+                            hide_details=True,
+                            density="compact",
+                            flat=True,
+                            variant="solo",
+                            classes="mx-n1",
                         )
-                        with v3.VCol(classes="pa-0", v_if="axis_names?.[0]"):
-                            v3.VTextField(
-                                v_model=("scale_x", 1),
+                        with v3.VCol(
+                            no_gutter=True,
+                            classes="align-center my-0 mx-0 pa-0",
+                            v_if="projection_mode === 'spherical'",
+                        ):
+                            v3.VSlider(
+                                prepend_icon="mdi-radius-outline",
+                                v_model=("spherical_bias", 6378137),
+                                min=1,
+                                max=6378137,
+                                step=100,
                                 hide_details=True,
                                 density="compact",
                                 flat=True,
                                 variant="solo",
-                                reverse=True,
-                                raw_attrs=[
-                                    'pattern="^\d*(\.\d)?$"',  # noqa: W605
-                                    'min="0.001"',
-                                    'step="0.1"',
-                                ],
-                                type="number",
+                                classes="mr-4",
+                                end=self.server.controller.view_update,
                             )
-                        with v3.VCol(classes="pa-0", v_if="axis_names?.[1]"):
-                            v3.VTextField(
-                                v_model=("scale_y", 1),
+                            v3.VSlider(
+                                prepend_icon="mdi-magnify",
+                                v_model=("spherical_scale", 100),
+                                min=1,
+                                max=1000,
+                                step=20,
                                 hide_details=True,
                                 density="compact",
                                 flat=True,
                                 variant="solo",
-                                reverse=True,
-                                raw_attrs=[
-                                    'pattern="^\d*(\.\d)?$"',  # noqa: W605
-                                    'min="0.001"',
-                                    'step="0.1"',
-                                ],
-                                type="number",
+                                classes="mr-4",
+                                end=self.server.controller.view_update,
                             )
-                        with v3.VCol(classes="pa-0", v_if="axis_names?.[2]"):
-                            v3.VTextField(
-                                v_model=("scale_z", 1),
-                                hide_details=True,
-                                density="compact",
-                                flat=True,
-                                variant="solo",
-                                reverse=True,
-                                raw_attrs=[
-                                    'pattern="^\d*(\.\d)?$"',  # noqa: W605
-                                    'min="0.001"',
-                                    'step="0.1"',
-                                ],
-                                type="number",
+                        with v3.VRow(
+                            no_gutter=True,
+                            classes="align-center my-0 mx-0",
+                            v_else=True,
+                        ):
+                            v3.VIcon(
+                                "mdi-ruler-square",
+                                classes="ml-2 text-medium-emphasis",
                             )
+                            with v3.VCol(classes="pa-0", v_if="axis_names?.[0]"):
+                                v3.VTextField(
+                                    v_model=("scale_x", 1),
+                                    hide_details=True,
+                                    density="compact",
+                                    flat=True,
+                                    variant="solo",
+                                    reverse=True,
+                                    raw_attrs=[
+                                        'pattern="^\d*(\.\d)?$"',  # noqa: W605
+                                        'min="0.001"',
+                                        'step="0.1"',
+                                    ],
+                                    type="number",
+                                )
+                            with v3.VCol(classes="pa-0", v_if="axis_names?.[1]"):
+                                v3.VTextField(
+                                    v_model=("scale_y", 1),
+                                    hide_details=True,
+                                    density="compact",
+                                    flat=True,
+                                    variant="solo",
+                                    reverse=True,
+                                    raw_attrs=[
+                                        'pattern="^\d*(\.\d)?$"',  # noqa: W605
+                                        'min="0.001"',
+                                        'step="0.1"',
+                                    ],
+                                    type="number",
+                                )
+                            with v3.VCol(classes="pa-0", v_if="axis_names?.[2]"):
+                                v3.VTextField(
+                                    v_model=("scale_z", 1),
+                                    hide_details=True,
+                                    density="compact",
+                                    flat=True,
+                                    variant="solo",
+                                    reverse=True,
+                                    raw_attrs=[
+                                        'pattern="^\d*(\.\d)?$"',  # noqa: W605
+                                        'min="0.001"',
+                                        'step="0.1"',
+                                    ],
+                                    type="number",
+                                )
 
             # Time slider
             with v3.VTooltip(
@@ -678,6 +731,11 @@ class RenderingSettings(CollapsableSection):
             self.state.color_by = None
             self.state.axis_names = [source.x, source.y, source.z]
             self.state.slice_extents = source.slice_extents
+            self.state.projection_mode = (
+                "spherical" if source.spherical else "euclidean"
+            )
+            self.state.spherical_bias = source.vertical_bias
+            self.state.spherical_scale = source.vertical_scale
             slices = source.slices
             for axis in XYZ:
                 # default
@@ -802,6 +860,14 @@ class RenderingSettings(CollapsableSection):
             self.state.color_by = None
 
         self.source.arrays = data_arrays
+
+    @change("spherical_bias", "spherical_scale", "projection_mode")
+    def _on_projection_change(
+        self, spherical_bias, spherical_scale, projection_mode, **_
+    ):
+        self.source.spherical = projection_mode == "spherical"
+        self.source.vertical_bias = spherical_bias
+        self.source.vertical_scale = spherical_scale
 
 
 class ControlPanel(v3.VCard):

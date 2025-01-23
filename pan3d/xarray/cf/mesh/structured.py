@@ -3,7 +3,7 @@ from vtkmodules.vtkCommonDataModel import vtkStructuredGrid
 
 from ..coords.parametric_vertical import get_formula as get_z_formula
 from ..coords.index_mapping import get_formula as get_coords_formula
-from ..coords.convert import point_insert
+from ..coords.convert import point_insert, cell_center_to_point
 
 
 def generate_mesh(metadata, dimensions, time_index, spherical):
@@ -96,8 +96,14 @@ def generate_bound_cells(metadata, dimensions, time_index, spherical):
 def generate_mesh_points(metadata, dimensions, time_index, spherical):
     data_location = "point_data"
 
-    if metadata.coords_1d and metadata.uniform_spacing:
-        print("Should put data on cell!")
+    if (
+        metadata.coords_1d
+        and metadata.uniform_lat_lon
+        and metadata.use_coords(dimensions)
+    ):
+        return generate_mesh_points_data_on_cell(
+            metadata, dimensions, time_index, spherical
+        )
 
     # 2D or 3D
     dims_size = len(dimensions)
@@ -159,6 +165,61 @@ def generate_mesh_points(metadata, dimensions, time_index, spherical):
                     lon, lat = coords_formula(i=i, j=j, k=k)
                     z = z_formula(i=i, j=j, k=k, n=time_index)
                     # print(f"{time_index=}, {k=}, {j=}, {i=} = {lon=}, {lat=}, {z=}")
+                    point_insert(vtk_points, spherical, lon, lat, z)
+
+    # Mesh
+    mesh = vtkStructuredGrid()
+    mesh.points = vtk_points
+    mesh.extent = extent
+
+    return mesh, data_location
+
+
+def generate_mesh_points_data_on_cell(metadata, dimensions, time_index, spherical):
+    data_location = "cell_data"
+    # 2D or 3D
+    dims_size = len(dimensions)
+    assert dims_size == 2 or dims_size == 3
+
+    extent = [0, 0, 0, 0, 0, 0]
+    n_points = 1
+    for idx in range(len(dimensions)):
+        array = metadata.xr_dataset[dimensions[-(1 + idx)]]
+        # Fill in reverse order (t, z, y, x) => [0, x.size, 0, y.size, 0, z.size]
+        # And extent include both index and adding 1 point so (len-1+1) => len
+        extent[idx * 2 + 1] = array.size
+        n_points *= array.size + 1
+
+    # Points
+    vtk_points = vtkPoints()
+    vtk_points.SetDataTypeToDouble()
+    vtk_points.Allocate(n_points)
+
+    # debug
+    # print(f"{dimensions=}")
+    # print(f"{extent=}")
+    # print(f"{n_points=}")
+
+    # Check if direct coord mapping
+    if dims_size == 2:  # 2D
+        x_array = cell_center_to_point(metadata.xr_dataset[metadata.longitude].values)
+        y_array = cell_center_to_point(metadata.xr_dataset[metadata.latitude].values)
+        z = 0
+        for j in range(extent[3] + 1):
+            lat = y_array[j]
+            for i in range(extent[1] + 1):
+                lon = x_array[i]
+                point_insert(vtk_points, spherical, lon, lat, z)
+    else:  # 3D
+        x_array = cell_center_to_point(metadata.xr_dataset[metadata.longitude].values)
+        y_array = cell_center_to_point(metadata.xr_dataset[metadata.latitude].values)
+        z_array = cell_center_to_point(metadata.xr_dataset[metadata.vertical].values)
+        for k in range(extent[5] + 1):
+            z = z_array[k]
+            for j in range(extent[3] + 1):
+                lat = y_array[j]
+                for i in range(extent[1] + 1):
+                    lon = x_array[i]
                     point_insert(vtk_points, spherical, lon, lat, z)
 
     # Mesh

@@ -1,6 +1,7 @@
 from enum import Enum
 import numpy as np
 from pan3d.xarray.cf import mesh
+from pan3d.xarray.cf.coords.convert import is_uniform
 
 PRESSURE_UNITS = {
     "bar",
@@ -145,20 +146,6 @@ COORDINATES_DETECTION = {
 }
 
 
-def is_uniform(array):
-    origin = float(array[0])
-    spacing = (float(array[-1]) - origin) / (array.size - 1)
-    tolerance = 0.01 * spacing
-
-    for i in range(array.size):
-        expected = origin + i * spacing
-        truth = float(array[i])
-        if not np.isclose(expected, truth, atol=tolerance):
-            return False
-
-    return True
-
-
 class CoordinateType(Enum):
     LONGITUDE = "longitude"
     LATITUDE = "latitude"
@@ -250,11 +237,9 @@ class CoordinateType(Enum):
 
 class MetaArrayMapping:
     def __init__(self, xr_dataset):
-        self.xr_dataset = xr_dataset
-        self.conventions = (
-            xr_dataset.Conventions if hasattr(xr_dataset, "Conventions") else None
-        )
+        self.xr_dataset = None
         self.data_arrays = {}
+        self.conventions = None
         self.longitude = None
         self.latitude = None
         self.vertical = None
@@ -263,6 +248,24 @@ class MetaArrayMapping:
         self.vertical_bias = 6378137
         self.vertical_scale = 100
 
+        self.update(xr_dataset)
+
+    def update(self, xr_dataset):
+        self.xr_dataset = xr_dataset
+        self.valid = False
+        self.data_arrays = {}
+        self.conventions = None
+        self.longitude = None
+        self.latitude = None
+        self.vertical = None
+        self.time = None
+
+        if xr_dataset is None:
+            return
+
+        self.conventions = (
+            xr_dataset.Conventions if hasattr(xr_dataset, "Conventions") else None
+        )
         if self.conventions is not None:
             for convention in {"COARDS", "CF-1"}:
                 if convention in self.conventions:
@@ -391,6 +394,9 @@ Data:
         return True
 
     def get_mesh(self, time_index=0, spherical=True, fields=None):
+        if self.xr_dataset is None or not fields:
+            return None
+
         vtk_mesh, data_location = None, None
 
         # ensure similar dimension across array names
