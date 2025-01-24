@@ -7,11 +7,12 @@ import pandas as pd
 from vtkmodules.util.vtkAlgorithm import VTKPythonAlgorithmBase
 from vtkmodules.vtkCommonCore import vtkVariant
 from vtkmodules.vtkCommonExecutionModel import vtkStreamingDemandDrivenPipeline
-from vtkmodules.vtkCommonDataModel import vtkImageData, vtkDataObject
+from vtkmodules.vtkCommonDataModel import vtkDataObject
 from vtkmodules.vtkFiltersCore import vtkArrayCalculator
 from vtkmodules.util import numpy_support
 
 from pan3d.xarray.cf.coords.meta import MetaArrayMapping
+from pan3d.xarray.cf.constants import Projection
 
 # -----------------------------------------------------------------------------
 # Helper functions
@@ -55,7 +56,7 @@ def get_time_labels(times):
 # -----------------------------------------------------------------------------
 
 
-class CFHelper:
+class CFHelperXXX:
     def __init__(self, xr_dataset):
         self._xr_dataset = xr_dataset
         self._meta = MetaArrayMapping(xr_dataset)
@@ -155,7 +156,13 @@ class CFHelper:
     def available_arrays(self):
         all_list = []
         for arrays in self._meta.data_arrays.values():
-            all_list.extend(arrays)
+            if self._array_names:
+                if self._array_names.intersection(arrays):
+                    # only add compatible arrays
+                    all_list.extend(arrays)
+            else:
+                # when no array selected, add all of them
+                all_list.extend(arrays)
 
         return all_list
 
@@ -202,15 +209,22 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
         # vtk internal vars
         self._arrays = {}
 
+        # projection
+        self._proj_mode = Projection.SPHERICAL
+        self._proj_vertical_bias = 6378137  # earth radius in meter
+        self._proj_vertical_scale = (
+            100  # increase z scaling to see something compare to earth radius
+        )
+
         # Create reader if xarray available
-        self._meta = CFHelper(self._input)
+        self._mapping = MetaArrayMapping(self._input)
 
     # -------------------------------------------------------------------------
     # Information
     # -------------------------------------------------------------------------
 
     def __str__(self):
-        return """VTK XArray CF (Python) reader"""
+        return f"VTK XArray CF (Python) reader\n{self._mapping}"
 
     # -------------------------------------------------------------------------
     # Data input
@@ -227,8 +241,8 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
         self._slices = None
         self._array_names.clear()
         self._input = xarray_dataset
-        self._meta.update(self._input)
-        self._meta.t_index = self.t_index
+        self._mapping.update(self._input)
+        self.t_index = 0
         self.Modified()
 
     # -------------------------------------------------------------------------
@@ -238,7 +252,7 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
     @property
     def x(self):
         """return the name that is currently mapped to the X axis"""
-        return self._meta.x
+        return self._mapping.longitude
 
     @property
     def x_size(self):
@@ -250,7 +264,7 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
     @property
     def y(self):
         """return the name that is currently mapped to the Y axis"""
-        return self._meta.y
+        return self._mapping.latitude
 
     @property
     def y_size(self):
@@ -262,7 +276,7 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
     @property
     def z(self):
         """return the name that is currently mapped to the Z axis"""
-        return self._meta.z
+        return self._mapping.vertical
 
     @property
     def z_size(self):
@@ -274,11 +288,13 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
     @property
     def t(self):
         """return the name that is currently mapped to the time axis"""
-        return self._meta.t
+        return self._mapping.time
 
     @property
     def slice_extents(self):
         """return a dictionary for the X, Y, Z dimensions with the corresponding extent [0, size-1]"""
+        # !!! can be different based on which field is selected !!!
+        # -> result not obvious based on the mesh type
         return {
             coord_name: [0, self.input[coord_name].size - 1]
             for coord_name in [self.x, self.y, self.z]
@@ -287,7 +303,8 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
 
     @property
     def available_coords(self):
-        """List available coordinates arrays that have are 1D"""
+        """List available coordinates arrays that are 1D"""
+        # !!! Do we use that ???
         if self._input is None:
             return []
 
@@ -298,33 +315,35 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
     # -------------------------------------------------------------------------
 
     @property
-    def spherical(self):
-        return self._meta.spherical
+    def projection(self):
+        return self._proj_mode
 
-    @spherical.setter
-    def spherical(self, v):
-        if self._meta.spherical != v:
-            self._meta.spherical = v
+    @projection.setter
+    def projection(self, mode=None):
+        if mode in Projection and self._proj_mode != mode:
+            if isinstance(mode, str):
+                mode = Projection(mode)
+            self._proj_mode = mode
             self.Modified()
 
     @property
     def vertical_bias(self):
-        return self._meta.vertical_bias
+        return self._proj_vertical_bias
 
     @vertical_bias.setter
     def vertical_bias(self, v):
-        if self._meta.vertical_bias != v:
-            self._meta.vertical_bias = v
+        if self._proj_vertical_bias != v:
+            self._proj_vertical_bias = v
             self.Modified()
 
     @property
     def vertical_scale(self):
-        return self._meta.vertical_scale
+        return self._proj_vertical_scale
 
     @vertical_scale.setter
     def vertical_scale(self, v):
-        if self._meta.vertical_scale != v:
-            self._meta.vertical_scale = v
+        if self._proj_vertical_scale != v:
+            self._proj_vertical_scale = v
             self.Modified()
 
     # -------------------------------------------------------------------------
@@ -341,7 +360,6 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
         """update the current selected time index"""
         if t_index != self._t_index:
             self._t_index = t_index
-            self._meta.t_index = t_index
             self.Modified()
 
     @property
@@ -374,16 +392,25 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
         new_names = set(array_names or [])
         if new_names != self._array_names:
             self._array_names = new_names
-            self._meta.arrays = new_names
             self.Modified()
 
     @property
     def available_arrays(self):
         """List all available data fields for the `arrays` option"""
-        if self._input is None or self._meta is None:
+        if self._input is None:
             return []
 
-        return self._meta.available_arrays
+        all_list = []
+        for arrays in self._mapping.data_arrays.values():
+            if self._array_names:
+                if self._array_names.intersection(arrays):
+                    # only add compatible arrays
+                    all_list.extend(arrays)
+            else:
+                # when no array selected, add all of them
+                all_list.extend(arrays)
+
+        return all_list
 
     @property
     def slices(self):
@@ -398,13 +425,10 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
         """update the slicing of the data along axes"""
         if v != self._slices:
             self._slices = v
-            # FIXME !!! update accessor
-            # Ask Dan
-            # self.Modified()
-            # raise NotImplementedError()
-            print("set slices not implemented", v)
             if "time" in v:
                 self.t_index = v.get("time", 0)
+
+            self.Modified()
 
     # -------------------------------------------------------------------------
     # add-on logic
@@ -518,9 +542,9 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
         if dataset_config is None:
             self.arrays = self.available_arrays
         else:
-            # self.slices = dataset_config.get("slices") # FIXME: not implemented yet
+            self.slices = dataset_config.get("slices")
             self.t_index = dataset_config.get("t_index", 0)
-            self.arrays = dataset_config.get("arrays", self.available_arrays)
+            self.arrays = dataset_config.get("arrays", [self.available_arrays[0]])
 
     @property
     def state(self):
@@ -543,25 +567,18 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
     # -------------------------------------------------------------------------
 
     def RequestDataObject(self, request, inInfo, outInfo):
-        output = vtkImageData()
-        if self._meta.mesh is not None:
-            output = self._meta.mesh.NewInstance()
-            print(f"RequestDataObject::{output.GetClassName()}")
-
+        output = self._mapping.get_vtk_mesh_type(self._proj_mode, self.arrays)
         outInfo.GetInformationObject(0).Set(vtkDataObject.DATA_OBJECT(), output)
+        print(f"RequestDataObject::{output.GetClassName()=}")
         return 1
 
     def RequestInformation(self, request, inInfo, outInfo):
-        if (
-            self._meta._xr_dataset
-            and self._meta.mesh
-            and hasattr(self._meta.mesh, "extent")
-        ):
-            whole_extent = self._meta.mesh.extent
-            print(f"RequestInformation::{whole_extent=}")
-            outInfo.GetInformationObject(0).Set(
-                vtkStreamingDemandDrivenPipeline.WHOLE_EXTENT(), *whole_extent
-            )
+        whole_extent = self._mapping.get_vtk_whole_extent(self._proj_mode, self.arrays)
+        print(f"{whole_extent=}")
+        outInfo.GetInformationObject(0).Set(
+            vtkStreamingDemandDrivenPipeline.WHOLE_EXTENT(),
+            *whole_extent,
+        )
 
         return 1
 
@@ -569,8 +586,12 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
         """implementation of the vtk algorithm for generating the VTK mesh"""
         # Use open data_array handle to fetch data at
         # desired Level of Detail
-        mesh = self._meta.mesh
+        mesh = self._mapping.get_vtk_mesh(
+            time_index=self.t_index, projection=self._proj_mode, fields=self.arrays
+        )
         if mesh is not None:
+            print(f"{mesh.extent=}")
+            print(f"{mesh.GetClassName()=}")
             pdo = self.GetOutputData(outInfo, 0)
 
             # Compute derived quantity
@@ -580,5 +601,4 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
             else:
                 pdo.ShallowCopy(mesh)
 
-            return 1
-        return 0
+        return 1

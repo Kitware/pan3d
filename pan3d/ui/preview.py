@@ -11,6 +11,7 @@ from pan3d.utils.presets import PRESETS
 
 from pan3d.ui.css import base, preview
 from pan3d.ui.collapsible import CollapsableSection
+from pan3d.xarray.cf.constants import Projection
 
 
 class SummaryToolbar(v3.VCard):
@@ -732,7 +733,9 @@ class RenderingSettings(CollapsableSection):
             self.state.axis_names = [source.x, source.y, source.z]
             self.state.slice_extents = source.slice_extents
             self.state.projection_mode = (
-                "spherical" if source.spherical else "euclidean"
+                "spherical"
+                if source.projection == Projection.SPHERICAL
+                else "euclidean"
             )
             self.state.spherical_bias = source.vertical_bias
             self.state.spherical_scale = source.vertical_scale
@@ -865,7 +868,11 @@ class RenderingSettings(CollapsableSection):
     def _on_projection_change(
         self, spherical_bias, spherical_scale, projection_mode, **_
     ):
-        self.source.spherical = projection_mode == "spherical"
+        self.source.projection = (
+            Projection.SPHERICAL
+            if projection_mode == "spherical"
+            else Projection.EUCLIDEAN
+        )
         self.source.vertical_bias = spherical_bias
         self.source.vertical_scale = spherical_scale
 

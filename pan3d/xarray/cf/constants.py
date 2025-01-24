@@ -89,6 +89,11 @@ class DimensionInformation:
         """
 
 
+class Projection(Enum):
+    SPHERICAL = "Spherical"
+    EUCLIDEAN = "Euclidean"
+
+
 class Scale(Enum):
     da = (1e1, {"deca", "deka"})
     h = (1e2, {"hecto"})
