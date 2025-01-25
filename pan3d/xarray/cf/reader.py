@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+import gc
 import xarray as xr
 import numpy as np
 import pandas as pd
@@ -292,14 +293,26 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
 
     @property
     def slice_extents(self):
-        """return a dictionary for the X, Y, Z dimensions with the corresponding extent [0, size-1]"""
-        # !!! can be different based on which field is selected !!!
-        # -> result not obvious based on the mesh type
-        return {
-            coord_name: [0, self.input[coord_name].size - 1]
-            for coord_name in [self.x, self.y, self.z]
-            if coord_name is not None
+        """
+        return a dictionary for the field dimensions with
+        the corresponding extent [0, size-1].
+
+        For some dataset, it is possible that the extent does not have
+        a direct mapping with the coordinate system.
+        """
+        fields = self.arrays
+        if not fields:
+            return {}
+        dims = self._mapping.timeless_dimensions(fields[0])
+        # ensure order to match x, y, z
+        dims = dims[::-1]
+
+        print(f"slice_extents::{dims=}")
+        result = {
+            coord_name: [0, self.input[coord_name].size - 1] for coord_name in dims
         }
+        print(f" => {result}")
+        return result
 
     @property
     def available_coords(self):
@@ -334,6 +347,7 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
     def vertical_bias(self, v):
         if self._proj_vertical_bias != v:
             self._proj_vertical_bias = v
+            self._mapping.vertical_bias = v
             self.Modified()
 
     @property
@@ -344,6 +358,7 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
     def vertical_scale(self, v):
         if self._proj_vertical_scale != v:
             self._proj_vertical_scale = v
+            self._mapping.vertical_scale = v
             self.Modified()
 
     # -------------------------------------------------------------------------
@@ -425,6 +440,7 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
         """update the slicing of the data along axes"""
         if v != self._slices:
             self._slices = v
+            print(f"{self._slices=}")
             if "time" in v:
                 self.t_index = v.get("time", 0)
 
@@ -569,12 +585,14 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
     def RequestDataObject(self, request, inInfo, outInfo):
         output = self._mapping.get_vtk_mesh_type(self._proj_mode, self.arrays)
         outInfo.GetInformationObject(0).Set(vtkDataObject.DATA_OBJECT(), output)
-        print(f"RequestDataObject::{output.GetClassName()=}")
+        # print(f"RequestDataObject::{output.GetClassName()=}")
         return 1
 
     def RequestInformation(self, request, inInfo, outInfo):
-        whole_extent = self._mapping.get_vtk_whole_extent(self._proj_mode, self.arrays)
-        print(f"{whole_extent=}")
+        whole_extent = self._mapping.get_vtk_whole_extent(
+            self._proj_mode, self.arrays, self._slices
+        )
+        # print(f"{whole_extent=}")
         outInfo.GetInformationObject(0).Set(
             vtkStreamingDemandDrivenPipeline.WHOLE_EXTENT(),
             *whole_extent,
@@ -586,12 +604,17 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
         """implementation of the vtk algorithm for generating the VTK mesh"""
         # Use open data_array handle to fetch data at
         # desired Level of Detail
+        print("RequestData")
+        print("+" * 60)
         mesh = self._mapping.get_vtk_mesh(
-            time_index=self.t_index, projection=self._proj_mode, fields=self.arrays
+            time_index=self.t_index,
+            projection=self._proj_mode,
+            fields=self.arrays,
+            slices=self._slices,
         )
         if mesh is not None:
-            print(f"{mesh.extent=}")
-            print(f"{mesh.GetClassName()=}")
+            # print(f"{mesh.extent=}")
+            # print(f"{mesh.GetClassName()=}")
             pdo = self.GetOutputData(outInfo, 0)
 
             # Compute derived quantity
@@ -600,5 +623,7 @@ class vtkXArrayCFSource(VTKPythonAlgorithmBase):
                 pdo.ShallowCopy(mesh)
             else:
                 pdo.ShallowCopy(mesh)
+
+        gc.collect()
 
         return 1

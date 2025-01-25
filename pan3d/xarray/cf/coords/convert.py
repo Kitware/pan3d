@@ -2,6 +2,33 @@ import math
 import numpy as np
 
 
+def to_isel(slices_info, *array_names):
+    slices = {}
+    for name in array_names:
+        if name is None:
+            continue
+
+        info = slices_info.get(name)
+        if info is None:
+            continue
+        if isinstance(info, int):
+            slices[name] = info
+        else:
+            start, stop, step = info
+            stop -= (stop - start) % step
+            slices[name] = slice(start, stop, step)
+
+    return slices if slices else None
+
+
+def slice_array(array_name, dataset, slice_info):
+    if array_name is None:
+        return np.zeros(1, dtype=np.float32)
+    array = dataset[array_name]
+    dims = array.dims
+    return array.isel(to_isel(slice_info, *dims)).values
+
+
 def extract_uniform_info(array):
     origin = float(array[0])
     spacing = (float(array[-1]) - origin) / (array.size - 1)
@@ -21,6 +48,10 @@ def is_uniform(array):
 
 
 def cell_center_to_point(in_array):
+    if in_array.size == 1:
+        print("size 1")
+        return [float(in_array)]
+
     uniform_data = extract_uniform_info(in_array)
     if uniform_data is not None:
         origin, spacing, size = uniform_data

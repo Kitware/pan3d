@@ -1,7 +1,7 @@
 from enum import Enum
 import numpy as np
 from pan3d.xarray.cf import mesh
-from pan3d.xarray.cf.coords.convert import is_uniform
+from pan3d.xarray.cf.coords.convert import is_uniform, slice_array
 from pan3d.xarray.cf.constants import Projection
 from vtkmodules.vtkCommonDataModel import (
     vtkImageData,
@@ -412,16 +412,33 @@ Data:
         dims = self.xr_dataset[field].dims
         return dims[1:] if dims[0] == self.time else dims
 
-    def field_extent(self, field):
+    def dims_extent(self, dimensions, slices=None):
         extent = [0, 0, 0, 0, 0, 0]
-        dimensions = self.timeless_dimensions(field)
+
+        if slices is None:
+            slices = {}
+
         for idx in range(len(dimensions)):
-            array = self.xr_dataset[dimensions[-(1 + idx)]]
+            name = dimensions[-(1 + idx)]
+            array = self.xr_dataset[name]
             # Fill in reverse order (t, z, y, x) => [0, x.size, 0, y.size, 0, z.size]
             # And extent include both index so (len-1)
-            extent[idx * 2 + 1] = array.size - 1
+            if name in slices:
+                slice_info = slices[name]
+                if isinstance(slice_info, int):
+                    # size of 1
+                    pass
+                else:
+                    size = int((slice_info[1] - slice_info[0]) / slice_info[2])
+                    extent[idx * 2 + 1] = size - 1
+            else:
+                extent[idx * 2 + 1] = array.size - 1
 
         return extent
+
+    def field_extent(self, field, slices=None):
+        dimensions = self.timeless_dimensions(field)
+        return self.dims_extent(dimensions, slices)
 
     def get_vtk_mesh_type(self, projection, fields=None):
         fields = self.compatible_fields(fields)
@@ -450,7 +467,7 @@ Data:
         # imagedata
         return vtkImageData()
 
-    def get_vtk_whole_extent(self, projection, fields=None):
+    def get_vtk_whole_extent(self, projection, fields=None, slices=None):
         if self.longitude is None or self.latitude is None or not fields:
             return [
                 0,
@@ -463,11 +480,8 @@ Data:
 
         mesh_type = self.get_vtk_mesh_type(projection, fields)
         fields = self.compatible_fields(fields)
-        extent = self.field_extent(fields[0])
         dimensions = self.timeless_dimensions(fields[0])
-
-        print(f"before {extent=}")
-        print(f"class {mesh_type.GetClassName()}")
+        extent = self.dims_extent(dimensions, slices)
 
         if mesh_type.IsA("vtkStructuredGrid") and not (
             self.uniform_lat_lon and self.use_coords(dimensions)
@@ -480,11 +494,14 @@ Data:
             if extent[i * 2 + 1] > 0:
                 extent[i * 2 + 1] += 1
 
-        print(f"after {extent=}")
+        print(f"Whole extent: {extent}")
 
         return extent
 
-    def get_vtk_mesh(self, time_index=0, projection=None, fields=None):
+    def get_vtk_mesh(self, time_index=0, projection=None, fields=None, slices=None):
+        if slices is None:
+            slices = {}
+
         vtk_mesh, data_location = None, None
         if self.xr_dataset is None or not fields:
             return vtk_mesh
@@ -505,7 +522,7 @@ Data:
         # Unstructured
         if len(data_dims_no_time) == 1:
             vtk_mesh, data_location = mesh.unstructured.generate_mesh(
-                self, data_dims_no_time, time_index, spherical_proj
+                self, data_dims_no_time, time_index, spherical_proj, slices
             )
 
         # Structured
@@ -513,7 +530,7 @@ Data:
             self.coords_has_bounds or spherical_proj or not self.coords_1d
         ):
             vtk_mesh, data_location = mesh.structured.generate_mesh(
-                self, data_dims_no_time, time_index, spherical_proj
+                self, data_dims_no_time, time_index, spherical_proj, slices
             )
 
         # This should only happen if we don't want spherical_proj
@@ -523,24 +540,27 @@ Data:
         # Rectilinear
         if vtk_mesh is None and not self.uniform_spacing:
             vtk_mesh, data_location = mesh.rectilinear.generate_mesh(
-                self, data_dims_no_time, time_index
+                self, data_dims_no_time, time_index, slices
             )
 
         # Uniform
         if vtk_mesh is None:
             vtk_mesh, data_location = mesh.uniform.generate_mesh(
-                self, data_dims_no_time, time_index
+                self, data_dims_no_time, time_index, slices
             )
 
         # Add fields
         if vtk_mesh:
             container = getattr(vtk_mesh, data_location)
             for field_name in fields:
-                field = (
-                    self.xr_dataset[field_name][time_index].values
-                    if self.time
-                    else self.xr_dataset[field_name].values
-                )
+                field = slice_array(field_name, self.xr_dataset, slices)
+                # # FIXME to select slices
+                # print(f"fields: {slices=}")
+                # field = (
+                #     self.xr_dataset[field_name][time_index].values
+                #     if self.time
+                #     else self.xr_dataset[field_name].values
+                # )
                 container[field_name] = field.ravel()
         else:
             print(" !!! No mesh for data")

@@ -3,7 +3,7 @@ from vtkmodules.vtkCommonDataModel import vtkRectilinearGrid
 from ..coords.convert import cell_center_to_point
 
 
-def generate_mesh(metadata, dimensions, time_index):
+def generate_mesh(metadata, dimensions, time_index, slices):
     data_location = "cell_data"
     extent = [0, 0, 0, 0, 0, 0]
     empty_coords = np.zeros((1,), dtype=np.double)

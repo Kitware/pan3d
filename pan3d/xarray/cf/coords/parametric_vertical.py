@@ -71,7 +71,6 @@ class FormulaAdapter:
         self._fn = formula
         self._bias = bias
         self._scale = scale
-        print(f"{bias=} {scale=}")
 
     def __call__(self, n=0, k=0, j=0, i=0):
         return self._bias + self._scale * self._fn(n=n, k=k, j=j, i=i)

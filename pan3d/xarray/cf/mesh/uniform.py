@@ -1,7 +1,7 @@
 from vtkmodules.vtkCommonDataModel import vtkImageData
 
 
-def generate_mesh(metadata, dimensions, time_index):
+def generate_mesh(metadata, dimensions, time_index, slices):
     data_location = "cell_data"
 
     # data to capture

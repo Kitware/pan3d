@@ -33,7 +33,7 @@ class IndexMapper:
         name_to_ijk = {in_dims[-(i + 1)]: "ijk"[i] for i in range(len(in_dims))}
         out_dims = xr_dataset[out_name].dims
         map_method_name = "".join([name_to_ijk[name] for name in out_dims])
-        print(out_name, "=>", map_method_name)
+        # print(out_name, "=>", map_method_name)
 
         setattr(self, "fn", getattr(self, map_method_name))
 

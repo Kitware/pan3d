@@ -227,6 +227,19 @@ class DataInformation(CollapsableSection):
                             "value": f"[{xr[name].values[0]}, {xr[name].values[-1]}]",
                         }
                     )
+                elif len(shape) > 1:
+                    attrs.append(
+                        {
+                            "key": "dims",
+                            "value": f'({", ".join(xr[name].dims)})',
+                        }
+                    )
+                    attrs.append(
+                        {
+                            "key": "shape",
+                            "value": f'({", ".join([str(v) for v in xr[name].shape])})',
+                        }
+                    )
             if name in data:
                 icon = "mdi-database"
                 order = 2
@@ -530,10 +543,11 @@ class RenderingSettings(CollapsableSection):
                             size="sm",
                             classes="mx-2",
                         )
-                    v3.VDivider()
 
             # Slice steps
-            with v3.VTooltip(text="Level Of Details / Slice stepping"):
+            with v3.VTooltip(
+                text="Level Of Details / Slice stepping", v_if="axis_names.length"
+            ):
                 with html.Template(v_slot_activator="{ props }"):
                     with v3.VRow(
                         v_bind="props",
@@ -544,7 +558,7 @@ class RenderingSettings(CollapsableSection):
                             "mdi-stairs",
                             classes="ml-2 text-medium-emphasis",
                         )
-                        with v3.VCol(classes="pa-0", v_if="axis_names?.[0]"):
+                        with v3.VCol(classes="pa-0", v_if="axis_names.length > 0"):
                             v3.VTextField(
                                 v_model_number=("slice_x_step", 1),
                                 hide_details=True,
@@ -555,7 +569,7 @@ class RenderingSettings(CollapsableSection):
                                 raw_attrs=['min="1"'],
                                 type="number",
                             )
-                        with v3.VCol(classes="pa-0", v_if="axis_names?.[1]"):
+                        with v3.VCol(classes="pa-0", v_if="axis_names.length > 1"):
                             v3.VTextField(
                                 v_model_number=("slice_y_step", 1),
                                 hide_details=True,
@@ -566,7 +580,7 @@ class RenderingSettings(CollapsableSection):
                                 raw_attrs=['min="1"'],
                                 type="number",
                             )
-                        with v3.VCol(classes="pa-0", v_if="axis_names?.[2]"):
+                        with v3.VCol(classes="pa-0", v_if="axis_names.length > 2"):
                             v3.VTextField(
                                 v_model_number=("slice_z_step", 1),
                                 hide_details=True,
@@ -730,7 +744,7 @@ class RenderingSettings(CollapsableSection):
             self.state.data_arrays_available = source.available_arrays
             self.state.data_arrays = source.arrays
             self.state.color_by = None
-            self.state.axis_names = [source.x, source.y, source.z]
+            self.state.axis_names = []
             self.state.slice_extents = source.slice_extents
             self.state.projection_mode = (
                 "spherical"
@@ -740,16 +754,19 @@ class RenderingSettings(CollapsableSection):
             self.state.spherical_bias = source.vertical_bias
             self.state.spherical_scale = source.vertical_scale
             slices = source.slices
-            for axis in XYZ:
+            for idx, name in enumerate(self.state.slice_extents):
+                axis = XYZ[idx]
+                self.state.axis_names.append(name)
+                self.state.dirty("axis_names")
                 # default
-                axis_extent = self.state.slice_extents.get(getattr(source, axis))
+                axis_extent = self.state.slice_extents.get(name)
                 self.state[f"slice_{axis}_range"] = axis_extent
                 self.state[f"slice_{axis}_cut"] = 0
                 self.state[f"slice_{axis}_step"] = 1
                 self.state[f"slice_{axis}_type"] = "range"
 
                 # use slice info if available
-                axis_slice = slices.get(getattr(source, axis))
+                axis_slice = slices.get(name)
                 if axis_slice is not None:
                     if isinstance(axis_slice, int):
                         # cut
@@ -862,19 +879,24 @@ class RenderingSettings(CollapsableSection):
         elif len(data_arrays) == 0:
             self.state.color_by = None
 
-        self.source.arrays = data_arrays
+        if set(self.source.arrays) != set(data_arrays):
+            self.source.arrays = data_arrays
+            self.update_from_source(self.source)
 
     @change("spherical_bias", "spherical_scale", "projection_mode")
     def _on_projection_change(
         self, spherical_bias, spherical_scale, projection_mode, **_
     ):
-        self.source.projection = (
-            Projection.SPHERICAL
-            if projection_mode == "spherical"
-            else Projection.EUCLIDEAN
-        )
-        self.source.vertical_bias = spherical_bias
-        self.source.vertical_scale = spherical_scale
+        if projection_mode == "spherical":
+            self.source.projection = Projection.SPHERICAL
+            self.source.vertical_bias = spherical_bias
+            self.source.vertical_scale = spherical_scale
+        else:
+            self.source.projection = Projection.EUCLIDEAN
+            self.source.vertical_bias = 0
+            self.source.vertical_scale = 1
+
+        self.ctrl.view_reset_camera()
 
 
 class ControlPanel(v3.VCard):
