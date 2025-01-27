@@ -18,21 +18,14 @@ ALL_ENTRIES = [
     #     "name": "ASE_ice_velocity",
     #     "description": "MEaSUREs InSAR-Based Ice Velocity of the Amundsen Sea Embayment, Antarctica, Version 1",
     # },
-    # -------------------------------------------------------------------------
-    # {
-    #     "name": "rasm",
-    #     "description": "Output of the Regional Arctic System Model (RASM)",
-    # },
-    # -------------------------------------------------------------------------
-    # {
-    #     "name": "ROMS_example",
-    #     "description": "Regional Ocean Model System (ROMS) output",
-    # },
-    # -------------------------------------------------------------------------
-    # {
-    #     "name": "tiny",
-    #     "description": "small synthetic dataset with a 1D data variable",
-    # },
+    {
+        "name": "rasm",
+        "description": "Output of the Regional Arctic System Model (RASM)",
+    },
+    {
+        "name": "ROMS_example",
+        "description": "Regional Ocean Model System (ROMS) output",
+    },
     # -------------------------------------------------------------------------
     # needs pandas[xarray]
     # {

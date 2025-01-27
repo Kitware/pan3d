@@ -25,7 +25,9 @@ from trame.app import get_server, asynchronous
 from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import vuetify3 as v3
 
-from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
+from pan3d.xarray.cf.reader import vtkXArrayCFSource
+
+# from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 
 from pan3d.utils.constants import has_gpu
 from pan3d.utils.convert import update_camera, to_image, to_float
@@ -129,7 +131,17 @@ class XArrayViewer:
         self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
 
         self.lut = vtkLookupTable()
-        self.source = vtkXArrayRectilinearSource(input=self.xarray)
+
+        self.source = vtkXArrayCFSource(input=self.xarray)
+        # if "PAN3D_USE_VTK_XARRAY" in os.environ:
+        #     try:
+        #         from pan3d.xarray.vtk import vtkXArraySource
+
+        #         self.source = vtkXArraySource(input=self.xarray)
+        #     except ImportError:
+        #         self.source = vtkXArrayRectilinearSource(input=self.xarray)
+        # else:
+        #     self.source = vtkXArrayRectilinearSource(input=self.xarray)
 
         # Need explicit geometry extraction when used with WASM
         self.geometry = vtkDataSetSurfaceFilter(
@@ -278,6 +290,17 @@ class XArrayViewer:
             self.mapper.SetScalarModeToUsePointFieldData()
             self.mapper.InterpolateScalarsBeforeMappingOn()
             self.mapper.SetScalarVisibility(1)
+        elif color_by in ds.cell_data.keys():
+            array = ds.cell_data[color_by]
+            min_value, max_value = array.GetRange()
+
+            self.state.color_min = min_value
+            self.state.color_max = max_value
+
+            self.mapper.SelectColorArray(color_by)
+            self.mapper.SetScalarModeToUseCellFieldData()
+            self.mapper.InterpolateScalarsBeforeMappingOn()
+            self.mapper.SetScalarVisibility(1)
         else:
             self.mapper.SetScalarVisibility(0)
             self.state.color_min = 0
@@ -299,13 +322,16 @@ class XArrayViewer:
 
         self.ctrl.view_update()
 
-    @change("scale_x", "scale_y", "scale_z")
-    def _on_scale_change(self, scale_x, scale_y, scale_z, **_):
-        self.actor.SetScale(
-            to_float(scale_x),
-            to_float(scale_y),
-            to_float(scale_z),
-        )
+    @change("scale_x", "scale_y", "scale_z", "projection_mode")
+    def _on_scale_change(self, scale_x, scale_y, scale_z, projection_mode, **_):
+        if projection_mode == "spherical":
+            self.actor.SetScale(1, 1, 1)
+        else:
+            self.actor.SetScale(
+                to_float(scale_x),
+                to_float(scale_y),
+                to_float(scale_z),
+            )
 
         if self.state.import_pending:
             return
