@@ -49,8 +49,7 @@ def is_uniform(array):
 
 def cell_center_to_point(in_array):
     if in_array.size == 1:
-        print("size 1")
-        return [float(in_array)]
+        return in_array
 
     uniform_data = extract_uniform_info(in_array)
     if uniform_data is not None:

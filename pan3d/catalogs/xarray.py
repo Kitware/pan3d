@@ -14,10 +14,10 @@ ALL_ENTRIES = [
         "description": "Dataset with ocean basins marked using integers",
     },
     # -------------------------------------------------------------------------
-    {
-        "name": "ASE_ice_velocity",
-        "description": "MEaSUREs InSAR-Based Ice Velocity of the Amundsen Sea Embayment, Antarctica, Version 1",
-    },
+    # {
+    #     "name": "ASE_ice_velocity",
+    #     "description": "MEaSUREs InSAR-Based Ice Velocity of the Amundsen Sea Embayment, Antarctica, Version 1",
+    # },
     {
         "name": "rasm",
         "description": "Output of the Regional Arctic System Model (RASM)",

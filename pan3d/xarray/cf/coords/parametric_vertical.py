@@ -15,6 +15,11 @@ CONVENTION_BASE_URL = "https://cfconventions.org/Data/cf-conventions/cf-conventi
 # Factory method
 # -----------------------------------------------------------------------------
 def get_formula(xr_dataset, name, bias=0, scale=1):
+    # No z array => no formula, just a constant
+    if name is None:
+        return ConstantFormulaAdapter(bias)
+
+    # Let's extract formula
     array_attributes = xr_dataset[name].attrs
     std_name = array_attributes.get("standard_name")
     formula_terms = array_attributes.get("formula_terms")
@@ -28,7 +33,8 @@ def get_formula(xr_dataset, name, bias=0, scale=1):
                 scale=scale,
             )
 
-    return None
+    # Fallback to constant
+    return ConstantFormulaAdapter(bias)
 
 
 # -----------------------------------------------------------------------------
@@ -74,6 +80,16 @@ class FormulaAdapter:
 
     def __call__(self, n=0, k=0, j=0, i=0):
         return self._bias + self._scale * self._fn(n=n, k=k, j=j, i=i)
+
+
+class ConstantFormulaAdapter:
+    name = "__internal__"
+
+    def __init__(self, const_value=0):
+        self._value = const_value
+
+    def __call__(self, **_):
+        return self._value
 
 
 # -----------------------------------------------------------------------------

@@ -278,7 +278,7 @@ class RenderingSettings(CollapsableSection):
         self.state.setdefault("max_time_width", 0)
         self.state.setdefault("max_time_index_width", 0)
         self.state.setdefault("dataset_bounds", [0, 1, 0, 1, 0, 1])
-        self.state.setdefault("projection_mode", "spherical")
+        self.state.setdefault("projection_mode", "Spherical")
 
         with self.content:
             v3.VSelect(
@@ -595,7 +595,7 @@ class RenderingSettings(CollapsableSection):
             # Projection mode + scaling
             with v3.VTooltip(
                 text=(
-                    "projection_mode === 'spherical' ? `Spherical Projection: scaling=${spherical_scale} bias=${spherical_bias}` : 'Euclidian Projection'",
+                    "projection_mode === 'Spherical' ? `Spherical Projection: scaling=${spherical_scale} bias=${spherical_bias}` : 'Euclidean Projection'",
                 )
             ):
                 with html.Template(v_slot_activator="{ props }"):
@@ -606,10 +606,10 @@ class RenderingSettings(CollapsableSection):
                     ):
                         v3.VSelect(
                             prepend_inner_icon=(
-                                "projection_mode === 'spherical' ? 'mdi-earth' : 'mdi-earth-box'",
+                                "projection_mode === 'Spherical' ? 'mdi-earth' : 'mdi-earth-box'",
                             ),
-                            v_model=("projection_mode", "spherical"),
-                            items=("['spherical', 'euclidian']",),
+                            v_model=("projection_mode", "Spherical"),
+                            items=("['Spherical', 'Euclidean']",),
                             hide_details=True,
                             density="compact",
                             flat=True,
@@ -619,7 +619,7 @@ class RenderingSettings(CollapsableSection):
                         with v3.VCol(
                             no_gutter=True,
                             classes="align-center my-0 mx-0 pa-0",
-                            v_if="projection_mode === 'spherical'",
+                            v_if="projection_mode === 'Spherical'",
                         ):
                             v3.VSlider(
                                 prepend_icon="mdi-radius-outline",
@@ -747,9 +747,9 @@ class RenderingSettings(CollapsableSection):
             self.state.axis_names = []
             self.state.slice_extents = source.slice_extents
             self.state.projection_mode = (
-                "spherical"
+                "Spherical"
                 if source.projection == Projection.SPHERICAL
-                else "euclidean"
+                else "Euclidean"
             )
             self.state.spherical_bias = source.vertical_bias
             self.state.spherical_scale = source.vertical_scale
@@ -836,8 +836,7 @@ class RenderingSettings(CollapsableSection):
             return
 
         slices = {self.source.t: slice_t}
-        for axis in XYZ:
-            axis_name = getattr(self.source, axis)
+        for axis, axis_name in zip(XYZ, self.source.slice_extents.keys()):
             if axis_name is None:
                 continue
 
@@ -887,7 +886,7 @@ class RenderingSettings(CollapsableSection):
     def _on_projection_change(
         self, spherical_bias, spherical_scale, projection_mode, **_
     ):
-        if projection_mode == "spherical":
+        if projection_mode == "Spherical":
             self.source.projection = Projection.SPHERICAL
             self.source.vertical_bias = spherical_bias
             self.source.vertical_scale = spherical_scale

@@ -491,10 +491,14 @@ Data:
 
         # cell data, need to +1 on the extent
         for i in range(3):
-            if extent[i * 2 + 1] > 0:
+            if i < 2:
+                # minimum 2D cells
+                extent[i * 2 + 1] += 1
+            elif extent[i * 2 + 1] > 0:
+                # Only add cell in 3rd dimension if content available
                 extent[i * 2 + 1] += 1
 
-        print(f"Whole extent: {extent}")
+        # print(f"Whole extent: {extent}")
 
         return extent
 
