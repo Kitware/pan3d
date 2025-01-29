@@ -234,6 +234,9 @@ class Pan3DView(html.Div):
             self.ctrl.view_reset_camera()
 
 
+print(type(Pan3DView))
+
+
 class Pan3DScalarBar(v3.VTooltip):
     def __init__(self, img_src, color_min="color_min", color_max="color_max", **kwargs):
         super().__init__(location="top")
