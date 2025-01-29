@@ -23,7 +23,7 @@ from trame.decorators import TrameApp, change
 from trame.app import get_server, asynchronous
 
 from trame.ui.vuetify3 import VAppLayout
-from trame.widgets import vuetify3 as v3
+from trame.widgets import vuetify3 as v3, html
 
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 
@@ -34,6 +34,24 @@ from pan3d.utils.presets import set_preset
 from pan3d.ui.vtk_view import Pan3DView, Pan3DScalarBar
 from pan3d.ui.preview import SummaryToolbar, ControlPanel
 from pan3d.ui.analytics import Plotting
+
+"""
+@TrameApp()
+class Pan3dAnalyticsView(Pan3DView):
+    def __init__(self, render_window, **kwargs):
+        super().__init__(render_window=render_window, **kwargs)
+        with self.toolbar:
+            v3.VDivider(classes="my-1")
+            with v3.VTooltip(text="Look toward at an angle"):
+                with html.Template(v_slot_activator="{ props }"):
+                    v3.VBtn(
+                        v_bind="props",
+                        flat=True,
+                        density="compact",
+                        icon="mdi-axis-arrow",
+                        click=(self.reset_camera_to_axis, "[[1,1,1]]"),
+                    )
+"""
 
 
 @TrameApp()
@@ -115,6 +133,8 @@ class AnalyticsExplorer:
         self.ui = None
         self._setup_vtk()
         self._build_ui()
+        print("forcing update figure", self.state.color_by)
+        self.plotting.on_change_active_plot()
 
     # -------------------------------------------------------------------------
     # VTK Setup
@@ -186,21 +206,6 @@ class AnalyticsExplorer:
 
         with VAppLayout(self.server, fill_height=True) as layout:
             self.ui = layout
-
-            # 3D view
-            Pan3DView(
-                self.render_window,
-                local_rendering=self.local_rendering,
-                widgets=[self.widget],
-            )
-
-            # Scalar bar
-            Pan3DScalarBar(
-                v_show="!control_expended",
-                v_if="color_by",
-                img_src="preset_img",
-            )
-
             # Save dialog
             with v3.VDialog(v_model=("show_save_dialog", False)):
                 with v3.VCard(classes="mx-auto w-50"):
@@ -241,26 +246,60 @@ class AnalyticsExplorer:
                 style="position:absolute;bottom:1rem;right:1rem;",
             )
 
-            # Summary toolbar
-            SummaryToolbar(
-                v_show="!control_expended",
-                v_if="slice_t_max > 0",
-            )
+            with v3.VLayout():
+                with v3.VMain(style="position: relative"):
+                    with html.Div(
+                        style="position: relative; width: 100%; height: 100%;",
+                    ):
+                        # 3D view
+                        Pan3DView(
+                            self.render_window,
+                            local_rendering=self.local_rendering,
+                            widgets=[self.widget],
+                        )
 
-            # Control panel
-            ControlPanel(
-                enable_data_selection=(self.xarray is None),
-                source=self.source,
-                toggle="control_expended",
-                load_dataset=self._load_dataset,
-                update_rendering=self._update_rendering,
-                import_file_upload=self._import_file_upload,
-                export_file_download=self.export_state,
-                xr_update_info="xr_update_info",
-                source_update_rendering="source_update_rendering_panel",
-            )
+                        # Scalar bar
+                        Pan3DScalarBar(
+                            v_show="!control_expended",
+                            v_if="color_by",
+                            img_src="preset_img",
+                        )
 
-            self.plotting = Plotting(source=self.source, toggle="chart_expanded")
+                        #  # Summary toolbar
+                        SummaryToolbar(
+                            v_show="!control_expended",
+                            v_if="slice_t_max > 0",
+                        )
+
+                        # Control panel
+                        ControlPanel(
+                            enable_data_selection=(self.xarray is None),
+                            source=self.source,
+                            toggle="control_expended",
+                            load_dataset=self._load_dataset,
+                            update_rendering=self._update_rendering,
+                            import_file_upload=self._import_file_upload,
+                            export_file_download=self.export_state,
+                            xr_update_info="xr_update_info",
+                            source_update_rendering="source_update_rendering_panel",
+                        )
+
+                        v3.VBtn(
+                            icon="mdi-chart",
+                            style="position: absolute; left: 2rem; bottom: 2rem; background: white;",
+                            click="plot_drawer = !plot_drawer",
+                        )
+                with v3.VNavigationDrawer(
+                    disable_resize_watcher=True,
+                    disable_route_watcher=True,
+                    permanent=True,
+                    location="right",
+                    v_model=("plot_drawer", False),
+                    width=800,
+                ):
+                    self.plotting = Plotting(
+                        source=self.source, toggle="chart_expanded"
+                    )
 
     # -----------------------------------------------------
     # State change callbacks
