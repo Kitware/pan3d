@@ -6,7 +6,7 @@ import xcdat  # noqa
 import numpy as np
 from enum import Enum
 
-import plotly.graph_objects as go
+import plotly.express as px
 from plotly.subplots import make_subplots
 
 from pan3d.xarray.algorithm import to_isel
@@ -79,6 +79,7 @@ class Plotting(v3.VCard):
         self.state.show_group_by = False
         self.state.show_temporal_slider = False
         self.state.show_zonal_axis = True
+        self.state.show_update_button = False
 
         with self:
             with v3.VCardTitle():
@@ -111,29 +112,29 @@ class Plotting(v3.VCard):
                         variant="outlined",
                         density="compact",
                     )
-                v3.VDivider(classes="my-2")
                 with html.Div(
                     v_if="show_temporal_slider",
                 ):
-                    html.Span("Temporal Slice Selection")
+                    html.Div("Temporal Slice Selection")
                     v3.VSlider(
-                        v_model=("active_group", 0),
+                        v_model=("temporal_slice", 0),
                         min=0,
                         max=("time_groups", 0),
                         step=1,
                         hide_details=True,
                         density="compact",
                     )
-
+                v3.VDivider(classes="my-2")
+                with html.Div(
+                    v_if="show_update_button", classes="text-center align-center"
+                ):
+                    v3.VBtn("Update Plots", click=self.update_large_plot)
             with v3.VCardText(style=("`height: ${figure_height}%;`",)):
                 figure = plotly.Figure(
-                    figure=go.Figure(),
                     display_logo=True,
                     display_mode_bar=True,
                 )
                 self.ctrl.figure_update = figure.update
-
-        self.on_change_active_plot()
 
     def expose_plot_specific_config(self):
         """
@@ -146,29 +147,28 @@ class Plotting(v3.VCard):
             state.show_zonal_axis = True
             state.show_group_by = False
             state.show_temporal_slider = False
+            state.show_update_button = False
         if plot_type == plot_options.get(PlotTypes.ZONALTIME):
             state.figure_height = 80
             state.show_zonal_axis = True
             state.show_group_by = True
             state.show_temporal_slider = False
+            state.show_update_button = True
         if plot_type == plot_options.get(PlotTypes.GLOBAL):
             state.figure_height = 50
             state.show_zonal_axis = False
             state.show_group_by = True
             state.show_temporal_slider = False
+            state.show_update_button = True
         if plot_type == plot_options.get(PlotTypes.TEMPORAL):
             state.figure_height = 50
             state.show_zonal_axis = False
             state.show_group_by = True
             state.show_temporal_slider = True
+            state.show_update_button = True
 
-    def get_key(self):
-        for_key = [
-            self.state.slice_x_range,
-            self.state.slice_y_range,
-            self.state.slice_z_range,
-        ]
-        return hashlib.sha256(repr(for_key).encode()).hexdigest()
+    def get_key(self, selection):
+        return hashlib.sha256(repr(selection).encode()).hexdigest()
 
     def get_selection_criteria(self, full_temporal=False):
         """
@@ -196,14 +196,15 @@ class Plotting(v3.VCard):
         """
         ds = self.source.input
         active_var = self.state.color_by
-        select = self.get_selection_criteria(full_temporal=True)
 
-        group_by = self.state.group_by
+        select = self.get_selection_criteria(full_temporal=True)
         average = (
             ds.isel(select).spatial.average(active_var, axis)
             if axis is not None
             else ds.isel(select).spatial.average(active_var)
         )
+
+        group_by = self.state.group_by
         if group_by == group_options.get(GroupBy.NONE):
             return average
         else:
@@ -233,8 +234,6 @@ class Plotting(v3.VCard):
         if active_var is None:
             return None
 
-        self.expose_plot_specific_config()
-
         plot_type = state.active_plot
         zonal_axis = state.zonal_axis
         axis = x if zonal_axes.get(zonal_axis) == "X" else y
@@ -252,57 +251,62 @@ class Plotting(v3.VCard):
         Get a plotly figure for the zonal average for current sptio-temporal selection.
         Average is calculated over a certain specified spatial dimension (Longitude or Latitude).
         """
-        figure = go.Figure()
         data = self.apply_spatial_average(axis=zonal_axes.get(self.state.zonal_axis))
-        figure.add_trace(
-            go.Line(x=data[axis], y=data[active_var], mode="lines", name="Spatial Avg")
+        to_plot = data[active_var]
+        dim = to_plot.dims[0]
+        plot = px.line(x=to_plot[dim].to_numpy(), y=to_plot.to_numpy())
+
+        var_long_name = data[active_var].attrs.get("long_name", active_var)
+        var_units = data[active_var].attrs.get("units", "")
+        x_axis_name = data[dim].attrs.get("long_name", dim)
+        plot.update_layout(
+            title=f'Zonal Average for {active_var} "{var_long_name}" over {axis} (unit: {var_units})',
+            xaxis_title=x_axis_name,
+            yaxis_title=var_long_name,
         )
-        figure.update_layout(
-            title=f"Zonal Average for {active_var} over {axis}",
-            xaxis_title=axis,
-            yaxis_title=active_var,
-            template="plotly_white",
-        )
-        return figure
+        return plot
 
     def zonal_with_time(self, active_var, axis, t):
         """
         Get a plotly figure for the zonal average along with current and full temporal selection.
         Average is calculated over a certain specified spatial dimension (Longitude or Latitude).
         """
+        data_t = self.apply_spatial_average(axis=zonal_axes.get(self.state.zonal_axis))
+        data = self.apply_spatial_average_full_temporal(
+            axis=zonal_axes.get(self.state.zonal_axis)
+        )
+
+        var_long_name = data[active_var].attrs.get("long_name", active_var)
+        var_units = data[active_var].attrs.get("units", "")
         figure = make_subplots(
             rows=2,
             cols=1,
             subplot_titles=(
-                f"Zonal Average at {t} = {self.state.slice_t}",
-                f"Zonal Average for {active_var} with full temporal resolution",
+                f'Zonal Average for {active_var} "{var_long_name}" at {t} = {self.state.slice_t} (unit: {var_units})',
+                f"Zonal Average for {var_long_name}",
             ),
         )
+        to_plot = data_t[active_var]
+        dim = to_plot.dims[0]
+        x_axis_name = data[dim].attrs.get("long_name", dim)
+        plot = px.line(x=to_plot[dim], y=to_plot)
+        for trace in plot.data:
+            figure.add_trace(trace, row=1, col=1)
+        figure.update_xaxes(title_text=x_axis_name, row=1, col=1)
+        figure.update_yaxes(title_text=var_long_name, row=1, col=1)
 
-        data = self.apply_spatial_average(axis=zonal_axes.get(self.state.zonal_axis))
-        figure.add_trace(
-            go.Line(x=data[axis], y=data[active_var], mode="lines", name="Spatial Avg"),
-            row=1,
-            col=1,
-        )
-        import time
-
-        data = self.apply_spatial_average_full_temporal(
-            axis=zonal_axes.get(self.state.zonal_axis)
-        )
         taxis = self.get_time_labels(data[t])
-        s = time.time()
-        plot = go.Heatmap(
-            # data[active_var], labels=dict(x=axis, y="Time"), color_continuous_scale="Viridis"
-            z=data[active_var],
-            x=data[axis],
-            y=taxis,
-            colorscale="Viridis",
+        plot = px.imshow(data[active_var], y=taxis)
+        plot.update_layout(
+            coloraxis_colorbar=dict(
+                orientation="h",
+            )
         )
-        e = time.time()
-        print("Time to produce plot : ", e - s)
-        figure.add_trace(plot, row=2, col=1)
-        figure.update_layout(title_text=f"Zonal Average for {active_var} over {axis}")
+        for trace in plot.data:
+            figure.add_trace(trace, row=2, col=1)
+        figure.update_xaxes(title_text=x_axis_name, row=2, col=1)
+        figure.update_yaxes(title_text=t, row=2, col=1)
+
         return figure
 
     def global_full_temporal(self, active_var, t):
@@ -310,26 +314,44 @@ class Plotting(v3.VCard):
         Get a plotly figure for the global average for all data with full temporal resolution.
         Data from spatial dimension is averaged yielding a single quantity with tempoal dimension.
         """
-        figure = go.Figure()
         data = self.apply_spatial_average_full_temporal(axis=None)
         time = self.get_time_labels(data[t])
-        plot = go.Scatter(x=time, y=data[active_var], mode="lines", name="Spatial Avg")
-        figure.add_trace(plot)
-        figure.update_layout(title_text=f"Global Average for {active_var}")
-        return figure
+        plot = px.line(x=time, y=data[active_var])
+        # plot.update_layout(title_text=f"Global Average for {active_var}")
+
+        var_long_name = data[active_var].attrs.get("long_name", active_var)
+        var_units = data[active_var].attrs.get("units", "")
+        x_axis_name = data[t].attrs.get("long_name", t)
+        plot.update_layout(
+            title=f'Global average for {active_var} "{var_long_name}" (unit: {var_units})',
+            xaxis_title=x_axis_name,
+            yaxis_title=var_long_name,
+        )
+        return plot
 
     def temporal_average(self, active_var, x, y, t):
         """
         Get a time based average of data, data in temporal domain in averaged keeping spatial dimensions same
         """
-        figure = go.Figure()
         data = self.apply_temporal_average(active_var)
-        plot = go.Heatmap(
-            z=data[active_var][0], x=data[x], y=data[y], colorscale="Viridis"
+        self.state.time_groups = len(data[t])
+        slice = self.state.temporal_slice
+        plot = px.imshow(data[active_var][slice])
+        plot.update_yaxes(autorange="reversed")
+        var_long_name = data[active_var].attrs.get("long_name", active_var)
+        var_units = data[active_var].attrs.get("units", "")
+        x_axis_name = data[x].attrs.get("long_name", x)
+        y_axis_name = data[y].attrs.get("long_name", y)
+        plot.update_layout(
+            title=f'Temporal average for {active_var} "{var_long_name}" (unit: {var_units}) at time {slice}/{len(data[t])}',
+            xaxis_title=x_axis_name,
+            yaxis_title=y_axis_name,
+            coloraxis_colorbar=dict(
+                orientation="h",
+            ),
         )
-        figure.add_trace(plot)
-        figure.update_layout(title_text=f"Temporal Average for {active_var}")
-        return figure
+
+        return plot
 
     def get_time_labels(self, time_array):
         group_by = self.state.group_by
@@ -340,51 +362,33 @@ class Plotting(v3.VCard):
         else:
             return np.vectorize(lambda dt: f"{dt.isoformat()}")(time_array)
 
-    @change("active_group")
+    @change("temporal_slice")
     def on_change_group(self, **kwargs):
-        import hashlib
-
-        for_key = [
-            self.state.slice_x_range,
-            self.state.slice_y_range,
-            self.state.slice_z_range,
-        ]
-        key = hashlib.sha256(repr(for_key).encode()).hexdigest()
-
-        x = self.source.x
-        y = self.source.y
-
         active_var = self.state.color_by
-        time_group = int(self.state.active_group)
-        entry = self.temporal_cache.get(key)
-
-        if entry is None:
+        (x, y, _, t) = (self.source.x, self.source.y, self.source.z, self.source.t)
+        if active_var is None:
             return
-
-        avg = entry.data
-        plot = go.Heatmap(
-            z=avg[active_var][time_group], x=avg[x], y=avg[y], colorscale="Viridis"
-        )
-        self.temporal_cache[key] = CacheEntry(avg, plot)
-
-        figure = go.Figure()
-        figure.add_trace(plot)
-        figure.update_layout(title_text=f"Temporal Average for {active_var} over {x}")
-
-        entry.figure = figure
-        self.temporal_cache[key] = entry
-        self.ctrl.figure_update(figure)
+        plot = self.temporal_average(active_var, x, y, t)
+        self.ctrl.figure_update(plot)
 
     @change(
         "active_plot",
         "zonal_axis",
-        "group_by",
         "slice_t",
         "slice_x_range",
         "slice_y_range",
         "slice_z_range",
     )
     def on_change_active_plot(self, **kwargs):
-        print("Updating plot")
+        self.expose_plot_specific_config()
+        state = self.state
+        plot_type = state.active_plot
+        if not plot_type == plot_options.get(PlotTypes.ZONAL):
+            return
+        figure = self.generate_plot()
+        self.ctrl.figure_update(figure)
+
+    def update_large_plot(self, **kwargs):
+        self.expose_plot_specific_config()
         figure = self.generate_plot()
         self.ctrl.figure_update(figure)

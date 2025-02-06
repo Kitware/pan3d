@@ -56,10 +56,8 @@ class Pan3dAnalyticsView(Pan3DView):
 
 @TrameApp()
 class AnalyticsExplorer:
-    """Create a Trame GUI for a Pan3D XArray Viewer"""
-
     def __init__(self, xarray=None, server=None, local_rendering=None):
-        """Create an instance of the XArrayViewer class.
+        """Create an instance of the AnalyticsExplorer class.
 
         Parameters:
             server (str/server): Trame server name or instance.
@@ -200,9 +198,7 @@ class AnalyticsExplorer:
     # -------------------------------------------------------------------------
 
     def _build_ui(self, **kwargs):
-        print("Control : ", self.state.control_expended)
-
-        self.state.trame__title = "XArray Viewer"
+        self.state.trame__title = "Analytics Explorer"
 
         with VAppLayout(self.server, fill_height=True) as layout:
             self.ui = layout
