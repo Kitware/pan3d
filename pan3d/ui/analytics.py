@@ -2,7 +2,18 @@ from trame.decorators import TrameApp, change
 from trame.widgets import vuetify3 as v3, plotly, html
 
 import hashlib
-import xcdat  # noqa
+
+try:
+    import xcdat  # noqa
+except ModuleNotFoundError as e:
+    print(
+        f"""
+        Error occurred while importing xcdat required for Analytics Explorer: {e}
+        Please make sure xcdat is installed properly using conda -- `conda install -c conda-forge xcdat`
+        You may want to create a new conda environment an reinstall pan3d within along with xcdat.
+        """
+    )
+    exit(1)
 import numpy as np
 from enum import Enum
 
