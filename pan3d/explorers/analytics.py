@@ -15,124 +15,47 @@ from vtkmodules.vtkFiltersGeometry import vtkDataSetSurfaceFilter
 from vtkmodules.vtkInteractionStyle import vtkInteractorStyleSwitch  # noqa
 import vtkmodules.vtkRenderingOpenGL2  # noqa
 
-import json
-import traceback
-from pathlib import Path
-
-from trame.decorators import TrameApp, change
-from trame.app import get_server, asynchronous
+from trame.decorators import change
 
 from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import vuetify3 as v3, html
 
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 
-from pan3d.utils.constants import has_gpu
-from pan3d.utils.convert import update_camera, to_image, to_float
+from pan3d.utils.convert import to_image, to_float
 from pan3d.utils.presets import set_preset
 
 from pan3d.ui.vtk_view import Pan3DView, Pan3DScalarBar
-from pan3d.ui.preview import SummaryToolbar, ControlPanel
+from pan3d.ui.preview import RenderingSettings
+from pan3d.utils.common import SummaryToolbar, ControlPanel, Explorer
 from pan3d.ui.analytics import Plotting
 
-"""
-@TrameApp()
+
 class Pan3dAnalyticsView(Pan3DView):
     def __init__(self, render_window, **kwargs):
         super().__init__(render_window=render_window, **kwargs)
         with self.toolbar:
             v3.VDivider(classes="my-1")
-            with v3.VTooltip(text="Look toward at an angle"):
+            with v3.VTooltip(text="Display charting/plotting drawer"):
                 with html.Template(v_slot_activator="{ props }"):
                     v3.VBtn(
                         v_bind="props",
                         flat=True,
                         density="compact",
-                        icon="mdi-axis-arrow",
-                        click=(self.reset_camera_to_axis, "[[1,1,1]]"),
+                        icon="mdi-chart-line",
+                        click="plot_drawer = !plot_drawer",
                     )
-"""
 
 
-@TrameApp()
-class AnalyticsExplorer:
-    def __init__(self, xarray=None, server=None, local_rendering=None):
-        """Create an instance of the AnalyticsExplorer class.
+class AnalyticsExplorer(Explorer):
+    def __init__(self, xarray=None, source=None, server=None, local_rendering=None):
+        """Create an instance of the AnalyticsExplorer class."""
+        super().__init__(xarray, source, server, local_rendering)
 
-        Parameters:
-            server (str/server): Trame server name or instance.
-            local_rendering (str): If provided (wasm, vtkjs) local rendering will be used
-
-        CLI options:
-            - `--import-state`: Pass a string with this argument to specify a startup configuration.
-                              This value must be a local path to a JSON file which adheres to the
-                              schema specified in the [Configuration Files documentation](../api/configuration.md).
-                              A dataset specified in this configuration will override any value passed to `--xarray-*`
-            - `--xarray-file`: Provide path to xarray file
-            - `--xarray-url`: Provide URL to xarray dataset
-            - `--wasm`: Use WASM for local rendering
-            - `--vtkjs`: Use vtk.js for local rendering
-        """
         self.xarray = xarray
-        self.server = get_server(server, client_type="vue3")
-        if self.server.hot_reload:
-            self.ctrl.on_server_reload.add(self._build_ui)
-
-        # cli
-        self.server.cli.add_argument(
-            "--import-state",
-            help="Pass a string with this argument to specify a startup configuration. This value must be a local path to a JSON file which adheres to the schema specified in the [Configuration Files documentation](../api/configuration.md). A dataset specified in this configuration will override any value passed to `--xarray-*`",
-        )
-        self.server.cli.add_argument(
-            "--xarray-file",
-            help="Provide path to xarray file",
-        )
-        self.server.cli.add_argument(
-            "--xarray-url",
-            help="Provide URL to xarray dataset",
-        )
-
-        # Local rendering setup
-        self.server.cli.add_argument(
-            "--wasm",
-            help="Use WASM for local rendering",
-            action="store_true",
-        )
-        self.server.cli.add_argument(
-            "--vtkjs",
-            help="Use vtk.js for local rendering",
-            action="store_true",
-        )
-        args, _ = self.server.cli.parse_known_args()
-        self.local_rendering = local_rendering
-        if args.wasm:
-            self.local_rendering = "wasm"
-        if args.vtkjs:
-            self.local_rendering = "vtkjs"
-
-        # If no GPU, use local rendering
-        if self.local_rendering is None and not has_gpu():
-            self.local_rendering = "wasm"
-
-        # Process CLI
-        self.ctrl.on_server_ready.add(self._process_cli)
-
-        self.state.nan_colors = [
-            [0, 0, 0, 1],
-            [0.99, 0.99, 0.99, 1],
-            [0.6, 0.6, 0.6, 1],
-            [1, 0, 0, 1],
-            [0, 1, 0, 1],
-            [0, 0, 1, 1],
-            [0.9, 0.9, 0.9, 0],
-        ]
-        self.state.nan_color = 2
-
         self.ui = None
         self._setup_vtk()
         self._build_ui()
-        print("forcing update figure", self.state.color_by)
-        self.plotting.on_change_active_plot()
 
     # -------------------------------------------------------------------------
     # VTK Setup
@@ -248,7 +171,7 @@ class AnalyticsExplorer:
                         style="position: relative; width: 100%; height: 100%;",
                     ):
                         # 3D view
-                        Pan3DView(
+                        Pan3dAnalyticsView(
                             self.render_window,
                             local_rendering=self.local_rendering,
                             widgets=[self.widget],
@@ -268,23 +191,19 @@ class AnalyticsExplorer:
                         )
 
                         # Control panel
-                        ControlPanel(
+                        with ControlPanel(
                             enable_data_selection=(self.xarray is None),
-                            source=self.source,
                             toggle="control_expended",
-                            load_dataset=self._load_dataset,
-                            update_rendering=self._update_rendering,
-                            import_file_upload=self._import_file_upload,
+                            load_dataset=self.load_dataset,
+                            import_file_upload=self.import_file_upload,
                             export_file_download=self.export_state,
                             xr_update_info="xr_update_info",
-                            source_update_rendering="source_update_rendering_panel",
-                        )
+                        ).ui_content:
+                            self.ctrl.source_update_rendering_panel = RenderingSettings(
+                                self.source,
+                                self.update_rendering,
+                            ).update_from_source
 
-                        v3.VBtn(
-                            icon="mdi-chart",
-                            style="position: absolute; left: 2rem; bottom: 2rem; background: white;",
-                            click="plot_drawer = !plot_drawer",
-                        )
                 with v3.VNavigationDrawer(
                     disable_resize_watcher=True,
                     disable_route_watcher=True,
@@ -323,6 +242,8 @@ class AnalyticsExplorer:
             self.state.color_min = 0
             self.state.color_max = 1
 
+        self.plotting.update_plot()
+
     @change("color_preset", "color_min", "color_max", "nan_color")
     def _on_color_preset(
         self, nan_color, nan_colors, color_preset, color_min, color_max, **_
@@ -358,104 +279,7 @@ class AnalyticsExplorer:
 
             self.ctrl.view_reset_camera()
 
-    @change("data_origin_order")
-    def _on_order_change(self, **_):
-        if self.state.import_pending:
-            return
-
-        self.state.load_button_text = "Load"
-        self.state.can_load = True
-
-    # -----------------------------------------------------
-    # Triggers
-    # -----------------------------------------------------
-
-    def _import_file_upload(self, files):
-        self.import_state(json.loads(files[0].get("content")))
-
-    def _process_cli(self, **_):
-        args, _ = self.server.cli.parse_known_args()
-
-        # import state
-        if args.import_state:
-            self._import_file_from_path(args.import_state)
-
-        # load xarray (file)
-        elif args.xarray_file:
-            self.state.import_pending = True
-            with self.state:
-                self._load_dataset("file", args.xarray_file)
-                self.state.data_origin_id = str(Path(args.xarray_file).resolve())
-            self.state.import_pending = False
-
-        # load xarray (url)
-        elif args.xarray_url:
-            self.state.import_pending = True
-            with self.state:
-                self._load_dataset("url", args.xarray_url)
-                self.state.data_origin_id = args.xarray_url
-            self.state.import_pending = False
-
-        # Load given XArray
-        elif self.xarray is not None:
-            self.state.show_data_information = True
-            self.ctrl.xr_update_info(self.source.input, self.source.available_arrays)
-            self.ctrl.source_update_rendering_panel(self.source)
-
-    def _import_file_from_path(self, file_path):
-        if file_path is None:
-            return
-
-        file_path = Path(file_path)
-        if file_path.exists():
-            self.import_state(json.loads(file_path.read_text("utf-8")))
-
-    def _load_dataset(self, source, id, order="C", config=None):
-        self.state.data_origin_source = source
-        self.state.data_origin_id = id
-        self.state.load_button_text = "Loaded"
-        self.state.can_load = False
-        self.state.show_data_information = True
-
-        if config is None:
-            config = {
-                "arrays": [],
-                "slices": {},
-            }
-
-        try:
-            self.source.load(
-                {
-                    "data_origin": {
-                        "source": source,
-                        "id": id,
-                        "order": order,
-                    },
-                    "dataset_config": config,
-                }
-            )
-            if self.actor.visibility:
-                self.renderer.RemoveActor(self.actor)
-                self.actor.visibility = 0
-
-            # Extract UI
-            self.ctrl.xr_update_info(self.source.input, self.source.available_arrays)
-            self.ctrl.source_update_rendering_panel(self.source)
-
-            # no error
-            self.state.data_origin_error = False
-        except Exception as e:
-            self.state.data_origin_error = (
-                f"Error occurred while trying to load data. {e}"
-            )
-            self.state.data_origin_id_error = True
-            self.state.load_button_text = "Load"
-            self.state.can_load = True
-            self.state.show_data_information = False
-
-            print(traceback.format_exc())
-
-    def _update_rendering(self, reset_camera=False):
+    def update_rendering(self, reset_camera=False):
         self.state.dirty_data = False
 
         if self.actor.visibility == 0:
@@ -469,92 +293,6 @@ class AnalyticsExplorer:
             self.ctrl.view_reset_camera()
         else:
             self.ctrl.view_update()
-
-    # -----------------------------------------------------
-    # Public API
-    # -----------------------------------------------------
-
-    def export_state(self):
-        """Return a json dump of the reader and viewer state"""
-        camera = self.renderer.active_camera
-        state_to_export = {
-            **self.source.state,
-            "preview": {
-                "view_3d": self.state.view_3d,
-                "color_by": self.state.color_by,
-                "color_preset": self.state.color_preset,
-                "color_min": self.state.color_min,
-                "color_max": self.state.color_max,
-                "scale_x": self.state.scale_x,
-                "scale_y": self.state.scale_y,
-                "scale_z": self.state.scale_z,
-            },
-            "camera": {
-                "position": camera.position,
-                "view_up": camera.view_up,
-                "focal_point": camera.focal_point,
-                "parallel_projection": camera.parallel_projection,
-                "parallel_scale": camera.parallel_scale,
-            },
-        }
-        return json.dumps(state_to_export, indent=2)
-
-    def import_state(self, data_state):
-        """
-        Read the current state to load the data and visualization setup if any.
-
-        Parameters:
-            - data_state (dict): reader (+viewer) state to reset to
-        """
-        self.state.import_pending = True
-        try:
-            data_origin = data_state.get("data_origin")
-            source = data_origin.get("source")
-            id = data_origin.get("id")
-            order = data_origin.get("order", "C")
-            config = data_state.get("dataset_config")
-            preview_state = data_state.get("preview", {})
-            camera_state = data_state.get("camera", {})
-
-            # load data and initial rendering setup
-            with self.state:
-                self._load_dataset(source, id, order, config)
-                self.state.update(preview_state)
-
-            # override computed color range using state values
-            with self.state:
-                self.state.update(preview_state)
-
-            # update camera and render
-            update_camera(self.renderer.active_camera, camera_state)
-            self._update_rendering()
-        finally:
-            self.state.import_pending = False
-
-    async def _save_dataset(self, file_path):
-        output_path = Path(file_path).resolve()
-        self.source.input.to_netcdf(output_path)
-
-    def save_dataset(self, file_path):
-        """
-        Write XArray data into a file using a background task.
-        So when used programmatically, make sure you await the returned task.
-
-        Parameters:
-            - file_path (str): path to use for writing the file
-
-        Returns:
-            writing task
-        """
-        self.state.show_save_dialog = False
-        return asynchronous.create_task(self._save_dataset(file_path))
-
-    async def _async_display(self):
-        await self.ui.ready
-        self.ui._ipython_display_()
-
-    def _ipython_display_(self):
-        asynchronous.create_task(self._async_display())
 
 
 # -----------------------------------------------------------------------------
