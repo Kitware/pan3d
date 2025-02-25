@@ -18,6 +18,7 @@ import numpy as np
 from enum import Enum
 
 import plotly.express as px
+import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from pan3d.xarray.algorithm import to_isel
@@ -139,7 +140,7 @@ class Plotting(v3.VCard):
                 with html.Div(
                     v_if="show_update_button", classes="text-center align-center"
                 ):
-                    v3.VBtn("Update Plots", click=self.update_large_plot)
+                    v3.VBtn("Update Plots", click=self.update_plot)
             with v3.VCardText(style=("`height: ${figure_height}%;`",)):
                 figure = plotly.Figure(
                     display_logo=True,
@@ -153,30 +154,40 @@ class Plotting(v3.VCard):
         """
         state = self.state
         plot_type = state.active_plot
-        if plot_type == plot_options.get(PlotTypes.ZONAL):
-            state.figure_height = 50
-            state.show_zonal_axis = True
-            state.show_group_by = False
-            state.show_temporal_slider = False
-            state.show_update_button = False
-        if plot_type == plot_options.get(PlotTypes.ZONALTIME):
-            state.figure_height = 80
-            state.show_zonal_axis = True
-            state.show_group_by = True
-            state.show_temporal_slider = False
-            state.show_update_button = True
-        if plot_type == plot_options.get(PlotTypes.GLOBAL):
-            state.figure_height = 50
-            state.show_zonal_axis = False
-            state.show_group_by = True
-            state.show_temporal_slider = False
-            state.show_update_button = True
-        if plot_type == plot_options.get(PlotTypes.TEMPORAL):
-            state.figure_height = 50
-            state.show_zonal_axis = False
-            state.show_group_by = True
-            state.show_temporal_slider = True
-            state.show_update_button = True
+
+        # Default values
+        config = {
+            "figure_height": 50,
+            "show_zonal_axis": False,
+            "show_group_by": True,
+            "show_temporal_slider": False,
+            "show_update_button": True,
+        }
+
+        # Overrides for each plot type
+        plot_overrides = {
+            plot_options.get(PlotTypes.ZONAL): {
+                "show_zonal_axis": True,
+                "show_group_by": False,
+                "show_update_button": False,
+            },
+            plot_options.get(PlotTypes.ZONALTIME): {
+                "figure_height": 80,
+                "show_zonal_axis": True,
+            },
+            plot_options.get(PlotTypes.GLOBAL): {
+                "show_zonal_axis": False,
+            },
+            plot_options.get(PlotTypes.TEMPORAL): {
+                "show_temporal_slider": True,
+            },
+        }
+
+        # Merge overrides only if the plot type exists in the dictionary
+        config.update(plot_overrides.get(plot_type, {}))
+
+        # Update state in a single call
+        state.update(config)
 
     def get_key(self, selection):
         return hashlib.sha256(repr(selection).encode()).hexdigest()
@@ -239,7 +250,6 @@ class Plotting(v3.VCard):
 
     def generate_plot(self):
         state = self.state
-        state.figure_height = 50
         active_var = self.state.color_by
         (x, y, _, t) = (self.source.x, self.source.y, self.source.z, self.source.t)
         if active_var is None:
@@ -383,23 +393,23 @@ class Plotting(v3.VCard):
         self.ctrl.figure_update(plot)
 
     @change(
-        "active_plot",
         "zonal_axis",
         "slice_t",
         "slice_x_range",
         "slice_y_range",
         "slice_z_range",
     )
-    def on_change_active_plot(self, **kwargs):
-        self.expose_plot_specific_config()
-        state = self.state
-        plot_type = state.active_plot
-        if not plot_type == plot_options.get(PlotTypes.ZONAL):
-            return
+    def update_plot(self, **kwargs):
         figure = self.generate_plot()
         self.ctrl.figure_update(figure)
 
-    def update_large_plot(self, **kwargs):
+    @change("active_plot")
+    def on_change_active_plot(self, **kwargs):
         self.expose_plot_specific_config()
-        figure = self.generate_plot()
-        self.ctrl.figure_update(figure)
+        plot_type = self.state.active_plot
+        if not plot_type == plot_options.get(PlotTypes.ZONAL):
+            self.ctrl.figure_update(go.Figure())
+            return
+        else:
+            figure = self.generate_plot()
+            self.ctrl.figure_update(figure)
