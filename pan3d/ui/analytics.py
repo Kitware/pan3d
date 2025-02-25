@@ -18,6 +18,7 @@ import numpy as np
 from enum import Enum
 
 import plotly.express as px
+import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from pan3d.xarray.algorithm import to_isel
@@ -239,7 +240,6 @@ class Plotting(v3.VCard):
 
     def generate_plot(self):
         state = self.state
-        state.figure_height = 50
         active_var = self.state.color_by
         (x, y, _, t) = (self.source.x, self.source.y, self.source.z, self.source.t)
         if active_var is None:
@@ -383,23 +383,23 @@ class Plotting(v3.VCard):
         self.ctrl.figure_update(plot)
 
     @change(
-        "active_plot",
         "zonal_axis",
         "slice_t",
         "slice_x_range",
         "slice_y_range",
         "slice_z_range",
     )
-    def on_change_active_plot(self, **kwargs):
-        self.expose_plot_specific_config()
-        state = self.state
-        plot_type = state.active_plot
-        if not plot_type == plot_options.get(PlotTypes.ZONAL):
-            return
+    def update_plot(self, **kwargs):
         figure = self.generate_plot()
         self.ctrl.figure_update(figure)
 
-    def update_large_plot(self, **kwargs):
+    @change("active_plot")
+    def on_change_active_plot(self, **kwargs):
         self.expose_plot_specific_config()
-        figure = self.generate_plot()
-        self.ctrl.figure_update(figure)
+        plot_type = self.state.active_plot
+        if not plot_type == plot_options.get(PlotTypes.ZONAL):
+            self.ctrl.figure_update(go.Figure())
+            return
+        else:
+            figure = self.generate_plot()
+            self.ctrl.figure_update(figure)
