@@ -20,8 +20,8 @@ import json
 import traceback
 from pathlib import Path
 
-from trame.decorators import TrameApp, change
-from trame.app import get_server, asynchronous
+from trame.decorators import change
+from trame.app import asynchronous
 
 from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import vuetify3 as v3
@@ -32,17 +32,18 @@ from pan3d.utils.convert import update_camera, to_image
 from pan3d.utils.presets import set_preset
 
 from pan3d.ui.vtk_view import Pan3DView, Pan3DScalarBar
-from pan3d.ui.preview import SummaryToolbar
-from pan3d.ui.globe import ControlPanel
+from pan3d.ui.globe import GlobeRenderingSettings
 
+from pan3d.utils.common import Explorer, SummaryToolbar, ControlPanel
+
+from pan3d.filters.globe import ProjectToSphere
 from pan3d.utils.globe import get_globe, get_globe_textures, get_continent_outlines
 
 # Prevent view-up warning
 vtkObject.GlobalWarningDisplayOff()
 
 
-@TrameApp()
-class GlobeExplorer:
+class GlobeExplorer(Explorer):
     """
     A Trame based pan3D explorer to visualize 3D geographic data projected onto a globe
     representing the earth or projected using various cartographic projections.
@@ -52,79 +53,12 @@ class GlobeExplorer:
     """
 
     def __init__(self, xarray=None, source=None, server=None, local_rendering=None):
-        """Create an instance of the XArrayViewer class.
-
-        Parameters:
-            server (str/server): Trame server name or instance.
-            local_rendering (str): If provided (wasm, vtkjs) local rendering will be used
-
-        CLI options:
-            - `--import-state`: Pass a string with this argument to specify a startup configuration.
-                              This value must be a local path to a JSON file which adheres to the
-                              schema specified in the [Configuration Files documentation](../api/configuration.md).
-                              A dataset specified in this configuration will override any value passed to `--xarray-*`
-            - `--xarray-file`: Provide path to xarray file
-            - `--xarray-url`: Provide URL to xarray dataset
-            - `--wasm`: Use WASM for local rendering
-            - `--vtkjs`: Use vtk.js for local rendering
-        """
+        super().__init__(xarray, source, server, local_rendering)
         self.xarray = xarray
-        self.source = source
-
-        self.server = get_server(server, client_type="vue3")
-        if self.server.hot_reload:
-            self.ctrl.on_server_reload.add(self._build_ui)
-
-        # cli
-        self.server.cli.add_argument(
-            "--import-state",
-            help="Pass a string with this argument to specify a startup configuration. This value must be a local path to a JSON file which adheres to the schema specified in the [Configuration Files documentation](../api/configuration.md). A dataset specified in this configuration will override any value passed to `--xarray-*`",
-        )
-        self.server.cli.add_argument(
-            "--xarray-file",
-            help="Provide path to xarray file",
-        )
-        self.server.cli.add_argument(
-            "--xarray-url",
-            help="Provide URL to xarray dataset",
-        )
-
-        # Local rendering setup
-        self.server.cli.add_argument(
-            "--wasm",
-            help="Use WASM for local rendering",
-            action="store_true",
-        )
-        self.server.cli.add_argument(
-            "--vtkjs",
-            help="Use vtk.js for local rendering",
-            action="store_true",
-        )
-        args, _ = self.server.cli.parse_known_args()
-        self.local_rendering = local_rendering
-        if args.wasm:
-            self.local_rendering = "wasm"
-        if args.vtkjs:
-            self.local_rendering = "vtkjs"
-
-        # Process CLI
-        self.ctrl.on_server_ready.add(self._process_cli)
 
         self.textures = get_globe_textures()
         self.state.textures = list(self.textures.keys())
 
-        self.state.nan_colors = [
-            [0, 0, 0, 1],
-            [0.99, 0.99, 0.99, 1],
-            [0.6, 0.6, 0.6, 1],
-            [1, 0, 0, 1],
-            [0, 1, 0, 1],
-            [0, 0, 1, 1],
-            [0.9, 0.9, 0.9, 0],
-        ]
-        self.state.nan_color = 2
-
-        self.ui = None
         self._setup_vtk()
         self._build_ui()
 
@@ -143,8 +77,7 @@ class GlobeExplorer:
         self.interactor.SetRenderWindow(self.render_window)
         self.interactor.SetInteractorStyle(vtkInteractorStyleTerrain())
 
-        if self.source is None:
-            self.source = vtkXArrayRectilinearSource(input=self.xarray)
+        self.source = vtkXArrayRectilinearSource(input=self.xarray)
 
         self.globe = get_globe()
         self.gmapper = vtkPolyDataMapper(input_data_object=self.globe)
@@ -153,8 +86,6 @@ class GlobeExplorer:
         self.continents = get_continent_outlines()
         self.cmapper = vtkPolyDataMapper(input_data_object=self.continents)
         self.cactor = vtkActor(mapper=self.cmapper, visibility=1)
-
-        from pan3d.filters.globe import ProjectToSphere
 
         dglobe = ProjectToSphere()
         dglobe.isData = True
@@ -188,35 +119,22 @@ class GlobeExplorer:
         self.widget.InteractiveOff()
 
     # -------------------------------------------------------------------------
-    # Trame API
-    # -------------------------------------------------------------------------
-
-    def start(self, **kwargs):
-        """Initialize the UI and start the server for XArray Viewer."""
-        self.ui.server.start(**kwargs)
-
-    @property
-    async def ready(self):
-        """Start and wait for the XArray Viewer corroutine to be ready."""
-        await self.ui.ready
-
-    @property
-    def state(self):
-        """Returns the current the trame server state."""
-        return self.server.state
-
-    @property
-    def ctrl(self):
-        """Returns the Controller for the trame server."""
-        return self.server.controller
-
-    # -------------------------------------------------------------------------
     # UI
     # -------------------------------------------------------------------------
 
     def _build_ui(self, **kwargs):
-        self.state.trame__title = "Globe Viewer"
-
+        self.state.update(
+            {
+                "trame__title": "Globe Viewer",
+                "slice_extents": {},
+                "axis_names": [],
+                "t_labels": [],
+                "max_time_width": 0,
+                "max_time_index_width": 0,
+                "dataset_bounds": [0, 1, 0, 1, 0, 1],
+                "render_shadow": False,
+            }
+        )
         with VAppLayout(self.server, fill_height=True) as layout:
             self.ui = layout
 
@@ -283,18 +201,20 @@ class GlobeExplorer:
                 v_if="slice_t_max > 0",
             )
 
-            # Control panel
-            ControlPanel(
-                enable_data_selection=(self.source.input is None),
+            with ControlPanel(
+                enable_data_selection=(self.xarray is None),
                 source=self.source,
                 toggle="control_expended",
-                load_dataset=self._load_dataset,
-                update_rendering=self._update_rendering,
-                import_file_upload=self._import_file_upload,
+                load_dataset=self.load_dataset,
+                import_file_upload=self.import_file_upload,
                 export_file_download=self.export_state,
                 xr_update_info="xr_update_info",
-                source_update_rendering="source_update_rendering_panel",
-            )
+                panel_label="Globe Explorer",
+            ).ui_content:
+                self.ctrl.source_update_rendering_panel = GlobeRenderingSettings(
+                    self.source,
+                    self.update_rendering,
+                ).update_from_source
 
     # -----------------------------------------------------
     # State change callbacks
@@ -380,7 +300,6 @@ class GlobeExplorer:
     # -----------------------------------------------------
     # Triggers
     # -----------------------------------------------------
-
     def _import_file_upload(self, files):
         self.import_state(json.loads(files[0].get("content")))
 
@@ -474,7 +393,7 @@ class GlobeExplorer:
 
             print(traceback.format_exc())
 
-    def _update_rendering(self, reset_camera=False):
+    def update_rendering(self, reset_camera=False):
         self.state.dirty_data = False
 
         self.gactor.visibility = 1
