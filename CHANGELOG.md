@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.15.0 (2025-03-07)
+
+### Features
+
+- **uniform exploreres**: Making explorers uniform
+  ([`6f60e44`](https://github.com/Kitware/pan3d/commit/6f60e4472854d973f6a2e6b8741b568610b5b490))
+
+
 ## v0.14.1 (2025-01-17)
 
 ### Bug Fixes
