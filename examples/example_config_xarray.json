@@ -22,7 +22,7 @@
   "preview": {
     "view_3d": true,
     "color_by": "v",
-    "color_preset": "erdc_rainbow_dark",
+    "color_preset": "Fast",
     "color_min": -14.062651643471892,
     "color_max": 11.624951359641091,
     "scale_x": 1,
