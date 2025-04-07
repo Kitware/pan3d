@@ -1,6 +1,16 @@
 # CHANGELOG
 
 
+## v0.15.1 (2025-04-07)
+
+### Bug Fixes
+
+- **slice explorer update**: Slice Explorer won't load necessary data arrays
+  ([`5eca91a`](https://github.com/Kitware/pan3d/commit/5eca91aedf7f1018d8d58a3ce15534e9b26f1648))
+
+This fix addresses https://github.com/Kitware/pan3d/issues/177
+
+
 ## v0.15.0 (2025-03-07)
 
 ### Features
