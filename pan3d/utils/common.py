@@ -36,11 +36,6 @@ class Explorer:
             - `--vtkjs`: Use vtk.js for local rendering
         """
         self.server = get_server(server, client_type="vue3")
-        self.server.enable_module(base)
-        self.server.enable_module(preview)
-
-        # if self.server.hot_reload:
-        #    self.ctrl.on_server_reload.add(self._build_ui)
 
         parser = self.server.cli
         explorer = parser.add_argument_group("Explorer Properties")

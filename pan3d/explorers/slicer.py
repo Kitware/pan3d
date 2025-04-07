@@ -30,7 +30,6 @@ import vtkmodules.vtkRenderingOpenGL2  # noqa
 
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 
-from trame_client.widgets.core import TrameDefault
 from trame.decorators import change
 from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import vuetify3 as v3, html
@@ -41,6 +40,48 @@ from pan3d.utils.common import Explorer, SummaryToolbar, ControlPanel
 
 from pan3d.ui.vtk_view import Pan3DView, Pan3DScalarBar
 from pan3d.ui.slicer import SliceRenderingSettings
+
+
+class Pan3DSlicerView(Pan3DView):
+    def __init__(self, render_window, **kwargs):
+        super().__init__(render_window=render_window, **kwargs)
+        with self.toolbar:
+            v3.VDivider()
+            with v3.VTooltip(text="Slice View Mode (2D/3D)"):
+                with html.Template(v_slot_activator="{ props }"):
+                    v3.VCheckbox(
+                        v_bind="props",
+                        v_model=("view_mode", "3D"),
+                        true_icon="mdi-video-2d",
+                        false_icon="mdi-video-3d",
+                        density="compact",
+                        hide_details=True,
+                        true_value="2D",
+                        false_value="3D",
+                    )
+            v3.VDivider()
+            with v3.VTooltip(text="Outline 3D Data Extents"):
+                with html.Template(v_slot_activator="{ props }"):
+                    v3.VCheckbox(
+                        v_bind="props",
+                        v_model=("outline", True),
+                        true_icon="mdi-cube-outline",
+                        false_icon="mdi-cube-outline",
+                        density="compact",
+                        hide_details=True,
+                        disabled=("view_mode === '2D'",),
+                    )
+            with v3.VTooltip(text="Use Transparency for 3D Data"):
+                with html.Template(v_slot_activator="{ props }"):
+                    v3.VCheckbox(
+                        v_bind="props",
+                        v_model=("tdata", True),
+                        true_icon="mdi-texture-box",
+                        false_icon="mdi-texture-box",
+                        density="compact",
+                        hide_details=True,
+                        disabled=("view_mode === '2D'",),
+                    )
 
 
 class SliceExplorer(Explorer):
@@ -158,61 +199,8 @@ class SliceExplorer(Explorer):
         with VAppLayout(self.server, fill_height=True) as layout:
             self.ui = layout
 
-            with v3.VCard(
-                classes="pa-1 align-center justify-center",
-                rounded="lg",
-                style="""
-                          position: absolute;
-                          top: 50%;
-                          right: 1rem;
-                          opacity: 0.8;
-                          display: flex;
-                          flex-direction: column;
-                          z-index: 1;
-                          """,
-            ):
-                with v3.VTooltip(text="Data Representation Mode"):
-                    with html.Template(v_slot_activator="{ props }"):
-                        with v3.VBtnToggle(
-                            v_bind="props",
-                            v_model=(
-                                "representation_mode",
-                                TrameDefault(
-                                    representation_mode=["outline"],
-                                    outline=True,
-                                    tdata=False,
-                                ),
-                            ),
-                            multiple=True,
-                            variant="outlined",
-                            disabled=("view_mode === '2D'",),
-                            style="flex-direction: column;",
-                        ):
-                            v3.VBtn(
-                                icon="mdi-cube-outline",
-                                value="outline",
-                                click="outline = !outline",
-                            )
-                            v3.VBtn(
-                                icon="mdi-texture-box",
-                                value="transparent",
-                                click="tdata = !tdata",
-                            )
-                v3.VDivider(classes="my-2")
-                with v3.VTooltip(text="Slice View Mode (2D/3D)"):
-                    with html.Template(v_slot_activator="{ props }"):
-                        with v3.VBtnToggle(
-                            v_bind="props",
-                            v_model=("view_mode", "3D"),
-                            mandatory=True,
-                            variant="outlined",
-                            style="flex-direction: column;",
-                        ):
-                            v3.VBtn(icon="mdi-video-2d", value="2D")
-                            v3.VBtn(icon="mdi-video-3d", value="3D")
-
             # 3D view
-            Pan3DView(
+            Pan3DSlicerView(
                 self.render_window,
                 local_rendering=self.local_rendering,
                 widgets=[self.widget],

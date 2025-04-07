@@ -20,7 +20,7 @@ class Pan3DView(html.Div):
         **kwargs,
     ):
         super().__init__(classes="pan3d-view", **kwargs)
-
+        self.toolbar = None
         # Activate CSS
         self.server.enable_module(base)
         self.server.enable_module(vtk_view)
@@ -84,7 +84,8 @@ class Pan3DView(html.Div):
             html.Div(v_show=("view_locked", False), classes="view-lock")
 
             # 3D toolbox
-            with v3.VCard(classes="view-toolbar pa-1", rounded="lg"):
+            with v3.VCard(classes="view-toolbar pa-1", rounded="lg") as toolbar:
+                self.toolbar = toolbar
                 with v3.VTooltip(text="Lock view interaction"):
                     with html.Template(v_slot_activator="{ props }"):
                         v3.VBtn(
