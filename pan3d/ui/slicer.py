@@ -182,7 +182,9 @@ class SliceRenderingSettings(RenderingSettingsBasic):
             self.state.data_arrays_available = source.available_arrays
             self.state.data_arrays = source.arrays
             self.state.color_by = None
-            self.state.axis_names = [source.x, source.y, source.z]
+            self.state.axis_names = [
+                x for x in [source.x, source.y, source.z] if x is not None
+            ]
             self.state.slice_extents = source.slice_extents
 
             # Update time
@@ -203,4 +205,4 @@ class SliceRenderingSettings(RenderingSettingsBasic):
             self.state.cut_x = origin[0]
             self.state.cut_y = origin[1]
             self.state.cut_z = origin[2]
-            self.state.slice_axis = source.z
+            self.state.slice_axis = source.z if source.z is not None else source.y

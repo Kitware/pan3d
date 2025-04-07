@@ -829,6 +829,19 @@ class RenderingSettingsBasic(CollapsableSection):
                                         click="toggle",
                                     )
 
+    @change("data_arrays")
+    def _on_array_selection(self, data_arrays, **_):
+        if self.state.import_pending:
+            return
+
+        self.state.dirty_data = True
+        if len(data_arrays) == 1:
+            self.state.color_by = data_arrays[0]
+        elif len(data_arrays) == 0:
+            self.state.color_by = None
+
+        self.source.arrays = data_arrays
+
     def reset_color_range(self):
         color_by = self.state.color_by
         ds = self.source()
