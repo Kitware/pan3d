@@ -1,6 +1,16 @@
 # CHANGELOG
 
 
+## v0.15.2 (2025-04-10)
+
+### Bug Fixes
+
+- **explorer update**: Fixing style issues for explorers
+  ([`9e30793`](https://github.com/Kitware/pan3d/commit/9e307936958c762acac048b689798d0666a18d90))
+
+This fix partly addresses https://github.com/Kitware/pan3d/issues/177
+
+
 ## v0.15.1 (2025-04-07)
 
 ### Bug Fixes
