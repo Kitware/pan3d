@@ -84,6 +84,62 @@ class Pan3DSlicerView(Pan3DView):
                     )
 
 
+class SliceSummary(html.Div):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        with self:
+            html.Div(
+                "{{slice_axis}}",
+                classes="text-subtitle-1 text-capitalize text-left",
+                style="transform-origin: 50% 50%; transform: rotate(-90deg) translateX(-100%) translateY(-1rem); position: absolute;",
+            )
+            html.Div(
+                "{{parseFloat(bounds[slice_axes.indexOf(slice_axis)*2 + 1]).toFixed(2)}}",
+                classes="text-subtitle-1 mx-1",
+            )
+            v3.VSlider(
+                v_show="slice_axis === slice_axes[0]",
+                thumb_label="always",
+                thumb_size=16,
+                style="pointer-events: auto;",
+                hide_details=True,
+                classes="flex-fill",
+                direction="vertical",
+                v_model=("cut_x",),
+                min=("bounds[0]",),
+                max=("bounds[1]",),
+            )
+            v3.VSlider(
+                v_show="slice_axis === slice_axes[1]",
+                thumb_label="always",
+                thumb_size=16,
+                style="pointer-events: auto;",
+                hide_details=True,
+                classes="flex-fill",
+                direction="vertical",
+                v_model=("cut_y",),
+                min=("bounds[2]",),
+                max=("bounds[3]",),
+            )
+            v3.VSlider(
+                v_show="slice_axis === slice_axes[2]",
+                thumb_label="always",
+                thumb_size=16,
+                style="pointer-events: auto;",
+                hide_details=True,
+                classes="flex-fill",
+                direction="vertical",
+                v_model=("cut_z",),
+                min=("bounds[4]",),
+                max=("bounds[5]",),
+            )
+
+            html.Div(
+                "{{parseFloat(bounds[slice_axes.indexOf(slice_axis)*2]).toFixed(2)}}",
+                classes="text-subtitle-1 mx-1",
+            )
+
+
 class SliceExplorer(Explorer):
     """
     A Trame based pan3D explorer to visualize 3D using slices along different dimensions
@@ -257,6 +313,13 @@ class SliceExplorer(Explorer):
             SummaryToolbar(
                 v_show="!control_expended",
                 v_if="slice_t_max > 0",
+            )
+
+            # Sliders overlay
+            SliceSummary(
+                v_if="!control_expended",
+                classes="d-flex align-center flex-column",
+                style="position: absolute; left: 0; top: 10%; bottom: 10%; z-index: 2; pointer-events: none; min-width: 5rem;",
             )
 
             # Control panel

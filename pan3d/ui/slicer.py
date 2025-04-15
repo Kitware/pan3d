@@ -206,3 +206,4 @@ class SliceRenderingSettings(RenderingSettingsBasic):
             self.state.cut_y = origin[1]
             self.state.cut_z = origin[2]
             self.state.slice_axis = source.z if source.z is not None else source.y
+            self.state.slice_axes = self.state.axis_names
