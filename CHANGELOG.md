@@ -1,6 +1,41 @@
 # CHANGELOG
 
 
+## v0.16.0 (2025-04-15)
+
+### Bug Fixes
+
+- **adding documentation**: Adding documentation to the methods
+  ([`de356ec`](https://github.com/Kitware/pan3d/commit/de356ec1d224ea2db6a88929740fedd48bfdcd69))
+
+- **analytics explorer**: Figure annotations updated to use long_name
+  ([`671396f`](https://github.com/Kitware/pan3d/commit/671396ff65b40acd3f058dd07373221156917ed1))
+
+- **analytics explorer**: Improvements to the app
+  ([`00a6df4`](https://github.com/Kitware/pan3d/commit/00a6df42912eeee3dc849f8c164394e6761e75a3))
+
+-- Refactor based on new explorer class -- Adding plot button to toolbar
+
+- **broken import**: Report error if xcdat missing in analytics explorer
+  ([`74c0e85`](https://github.com/Kitware/pan3d/commit/74c0e854e439d88a1aa7558d1491081173b38b1f))
+
+- **config color map**: Changing default color map from config
+  ([`5ec7b57`](https://github.com/Kitware/pan3d/commit/5ec7b57a7c759bd642aa0da588997a3bfc262c07))
+
+The `esgf` color maps are no longer kept in pan3d
+
+- **refactor**: Adding refactored changes for analytics explorer
+  ([`73d3ef9`](https://github.com/Kitware/pan3d/commit/73d3ef9a748e150ca46134631cd4db65bb0b3545))
+
+### Features
+
+- **analytics explorer**: Adding half baked analytics explorer
+  ([`da39235`](https://github.com/Kitware/pan3d/commit/da39235619ac8cd12128b6f8b25332df3dbaf5e5))
+
+- **analytics explorer**: Adding plotting increment 2
+  ([`952bfa8`](https://github.com/Kitware/pan3d/commit/952bfa8cdc8caa84e50e28b8e63fe4d11f91da29))
+
+
 ## v0.15.2 (2025-04-10)
 
 ### Bug Fixes
