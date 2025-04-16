@@ -1,6 +1,14 @@
 # CHANGELOG
 
 
+## v0.16.1 (2025-04-16)
+
+### Bug Fixes
+
+- **slice explorer**: Slice slider won't show with summary toolbar
+  ([`5d03277`](https://github.com/Kitware/pan3d/commit/5d03277551aef5d2a8e9c82622212daca91d1888))
+
+
 ## v0.16.0 (2025-04-15)
 
 ### Bug Fixes
