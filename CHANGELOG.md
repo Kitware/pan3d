@@ -1,6 +1,16 @@
 # CHANGELOG
 
 
+## v0.16.2 (2025-04-21)
+
+### Bug Fixes
+
+- **analytics explorer**: Fixing name in control panel
+  ([`5dde71d`](https://github.com/Kitware/pan3d/commit/5dde71d6f68688e843aa4cebd8ac1fabfbc4bc9a))
+
+Fixes issue https://github.com/Kitware/pan3d/issues/183
+
+
 ## v0.16.1 (2025-04-16)
 
 ### Bug Fixes
