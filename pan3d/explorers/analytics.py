@@ -198,6 +198,7 @@ class AnalyticsExplorer(Explorer):
                             import_file_upload=self.import_file_upload,
                             export_file_download=self.export_state,
                             xr_update_info="xr_update_info",
+                            panel_label="Analytics Explorer",
                         ).ui_content:
                             self.ctrl.source_update_rendering_panel = RenderingSettings(
                                 self.source,
