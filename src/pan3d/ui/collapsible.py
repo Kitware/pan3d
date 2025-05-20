@@ -1,5 +1,6 @@
-from trame.widgets import vuetify3 as v3
 from trame_client.widgets.core import AbstractElement
+
+from trame.widgets import vuetify3 as v3
 
 
 class CollapsableSection(AbstractElement):

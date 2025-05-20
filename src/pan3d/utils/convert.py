@@ -1,5 +1,5 @@
-import math
 import base64
+import math
 
 from vtkmodules.vtkCommonCore import vtkUnsignedCharArray
 from vtkmodules.vtkCommonDataModel import vtkImageData
@@ -17,8 +17,7 @@ def max_str_length(labels):
     size = 0
     for label in labels:
         s = len(label)
-        if s > size:
-            size = s
+        size = max(s, size)
 
     return size
 

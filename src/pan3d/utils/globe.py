@@ -1,17 +1,19 @@
 import os
+from pathlib import Path
+
 import numpy as np
 from vtkmodules.numpy_interface import dataset_adapter as dsa
 from vtkmodules.util import numpy_support
-from vtkmodules.vtkFiltersGeometry import vtkDataSetSurfaceFilter
 from vtkmodules.vtkCommonDataModel import vtkUniformGrid
 from vtkmodules.vtkFiltersCore import vtkAppendDataSets, vtkContourFilter
-from vtkmodules.vtkRenderingCore import vtkTexture
-from vtkmodules.vtkIOLegacy import vtkDataSetReader
+from vtkmodules.vtkFiltersGeometry import vtkDataSetSurfaceFilter
 from vtkmodules.vtkIOImage import vtkJPEGReader
+from vtkmodules.vtkIOLegacy import vtkDataSetReader
+from vtkmodules.vtkRenderingCore import vtkTexture
 
 from pan3d.filters.globe import ProjectToSphere
 
-datadir = os.path.dirname(os.path.realpath(__file__)) + os.path.sep + "data"
+DATA_DIR = Path(__file__).with_name("data").resolve()
 
 
 def get_globe():
@@ -55,7 +57,7 @@ def get_globe_texture() -> map:
     # Load a texture (JPEG image in this case)
     jpeg_reader = vtkJPEGReader()
     jpeg_reader.SetFileName(
-        datadir + os.path.sep + "world.topo.bathy.200408.3x5400x2700.jpg"
+        str(DATA_DIR / "world.topo.bathy.200408.3x5400x2700.jpg")
     )
     jpeg_reader.Update()
 
@@ -70,17 +72,17 @@ def get_globe_texture() -> map:
 
 def get_globe_textures():
     textures = {}
-    textures_dir = datadir + os.path.sep + "globe_textures"
+    textures_dir = DATA_DIR / "globe_textures"
     files = os.listdir(textures_dir)
     for file in files:
         if file.endswith(".md"):
             continue
         texture_name = file[:-4].capitalize()
-        texture_path = textures_dir + os.path.sep + file
+        texture_path = textures_dir / file
 
         # Load a texture (JPEG image in this case)
         jpeg_reader = vtkJPEGReader()
-        jpeg_reader.SetFileName(texture_path)
+        jpeg_reader.SetFileName(str(texture_path))
         jpeg_reader.Update()
 
         # Create a vtkTexture object
@@ -95,7 +97,7 @@ def get_globe_textures():
 
 def get_continent_outlines():
     vtk_reader = vtkDataSetReader()
-    vtk_reader.SetFileName(datadir + os.path.sep + "continents.vtk")
+    vtk_reader.SetFileName(str(DATA_DIR / "continents.vtk"))
     vtk_reader.Update()
     vtk_reader.output.GetPointData().SetActiveScalars("cstar")
 

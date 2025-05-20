@@ -1,1 +1,1 @@
-import pan3d.xarray.accessor  # noqa
+import pan3d.xarray.accessor  # noqa: F401

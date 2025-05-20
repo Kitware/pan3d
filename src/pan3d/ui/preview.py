@@ -1,14 +1,13 @@
 import math
 from pathlib import Path
 
-from trame.decorators import change
-from trame.widgets import html, vuetify3 as v3
-
 from pan3d import catalogs as pan3d_catalogs
-from pan3d.utils.constants import XYZ, SLICE_VARS
-from pan3d.utils.convert import max_str_length
-
 from pan3d.utils.common import RenderingSettingsBasic
+from pan3d.utils.constants import SLICE_VARS, XYZ
+from pan3d.utils.convert import max_str_length
+from trame.decorators import change
+from trame.widgets import html
+from trame.widgets import vuetify3 as v3
 
 
 class RenderingSettings(RenderingSettingsBasic):
@@ -239,7 +238,7 @@ class RenderingSettings(RenderingSettingsBasic):
                                 variant="solo",
                                 reverse=True,
                                 raw_attrs=[
-                                    'pattern="^\d*(\.\d)?$"',  # noqa: W605
+                                    'pattern="^\d*(\.\d)?$"',
                                     'min="0.001"',
                                     'step="0.1"',
                                 ],
@@ -254,7 +253,7 @@ class RenderingSettings(RenderingSettingsBasic):
                                 variant="solo",
                                 reverse=True,
                                 raw_attrs=[
-                                    'pattern="^\d*(\.\d)?$"',  # noqa: W605
+                                    'pattern="^\d*(\.\d)?$"',
                                     'min="0.001"',
                                     'step="0.1"',
                                 ],
@@ -269,7 +268,7 @@ class RenderingSettings(RenderingSettingsBasic):
                                 variant="solo",
                                 reverse=True,
                                 raw_attrs=[
-                                    'pattern="^\d*(\.\d)?$"',  # noqa: W605
+                                    'pattern="^\d*(\.\d)?$"',
                                     'min="0.001"',
                                     'step="0.1"',
                                 ],
@@ -359,7 +358,7 @@ class RenderingSettings(RenderingSettingsBasic):
     def reset_color_range(self):
         color_by = self.state.color_by
         ds = self.source()
-        if color_by in ds.point_data.keys():
+        if color_by in ds.point_data:
             array = ds.point_data[color_by]
             min_value, max_value = array.GetRange()
 

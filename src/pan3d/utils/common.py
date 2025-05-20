@@ -2,19 +2,15 @@ import json
 import traceback
 from pathlib import Path
 
-from trame.decorators import TrameApp, change
-from trame.app import get_server, asynchronous
-
-from trame.widgets import vuetify3 as v3, html
-
 from pan3d import catalogs as pan3d_catalogs
-
-from pan3d.utils.convert import update_camera
-
 from pan3d.ui.collapsible import CollapsableSection
-from pan3d.utils.presets import PRESETS
-
 from pan3d.ui.css import base, preview
+from pan3d.utils.convert import update_camera
+from pan3d.utils.presets import PRESETS
+from trame.app import asynchronous, get_server
+from trame.decorators import TrameApp, change
+from trame.widgets import html
+from trame.widgets import vuetify3 as v3
 
 
 @TrameApp()
@@ -527,7 +523,7 @@ class DataInformation(CollapsableSection):
         for name in xr.variables:
             icon = "mdi-variable"
             order = 3
-            length = f'({",".join(xr[name].dims)})'
+            length = f"({','.join(xr[name].dims)})"
             attrs = []
             if name in coords:
                 icon = "mdi-ruler"
@@ -840,7 +836,7 @@ class RenderingSettingsBasic(CollapsableSection):
     def reset_color_range(self):
         color_by = self.state.color_by
         ds = self.source()
-        if color_by in ds.point_data.keys():
+        if color_by in ds.point_data:
             array = ds.point_data[color_by]
             min_value, max_value = array.GetRange()
 

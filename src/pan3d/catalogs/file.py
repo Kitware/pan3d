@@ -1,5 +1,6 @@
-import xarray
 from pathlib import Path
+
+import xarray
 
 
 def get_catalog():
@@ -23,7 +24,8 @@ def search(**kwargs):
 
 def load_dataset(id):
     if not Path(id).exists():
-        raise ValueError(f"Could not find dataset at {id}")
+        msg = f"Could not find dataset at {id}"
+        raise ValueError(msg)
 
     engine = None
     if ".zarr" in id:

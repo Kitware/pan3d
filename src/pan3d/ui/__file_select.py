@@ -1,5 +1,6 @@
-from trame.widgets import html, vuetify3 as vuetify
 from trame.app import get_server
+from trame.widgets import html
+from trame.widgets import vuetify3 as vuetify
 
 server = get_server()
 

@@ -6,12 +6,12 @@ def _call_catalog_function(catalog_name, function_name, **kwargs):
         module = importlib.import_module(f"pan3d.catalogs.{catalog_name}")
         func = getattr(module, function_name)
         return func(**kwargs)
-    except ImportError:
-        raise ValueError(
-            f"{catalog_name} catalog module not enabled. Install pan3d[{catalog_name}] to load this catalog."
-        )
-    except AttributeError:
-        raise ValueError(f"{catalog_name} is not a valid catalog module.")
+    except ImportError as in_err:
+        import_msg = f"{catalog_name} catalog module not enabled. Install pan3d[{catalog_name}] to load this catalog."
+        raise ValueError(import_msg) from in_err
+    except AttributeError as att_err:
+        attr_msg = f"{catalog_name} is not a valid catalog module."
+        raise ValueError(attr_msg) from att_err
 
 
 def get(catalog_name):
@@ -54,9 +54,9 @@ def list_availables_search():
 
 
 __all__ = [
-    get,
-    get_search_options,
-    search,
-    load_dataset,
-    list_availables,
+    "get",
+    "get_search_options",
+    "list_availables",
+    "load_dataset",
+    "search",
 ]

@@ -1,17 +1,17 @@
 import math
-import numpy as np
-from vtkmodules.vtkFiltersCore import vtkAppendFilter
-from vtkmodules.vtkCommonCore import vtkPoints
 
+import numpy as np
 from vtkmodules.numpy_interface import dataset_adapter as dsa
-from vtkmodules.util import vtkConstants, numpy_support
+from vtkmodules.util import numpy_support, vtkConstants
 from vtkmodules.util.vtkAlgorithm import VTKPythonAlgorithmBase
+from vtkmodules.vtkCommonCore import vtkPoints
+from vtkmodules.vtkFiltersCore import vtkAppendFilter
 
 
 def ProcessPoint(point, radius, scale):
     theta = point[0]
     phi = 90 - point[1]
-    rho = point[2] * scale + radius if not point[2] == 0 else radius
+    rho = point[2] * scale + radius if point[2] != 0 else radius
     x = rho * math.sin(math.radians(phi)) * math.cos(math.radians(theta))
     y = rho * math.sin(math.radians(phi)) * math.sin(math.radians(theta))
     z = rho * math.cos(math.radians(phi))
@@ -30,12 +30,12 @@ class ProjectToSphere(VTKPythonAlgorithmBase):
         self._bump_radius = 10
 
     def SetDataLayer(self, isData_):
-        if not self.isData == isData_:
+        if self.isData != isData_:
             self.isData = isData_
             self.Modified()
 
     def SetScalingFactor(self, scale_):
-        if not self.scale == float(scale_):
+        if self.scale != float(scale_):
             self.scale = float(scale_)
             self.Modified()
 
@@ -65,7 +65,7 @@ class ProjectToSphere(VTKPythonAlgorithmBase):
             inPoints = np.array(outWrap.Points)
             pRadius = (self.radius + self._bump_radius) if self.isData else self.radius
             outPoints = np.array(
-                list(map(lambda x: ProcessPoint(x, pRadius, self.scale), inPoints))
+                [ProcessPoint(x, pRadius, self.scale) for x in inPoints]
             )
         except Exception as e:
             print(e)

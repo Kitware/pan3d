@@ -1,45 +1,40 @@
+import vtkmodules.vtkRenderingOpenGL2  # noqa: F401
 from vtkmodules.vtkCommonCore import vtkLookupTable
-
-from vtkmodules.vtkRenderingCore import (
-    vtkRenderer,
-    vtkRenderWindowInteractor,
-    vtkRenderWindow,
-    vtkDataSetMapper,
-    vtkActor,
-    vtkPolyDataMapper,
-)
-
-from vtkmodules.vtkRenderingAnnotation import (
-    vtkAxesActor,
-)
 from vtkmodules.vtkCommonDataModel import (
     vtkPlane,
-)
-from vtkmodules.vtkFiltersModeling import (
-    vtkOutlineFilter,
 )
 from vtkmodules.vtkFiltersCore import (
     vtkCutter,
 )
-
-from vtkmodules.vtkInteractionWidgets import vtkOrientationMarkerWidget
+from vtkmodules.vtkFiltersModeling import (
+    vtkOutlineFilter,
+)
 
 # VTK factory initialization
-from vtkmodules.vtkInteractionStyle import vtkInteractorStyleSwitch  # noqa
-import vtkmodules.vtkRenderingOpenGL2  # noqa
+from vtkmodules.vtkInteractionStyle import vtkInteractorStyleSwitch  # noqa: F401
+from vtkmodules.vtkInteractionWidgets import vtkOrientationMarkerWidget
+from vtkmodules.vtkRenderingAnnotation import (
+    vtkAxesActor,
+)
+from vtkmodules.vtkRenderingCore import (
+    vtkActor,
+    vtkDataSetMapper,
+    vtkPolyDataMapper,
+    vtkRenderer,
+    vtkRenderWindow,
+    vtkRenderWindowInteractor,
+)
 
-from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
-
-from trame.decorators import change
-from trame.ui.vuetify3 import VAppLayout
-from trame.widgets import vuetify3 as v3, html
-
+from pan3d.ui.slicer import SliceRenderingSettings
+from pan3d.ui.vtk_view import Pan3DScalarBar, Pan3DView
+from pan3d.utils.common import ControlPanel, Explorer, SummaryToolbar
 from pan3d.utils.convert import to_image
 from pan3d.utils.presets import set_preset
-from pan3d.utils.common import Explorer, SummaryToolbar, ControlPanel
-
-from pan3d.ui.vtk_view import Pan3DView, Pan3DScalarBar
-from pan3d.ui.slicer import SliceRenderingSettings
+from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
+from trame.decorators import change
+from trame.ui.vuetify3 import VAppLayout
+from trame.widgets import html
+from trame.widgets import vuetify3 as v3
 
 
 class Pan3DSlicerView(Pan3DView):

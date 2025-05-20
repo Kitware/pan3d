@@ -1,5 +1,6 @@
-import intake
 from datetime import datetime
+
+import intake
 
 CATALOG_URL = "https://raw.githubusercontent.com/pangeo-data/pangeo-datastore/master/intake-catalogs/master.yaml"
 
@@ -55,10 +56,9 @@ def get_all_entries():
 
 
 def entry_filter_match(entry, filters):
-    for filter_key, selected_values in filters.items():
-        if filter_key == "id":
-            # name is the unique identifier
-            filter_key = "name"
+    for key, selected_values in filters.items():
+        # name is the unique identifier
+        filter_key = "name" if key == "id" else key
         entry_value = entry.get(filter_key)
         if entry_value is None:
             return False
@@ -81,20 +81,18 @@ def get_search_options():
         "requester_pays": ["true", "false"],
     }
     for entry_info in all_entries:
-        for search_option in search_options.keys():
+        for search_option, search_value in search_options.items():
             entry_value = entry_info.get(search_option)
             if entry_value:
                 if isinstance(entry_value, str):
                     entry_value = [entry_value]
-                search_options[search_option] = list(
-                    set([*search_options[search_option], *entry_value])
-                )
+                search_options[search_option] = list({*search_value, *entry_value})
 
     return search_options
 
 
 def search(**kwargs):
-    group_name = "/".join([f'{k}:{",".join(v)}' for k, v in kwargs.items()])
+    group_name = "/".join([f"{k}:{','.join(v)}" for k, v in kwargs.items()])
     if not group_name:
         group_name = "All Pangeo Datasets"
     start = datetime.now()
@@ -121,12 +119,12 @@ def informative_error(e, **kwargs):
         e, ValueError
     ) and "User project specified in the request is invalid" in str(e):
         return "Dataset has requester pays policy and no billable Google Cloud Project was specified. See https://github.com/pangeo-data/pangeo-datastore?tab=readme-ov-file#accessing-requester-pays-data for more info."
-    elif "GS_SECRET_ACCESS_KEY+GS_ACCESS_KEY_ID" in str(e):
+    if "GS_SECRET_ACCESS_KEY+GS_ACCESS_KEY_ID" in str(e):
         return "Dataset requires Google Cloud authentication. See https://cloud.google.com/sdk/gcloud/reference/auth/login for more info."
-    elif "Unable to locate credentials" in str(e):
+    if "Unable to locate credentials" in str(e):
         return "Dataset requires AWS authentication. See https://docs.aws.amazon.com/signin/latest/userguide/command-line-sign-in.html for more info."
 
-    return f'Failed to load dataset {kwargs.get("dataset")} - {str(e)}'
+    return f"Failed to load dataset {kwargs.get('dataset')} - {e!s}"
 
 
 def load_dataset(id):
@@ -144,4 +142,7 @@ def load_dataset(id):
                 elif entry_name == id:
                     return entry.to_dask()
             except Exception as e:
-                raise ValueError(informative_error(e, dataset=entry_data.describe()))
+                raise ValueError(
+                    informative_error(e, dataset=entry_data.describe())
+                ) from e
+    return None

@@ -1,43 +1,38 @@
-from vtkmodules.vtkRenderingCore import (
-    vtkPolyDataMapper,
-    vtkActor,
-    vtkRenderer,
-    vtkRenderWindowInteractor,
-    vtkRenderWindow,
-)
-
-# VTK factory initialization
-from vtkmodules.vtkInteractionStyle import vtkInteractorStyleSwitch  # noqa
-import vtkmodules.vtkRenderingOpenGL2  # noqa
-
-from vtkmodules.vtkInteractionStyle import vtkInteractorStyleTerrain
-from vtkmodules.vtkFiltersGeometry import vtkDataSetSurfaceFilter
-from vtkmodules.vtkInteractionWidgets import vtkOrientationMarkerWidget
-from vtkmodules.vtkRenderingAnnotation import vtkAxesActor
-from vtkmodules.vtkCommonCore import vtkLookupTable, vtkObject
-
 import json
 import traceback
 from pathlib import Path
 
-from trame.decorators import change
-from trame.app import asynchronous
+import vtkmodules.vtkRenderingOpenGL2  # noqa: F401
+from vtkmodules.vtkCommonCore import vtkLookupTable, vtkObject
+from vtkmodules.vtkFiltersGeometry import vtkDataSetSurfaceFilter
 
-from trame.ui.vuetify3 import VAppLayout
-from trame.widgets import vuetify3 as v3
-
-from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
-
-from pan3d.utils.convert import update_camera, to_image
-from pan3d.utils.presets import set_preset
-
-from pan3d.ui.vtk_view import Pan3DView, Pan3DScalarBar
-from pan3d.ui.globe import GlobeRenderingSettings
-
-from pan3d.utils.common import Explorer, SummaryToolbar, ControlPanel
+# VTK factory initialization
+from vtkmodules.vtkInteractionStyle import (
+    vtkInteractorStyleSwitch,  # noqa: F401
+    vtkInteractorStyleTerrain,
+)
+from vtkmodules.vtkInteractionWidgets import vtkOrientationMarkerWidget
+from vtkmodules.vtkRenderingAnnotation import vtkAxesActor
+from vtkmodules.vtkRenderingCore import (
+    vtkActor,
+    vtkPolyDataMapper,
+    vtkRenderer,
+    vtkRenderWindow,
+    vtkRenderWindowInteractor,
+)
 
 from pan3d.filters.globe import ProjectToSphere
-from pan3d.utils.globe import get_globe, get_globe_textures, get_continent_outlines
+from pan3d.ui.globe import GlobeRenderingSettings
+from pan3d.ui.vtk_view import Pan3DScalarBar, Pan3DView
+from pan3d.utils.common import ControlPanel, Explorer, SummaryToolbar
+from pan3d.utils.convert import to_image, update_camera
+from pan3d.utils.globe import get_continent_outlines, get_globe, get_globe_textures
+from pan3d.utils.presets import set_preset
+from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
+from trame.app import asynchronous
+from trame.decorators import change
+from trame.ui.vuetify3 import VAppLayout
+from trame.widgets import vuetify3 as v3
 
 # Prevent view-up warning
 vtkObject.GlobalWarningDisplayOff()
@@ -226,7 +221,7 @@ class GlobeExplorer(Explorer):
             return
 
         ds = self.source()
-        if color_by in ds.point_data.keys():
+        if color_by in ds.point_data:
             array = ds.point_data[color_by]
             min_value, max_value = array.GetRange()
 

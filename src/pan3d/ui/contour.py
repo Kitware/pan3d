@@ -1,9 +1,9 @@
 import math
 
-from trame.widgets import vuetify3 as v3, html
-
 from pan3d.utils.common import RenderingSettingsBasic
 from pan3d.utils.convert import max_str_length
+from trame.widgets import html
+from trame.widgets import vuetify3 as v3
 
 
 class ContourRenderingSettings(RenderingSettingsBasic):
@@ -39,7 +39,7 @@ class ContourRenderingSettings(RenderingSettingsBasic):
                                 variant="solo",
                                 reverse=True,
                                 raw_attrs=[
-                                    'pattern="^\d*(\.\d)?$"',  # noqa: W605
+                                    'pattern="^\d*(\.\d)?$"',
                                     'min="0.001"',
                                     'step="0.1"',
                                 ],
@@ -54,7 +54,7 @@ class ContourRenderingSettings(RenderingSettingsBasic):
                                 variant="solo",
                                 reverse=True,
                                 raw_attrs=[
-                                    'pattern="^\d*(\.\d)?$"',  # noqa: W605
+                                    'pattern="^\d*(\.\d)?$"',
                                     'min="0.001"',
                                     'step="0.1"',
                                 ],
@@ -69,7 +69,7 @@ class ContourRenderingSettings(RenderingSettingsBasic):
                                 variant="solo",
                                 reverse=True,
                                 raw_attrs=[
-                                    'pattern="^\d*(\.\d)?$"',  # noqa: W605
+                                    'pattern="^\d*(\.\d)?$"',
                                     'min="0.001"',
                                     'step="0.1"',
                                 ],

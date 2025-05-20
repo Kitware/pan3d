@@ -1,8 +1,10 @@
-from trame.decorators import TrameApp, change
-from trame.widgets import html, vtk as vtkw, vuetify3 as v3, vtklocal as wasm
-
-from pan3d.utils.constants import VIEW_UPS
 from pan3d.ui.css import base, vtk_view
+from pan3d.utils.constants import VIEW_UPS
+from trame.decorators import TrameApp, change
+from trame.widgets import html
+from trame.widgets import vtk as vtkw
+from trame.widgets import vtklocal as wasm
+from trame.widgets import vuetify3 as v3
 
 
 @TrameApp()

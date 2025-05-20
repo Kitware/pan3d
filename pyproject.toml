@@ -159,6 +159,12 @@ ignore = [
   "ISC001",   # Conflicts with formatter
   "SIM117",   # using single nested with
   "EM101",    # not always convenient
+  "UP031",    # useful to skip {{}} hell
+  # To be clean
+  "ARG002",
+  "RUF012",
+  "ARG001",
+  "T201",
 ]
 isort.required-imports = []
 

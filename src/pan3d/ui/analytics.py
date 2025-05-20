@@ -1,10 +1,12 @@
-from trame.decorators import TrameApp, change
-from trame.widgets import vuetify3 as v3, plotly, html
-
 import hashlib
+import sys
+
+from trame.decorators import TrameApp, change
+from trame.widgets import html, plotly
+from trame.widgets import vuetify3 as v3
 
 try:
-    import xcdat  # noqa
+    import xcdat  # noqa: F401
 except ModuleNotFoundError as e:
     print(
         f"""
@@ -13,10 +15,10 @@ except ModuleNotFoundError as e:
         You may want to create a new conda environment an reinstall pan3d within along with xcdat.
         """
     )
-    exit(1)
-import numpy as np
+    sys.exit(1)
 from enum import Enum
 
+import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -109,7 +111,7 @@ class Plotting(v3.VCard):
                     v3.VSelect(
                         v_show="show_zonal_axis",
                         label="Zonal Axis",
-                        v_model=("zonal_axis", list(zonal_axes.keys())[0]),
+                        v_model=("zonal_axis", next(iter(zonal_axes.keys()))),
                         items=("axes", list(zonal_axes.keys())),
                         hide_details=True,
                         variant="outlined",
@@ -200,22 +202,26 @@ class Plotting(v3.VCard):
         (x, y, z, t) = (self.source.x, self.source.y, self.source.z, self.source.t)
         if full_temporal:
             return to_isel(slices, x, y, z)
-        else:
-            return to_isel(slices, x, y, z, t)
+        return to_isel(slices, x, y, z, t)
 
-    def apply_spatial_average(self, axis=["X"]):
+    def apply_spatial_average(self, axis=None):
         """
         Calculate spatial average of data for the current selected time
         """
+        if axis is None:
+            axis = ["X"]
         ds = self.source.input
         active_var = self.state.color_by
         select = self.get_selection_criteria()
         return ds.isel(select).spatial.average(active_var, axis=axis)
 
-    def apply_spatial_average_full_temporal(self, axis=["X"]):
+    def apply_spatial_average_full_temporal(self, axis=None):
         """
         Calculate spatial average for data for full temporal resoulution
         """
+        if axis is None:
+            axis = ["X"]
+
         ds = self.source.input
         active_var = self.state.color_by
 
@@ -229,10 +235,9 @@ class Plotting(v3.VCard):
         group_by = self.state.group_by
         if group_by == group_options.get(GroupBy.NONE):
             return average
-        else:
-            return average.temporal.group_average(
-                active_var, freq=group_by.lower(), weighted=True
-            )
+        return average.temporal.group_average(
+            active_var, freq=group_by.lower(), weighted=True
+        )
 
     def apply_temporal_average(self, active_var):
         """
@@ -243,10 +248,9 @@ class Plotting(v3.VCard):
         group_by = self.state.group_by
         if group_by == group_options.get(GroupBy.NONE):
             return ds.isel(select).temporal.average(active_var, weighted=True)
-        else:
-            return ds.isel(select).temporal.group_average(
-                active_var, freq=group_by.lower(), weighted=True
-            )
+        return ds.isel(select).temporal.group_average(
+            active_var, freq=group_by.lower(), weighted=True
+        )
 
     def generate_plot(self):
         state = self.state
@@ -260,12 +264,13 @@ class Plotting(v3.VCard):
         axis = x if zonal_axes.get(zonal_axis) == "X" else y
         if plot_type == plot_options.get(PlotTypes.ZONAL):
             return self.zonal_average(active_var, axis)
-        elif plot_type == plot_options.get(PlotTypes.ZONALTIME):
+        if plot_type == plot_options.get(PlotTypes.ZONALTIME):
             return self.zonal_with_time(active_var, axis, t)
-        elif plot_type == plot_options.get(PlotTypes.GLOBAL):
+        if plot_type == plot_options.get(PlotTypes.GLOBAL):
             return self.global_full_temporal(active_var, t)
-        elif plot_type == plot_options.get(PlotTypes.TEMPORAL):
+        if plot_type == plot_options.get(PlotTypes.TEMPORAL):
             return self.temporal_average(active_var, x, y, t)
+        return None
 
     def zonal_average(self, active_var, axis):
         """
@@ -318,11 +323,7 @@ class Plotting(v3.VCard):
 
         taxis = self.get_time_labels(data[t])
         plot = px.imshow(data[active_var], y=taxis)
-        plot.update_layout(
-            coloraxis_colorbar=dict(
-                orientation="h",
-            )
-        )
+        plot.update_layout(coloraxis_colorbar={"orientation": "h"})
         for trace in plot.data:
             figure.add_trace(trace, row=2, col=1)
         figure.update_xaxes(title_text=x_axis_name, row=2, col=1)
@@ -367,9 +368,7 @@ class Plotting(v3.VCard):
             title=f'Temporal average for {active_var} "{var_long_name}" (unit: {var_units}) at time {slice}/{len(data[t])}',
             xaxis_title=x_axis_name,
             yaxis_title=y_axis_name,
-            coloraxis_colorbar=dict(
-                orientation="h",
-            ),
+            coloraxis_colorbar={"orientation": "h"},
         )
 
         return plot
@@ -380,8 +379,7 @@ class Plotting(v3.VCard):
             return np.vectorize(lambda dt: f"{dt.year}")(time_array)
         if group_by == group_options.get(GroupBy.MONTH):
             return np.vectorize(lambda dt: f"{dt.month}-{dt.year}")(time_array)
-        else:
-            return np.vectorize(lambda dt: f"{dt.isoformat()}")(time_array)
+        return np.vectorize(lambda dt: f"{dt.isoformat()}")(time_array)
 
     @change("temporal_slice")
     def on_change_group(self, **kwargs):
@@ -407,9 +405,8 @@ class Plotting(v3.VCard):
     def on_change_active_plot(self, **kwargs):
         self.expose_plot_specific_config()
         plot_type = self.state.active_plot
-        if not plot_type == plot_options.get(PlotTypes.ZONAL):
+        if plot_type != plot_options.get(PlotTypes.ZONAL):
             self.ctrl.figure_update(go.Figure())
             return
-        else:
-            figure = self.generate_plot()
-            self.ctrl.figure_update(figure)
+        figure = self.generate_plot()
+        self.ctrl.figure_update(figure)

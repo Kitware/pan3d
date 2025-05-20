@@ -1,9 +1,9 @@
 import json
 from pathlib import Path
-import numpy as np
 
-from vtkmodules.vtkRenderingCore import vtkColorTransferFunction
+import numpy as np
 from vtkmodules.vtkCommonCore import vtkLookupTable
+from vtkmodules.vtkRenderingCore import vtkColorTransferFunction
 
 PRESETS = {
     item.get("Name"): item

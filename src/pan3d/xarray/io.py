@@ -1,19 +1,18 @@
-from pathlib import Path
 import warnings
+from pathlib import Path
 
 import numpy as np
 import xarray as xr
-from xarray.backends import BackendEntrypoint
-
-from pan3d.xarray.errors import DataCopyWarning
-
+from vtkmodules.vtkCommonDataModel import vtkDataObject
+from vtkmodules.vtkIOLegacy import vtkDataSetReader
 from vtkmodules.vtkIOXML import (
     vtkXMLImageDataReader,
     vtkXMLRectilinearGridReader,
     vtkXMLStructuredGridReader,
 )
-from vtkmodules.vtkIOLegacy import vtkDataSetReader
-from vtkmodules.vtkCommonDataModel import vtkDataObject
+from xarray.backends import BackendEntrypoint
+
+from pan3d.xarray.errors import DataCopyWarning
 
 READERS = {
     ".vti": vtkXMLImageDataReader,
@@ -35,7 +34,7 @@ def rectilinear_grid_to_dataset(mesh):
     return xr.Dataset(
         {
             name: (["z", "x", "y"], mesh.point_data[name].ravel().reshape(dims))
-            for name in mesh.point_data.keys()
+            for name in mesh.point_data
         },
         coords={
             "x": (["x"], mesh.x_coordinates),
@@ -63,7 +62,7 @@ def image_data_to_dataset(mesh):
     return xr.Dataset(
         {
             name: (["z", "x", "y"], mesh.point_data[name].ravel().reshape(dims))
-            for name in mesh.point_data.keys()
+            for name in mesh.point_data
         },
         coords={
             "x": (["x"], gen_coords(0)),
@@ -77,7 +76,8 @@ def structured_grid_to_dataset(mesh):
     warnings.warn(
         DataCopyWarning(
             "StructuredGrid dataset engine duplicates data - VTK data not shared with xarray."
-        )
+        ),
+        stacklevel=2,
     )
     dims = [0, 0, 0]
     mesh.GetDimensions(dims)
@@ -87,7 +87,7 @@ def structured_grid_to_dataset(mesh):
                 ["xi", "yi", "zi"],
                 mesh.point_data[name].ravel().reshape(dims),
             )
-            for name in mesh.point_data.keys()
+            for name in mesh.point_data
         },
         coords={
             "x": (["xi", "yi", "zi"], mesh.x_coordinates),
@@ -106,13 +106,12 @@ DATASET_TO_XARRAY = {
 
 def dataset_to_xarray(dataset):
     if isinstance(dataset, vtkDataObject):
-        for ds_type in DATASET_TO_XARRAY:
+        for ds_type, fn in DATASET_TO_XARRAY.items():
             if dataset.IsA(ds_type):
-                return DATASET_TO_XARRAY[ds_type](dataset)
+                return fn(dataset)
 
-    raise TypeError(
-        f"pan3d is unable to generate an xarray DataSet from the {type(dataset)} VTK data type at this time."
-    )
+    msg = f"pan3d is unable to generate an xarray DataSet from the {type(dataset)} VTK data type at this time."
+    raise TypeError(msg)
 
 
 class VTKBackendEntrypoint(BackendEntrypoint):
