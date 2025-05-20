@@ -1,7 +1,9 @@
 import numpy as np
 import xarray as xr
-from pan3d.xarray.io import dataset_to_xarray, read as vtk_read
+
 from pan3d.xarray.datasets import imagedata_to_rectilinear
+from pan3d.xarray.io import dataset_to_xarray
+from pan3d.xarray.io import read as vtk_read
 
 
 def test_engine_is_available():
@@ -41,7 +43,7 @@ def test_read_vts(vts_path):
     assert np.allclose(ds["y"].values, truth.y_coordinates)
     assert np.allclose(ds["z"].values, truth.z_coordinates)
     accessor_ds = ds["Elevation"].vtk.dataset(x="x", y="y", z="z")
-    accessor_ds == truth
+    assert accessor_ds == truth
 
 
 def test_convert_vtr(vtr_path):

@@ -16,9 +16,12 @@ def test_import_config():
     builder.load(conf)
 
     # check available arrays
-    assert set(builder.available_arrays) == set(
-        ["sea_ice_fraction", "analysed_sst", "mask", "analysis_error"]
-    )
+    assert set(builder.available_arrays) == {
+        "sea_ice_fraction",
+        "analysed_sst",
+        "mask",
+        "analysis_error",
+    }
 
     # check array size based on slicing
     builder.arrays = ["mask"]
