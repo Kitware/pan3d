@@ -1,5 +1,5 @@
-pan3d[all]
 imageio
+pan3d[all]
 pyvista
 trame-jupyter-extension
 trame-vtklocal>=0.6.4
