@@ -1,4 +1,4 @@
+git-lfs
 mkdocs
 mkdocs-material
 mkdocstrings[python]
-git-lfs
