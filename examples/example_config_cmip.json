@@ -1,12 +1,12 @@
 {
-    "data_origin": {
-        "source": "url",
-        "id": "https://ncsa.osn.xsede.org/Pangeo/pangeo-forge/cmip6-feedstock/test_surface.zarr"
-    },
-    "dataset_config": {
-        "arrays": ["zos"]
-    },
-    "preview": {
-        "color_by": "zos"
-    }
+  "data_origin": {
+    "source": "url",
+    "id": "https://ncsa.osn.xsede.org/Pangeo/pangeo-forge/cmip6-feedstock/test_surface.zarr"
+  },
+  "dataset_config": {
+    "arrays": ["zos"]
+  },
+  "preview": {
+    "color_by": "zos"
+  }
 }
