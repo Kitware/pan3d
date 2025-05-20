@@ -7,7 +7,7 @@ authors = [
 ]
 dependencies = [
     # viz
-    "vtk>=9.4.0rc3",
+    "vtk>=9.4.2",
 
     # catalog handling
     "requests>=2.31",
@@ -75,8 +75,25 @@ xr-contour = "pan3d.explorers.contour:main"
 xr-analytics = "pan3d.explorers.analytics:main"
 
 [build-system]
-requires = ['setuptools', 'wheel']
-build-backend = 'setuptools.build_meta'
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+include = [
+  "/src/trame/**/*.py",
+  "/src/pan3d/**/*.py",
+  "/src/pan3d/**/module/serve/*.js",
+  "/src/pan3d/**/ui/custom.css",
+  "/src/pan3d/**/ui/css/*",
+  "/src/pan3d/**/utils/*.json",
+  "/src/pan3d/**/utils/data/**"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "src/pan3d",
+    "src/trame",
+]
 
 [project.entry-points."xarray.backends"]
 vtk = "pan3d.xarray.io:VTKBackendEntrypoint"
@@ -86,22 +103,9 @@ filterwarnings = [
     "ignore::pan3d.xarray.errors.DataCopyWarning",
 ]
 
-
-[tool.setuptools.packages.find]
-where = ["."]
-
-[tool.setuptools.package-data]
-pan3d = [
-    "**/module/serve/*.js",
-    "**/ui/custom.css",
-    "**/ui/css/*",
-    "**/utils/*.json",
-    "**/utils/data/**"
-]
-
 [tool.semantic_release]
 version_variables = [
-    "pan3d/__init__.py:__version__",
+    "src/pan3d/__init__.py:__version__",
 ]
 version_toml = [
     "pyproject.toml:project.version",

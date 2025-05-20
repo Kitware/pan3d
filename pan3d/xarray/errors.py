@@ -1,2 +1,0 @@
-class DataCopyWarning(Warning):
-    pass
