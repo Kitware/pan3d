@@ -33,10 +33,10 @@ classifiers = [
 
 [project.optional-dependencies]
 viewer = [
-    "trame>=3.6",
-    "trame-vtk>=2.6",
-    "trame-vtklocal",
-    "trame-vuetify>=2.4",
+    "trame>=3.9",
+    "trame-vtk>=2.8.15",
+    "trame-vtklocal>=0.12.2",
+    "trame-vuetify>=3.0.1",
 ]
 esgf = [
     "intake-esgf>=2024.1",
@@ -50,10 +50,10 @@ pangeo = [
 ]
 all = [
     # viewers/explorers
-    "trame>=3.6",
-    "trame-vtk>=2.6",
-    "trame-vtklocal",
-    "trame-vuetify>=2.4",
+    "trame>=3.9",
+    "trame-vtk>=2.8.15",
+    "trame-vtklocal>=0.12.2",
+    "trame-vuetify>=3.0.1",
 
     # esgf
     "intake-esgf>=2024.1",
