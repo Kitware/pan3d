@@ -1,17 +1,17 @@
-import json
 import asyncio
+import json
 from pathlib import Path
 
-from trame.decorators import TrameApp, change
-from trame.app import get_server
-
-from trame.ui.vuetify3 import SinglePageWithDrawerLayout
-from trame.widgets import vuetify3 as v3, html
 from trame_client.widgets.core import TrameDefault
 
 from pan3d import catalogs as pan3d_catalogs
 from pan3d.ui.catalog_search import CatalogSearch
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
+from trame.app import get_server
+from trame.decorators import TrameApp, change
+from trame.ui.vuetify3 import SinglePageWithDrawerLayout
+from trame.widgets import html
+from trame.widgets import vuetify3 as v3
 
 
 @TrameApp()
@@ -345,7 +345,7 @@ class CatalogBrowser:
             return
 
         file = Path(f"{selected_dataset[0].get('id')}.data-origin.json")
-        file.write_text(json.dumps(dict(data_origin=selected_dataset[0])))
+        file.write_text(json.dumps({"data_origin": selected_dataset[0]}))
 
     def save_dataset(self):
         selected_dataset = self.state.selected_dataset
@@ -379,7 +379,7 @@ class CatalogBrowser:
             return
 
         # Load metadata
-        self.reader.load(dict(data_origin=selected_dataset[0]))
+        self.reader.load({"data_origin": selected_dataset[0]})
         xr = self.reader.input
         available_arrays = self.reader.available_arrays
 
@@ -425,7 +425,7 @@ class CatalogBrowser:
                     0,
                     {
                         "key": "dimensions",
-                        "value": f'({",".join(xr[name].dims)})',
+                        "value": f"({','.join(xr[name].dims)})",
                     },
                 )
                 xr_arrays.append(name)

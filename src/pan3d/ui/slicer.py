@@ -1,9 +1,9 @@
 import math
 
-from trame.widgets import vuetify3 as v3, html
-
 from pan3d.utils.common import RenderingSettingsBasic
 from pan3d.utils.convert import max_str_length
+from trame.widgets import html
+from trame.widgets import vuetify3 as v3
 
 
 class SliceRenderingSettings(RenderingSettingsBasic):
@@ -11,7 +11,7 @@ class SliceRenderingSettings(RenderingSettingsBasic):
         super().__init__(source, update_rendering)
         self.source = source
 
-        style = dict(density="compact", hide_details=True)
+        style = {"density": "compact", "hide_details": True}
         with self.content:
             # -- Slice section
             v3.VDivider()
@@ -96,7 +96,7 @@ class SliceRenderingSettings(RenderingSettingsBasic):
                                 variant="solo",
                                 reverse=True,
                                 raw_attrs=[
-                                    'pattern="^\d*(\.\d)?$"',  # noqa: W605
+                                    'pattern="^\d*(\.\d)?$"',
                                     'min="0.001"',
                                     'step="0.1"',
                                 ],
@@ -111,7 +111,7 @@ class SliceRenderingSettings(RenderingSettingsBasic):
                                 variant="solo",
                                 reverse=True,
                                 raw_attrs=[
-                                    'pattern="^\d*(\.\d)?$"',  # noqa: W605
+                                    'pattern="^\d*(\.\d)?$"',
                                     'min="0.001"',
                                     'step="0.1"',
                                 ],
@@ -126,7 +126,7 @@ class SliceRenderingSettings(RenderingSettingsBasic):
                                 variant="solo",
                                 reverse=True,
                                 raw_attrs=[
-                                    'pattern="^\d*(\.\d)?$"',  # noqa: W605
+                                    'pattern="^\d*(\.\d)?$"',
                                     'min="0.001"',
                                     'step="0.1"',
                                 ],

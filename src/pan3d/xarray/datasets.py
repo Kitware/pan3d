@@ -1,9 +1,10 @@
-from typing import Dict, Optional
+import warnings
+from typing import Optional
 
 import numpy as np
-import warnings
-from pan3d.xarray.errors import DataCopyWarning
 from vtkmodules.vtkCommonDataModel import vtkRectilinearGrid, vtkStructuredGrid
+
+from pan3d.xarray.errors import DataCopyWarning
 
 
 def imagedata_to_rectilinear(image_data):
@@ -53,10 +54,11 @@ def _coerce_shapes(*arrs):
     for arr in arrs:
         if arr is not None and arr.shape != shape:
             if arr.ndim < ndim:
-                arr = np.repeat([arr], shape[2 - maxi], axis=2 - maxi)
+                reshaped.append(np.repeat([arr], shape[2 - maxi], axis=2 - maxi))
             else:
                 raise ValueError
-        reshaped.append(arr)
+        else:
+            reshaped.append(arr)
     return reshaped
 
 
@@ -66,7 +68,7 @@ def _points(
     y: Optional[str] = None,
     z: Optional[str] = None,
     order: Optional[str] = "F",
-    scales: Optional[Dict] = None,
+    scales: Optional[dict] = None,
 ):
     """Generate structured points as new array."""
     if order is None:
@@ -86,7 +88,7 @@ def _points(
         z = accessor._get_array(z, scale=(scales and scales.get(z)) or 1)
     arrs = _coerce_shapes(x, y, z)
     x, y, z = arrs
-    arr = [a for a in arrs if a is not None][0]
+    arr = next(a for a in arrs if a is not None)
     points = np.zeros((arr.size, 3), dtype=arr.dtype)
     if x is not None:
         points[:, 0] = x.ravel(order=order)
@@ -105,7 +107,7 @@ def rectilinear(
     z: Optional[str] = None,
     order: Optional[str] = "C",
     component: Optional[str] = None,
-    scales: Optional[Dict] = None,
+    scales: Optional[dict] = None,
 ):
     if scales is None:
         scales = {}
@@ -147,7 +149,8 @@ def rectilinear(
         warnings.warn(
             DataCopyWarning(
                 "Made a copy of the multicomponent array - VTK data not shared with xarray."
-            )
+            ),
+            stacklevel=2,
         )
         ndim += 1
     else:
@@ -159,10 +162,20 @@ def rectilinear(
         msg = f"Dimensional mismatch between specified X, Y, Z coords and dimensionality of DataArray ({ndim} vs {values_dim})"
         if ndim > values_dim:
             raise ValueError(
-                f"{msg}. Too many coordinate dimensions specified leave out Y and/or Z."
+                "".join(
+                    [
+                        msg,
+                        ". Too many coordinate dimensions specified leave out Y and/or Z.",
+                    ]
+                )
             )
         raise ValueError(
-            f"{msg}. Too few coordinate dimensions specified. Be sure to specify Y and/or Z or reduce the dimensionality of the DataArray by indexing along non-spatial coordinates like Time."
+            "".join(
+                [
+                    msg,
+                    ". Too few coordinate dimensions specified. Be sure to specify Y and/or Z or reduce the dimensionality of the DataArray by indexing along non-spatial coordinates like Time.",
+                ]
+            )
         )
 
     array_name = str(accessor._xarray.name or "data")
@@ -177,7 +190,7 @@ def structured(
     z: Optional[str] = None,
     order: Optional[str] = "F",
     component: Optional[str] = None,
-    scales: Optional[Dict] = None,
+    scales: Optional[dict] = None,
 ):
     if scales is None:
         scales = {}

@@ -1,40 +1,38 @@
-from vtkmodules.vtkInteractionWidgets import vtkOrientationMarkerWidget
-from vtkmodules.vtkRenderingAnnotation import vtkAxesActor
-from vtkmodules.vtkRenderingCore import (
-    vtkRenderer,
-    vtkRenderWindowInteractor,
-    vtkRenderWindow,
-    vtkActor,
-    vtkPolyDataMapper,
-)
+import vtkmodules.vtkRenderingOpenGL2  # noqa: F401
+from vtkmodules.vtkCommonCore import vtkLookupTable
 from vtkmodules.vtkCommonDataModel import vtkDataObject, vtkDataSetAttributes
+from vtkmodules.vtkFiltersCore import (
+    vtkAssignAttribute,
+    vtkCellDataToPointData,
+    vtkTriangleFilter,
+)
 from vtkmodules.vtkFiltersGeometry import vtkDataSetSurfaceFilter
-from vtkmodules.vtkFiltersCore import vtkCellDataToPointData, vtkTriangleFilter
 from vtkmodules.vtkFiltersModeling import (
     vtkBandedPolyDataContourFilter,
     vtkLoopSubdivisionFilter,
 )
-from vtkmodules.vtkFiltersCore import vtkAssignAttribute
-from vtkmodules.vtkCommonCore import vtkLookupTable
 
 # VTK factory initialization
-from vtkmodules.vtkInteractionStyle import vtkInteractorStyleSwitch  # noqa
-import vtkmodules.vtkRenderingOpenGL2  # noqa
-
-from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
-
-from trame.decorators import change
-
-from trame.ui.vuetify3 import VAppLayout
-from trame.widgets import vuetify3 as v3
-
-from pan3d.utils.convert import to_float, to_image
-from pan3d.utils.presets import set_preset
-from pan3d.utils.common import Explorer, SummaryToolbar, ControlPanel
-
-from pan3d.ui.vtk_view import Pan3DView, Pan3DScalarBar
+from vtkmodules.vtkInteractionStyle import vtkInteractorStyleSwitch  # noqa: F401
+from vtkmodules.vtkInteractionWidgets import vtkOrientationMarkerWidget
+from vtkmodules.vtkRenderingAnnotation import vtkAxesActor
+from vtkmodules.vtkRenderingCore import (
+    vtkActor,
+    vtkPolyDataMapper,
+    vtkRenderer,
+    vtkRenderWindow,
+    vtkRenderWindowInteractor,
+)
 
 from pan3d.ui.contour import ContourRenderingSettings
+from pan3d.ui.vtk_view import Pan3DScalarBar, Pan3DView
+from pan3d.utils.common import ControlPanel, Explorer, SummaryToolbar
+from pan3d.utils.convert import to_float, to_image
+from pan3d.utils.presets import set_preset
+from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
+from trame.decorators import change
+from trame.ui.vuetify3 import VAppLayout
+from trame.widgets import vuetify3 as v3
 
 
 class ContourExplorer(Explorer):
@@ -125,7 +123,7 @@ class ContourExplorer(Explorer):
     # UI
     # -------------------------------------------------------------------------
 
-    def _build_ui(self, **kwargs):
+    def _build_ui(self, **_):
         self.state.update(
             {
                 "trame__title": "Contour Explorer",

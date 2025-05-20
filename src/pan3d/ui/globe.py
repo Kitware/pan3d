@@ -1,12 +1,11 @@
 import math
 
-from trame.decorators import TrameApp, change
-from trame.widgets import html, vuetify3 as v3
-
-from pan3d.utils.constants import XYZ, SLICE_VARS
-from pan3d.utils.convert import max_str_length
-
 from pan3d.utils.common import RenderingSettingsBasic
+from pan3d.utils.constants import SLICE_VARS, XYZ
+from pan3d.utils.convert import max_str_length
+from trame.decorators import TrameApp, change
+from trame.widgets import html
+from trame.widgets import vuetify3 as v3
 
 
 @TrameApp()
@@ -36,9 +35,9 @@ class GlobeRenderingSettings(RenderingSettingsBasic):
                 items=(
                     "representations",
                     [
-                        dict(title="Surface", value=2),
-                        dict(title="Wireframe", value=1),
-                        dict(title="Points", value=0),
+                        {"title": "Surface", "value": 2},
+                        {"title": "Wireframe", "value": 1},
+                        {"title": "Points", "value": 0},
                     ],
                 ),
                 hide_details=True,
@@ -390,7 +389,7 @@ class GlobeRenderingSettings(RenderingSettingsBasic):
     def reset_color_range(self):
         color_by = self.state.color_by
         ds = self.source()
-        if color_by in ds.point_data.keys():
+        if color_by in ds.point_data:
             array = ds.point_data[color_by]
             min_value, max_value = array.GetRange()
 

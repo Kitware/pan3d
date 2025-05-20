@@ -1,41 +1,38 @@
-from vtkmodules.vtkInteractionWidgets import vtkOrientationMarkerWidget
-from vtkmodules.vtkRenderingAnnotation import vtkAxesActor
-from vtkmodules.vtkRenderingCore import (
-    vtkRenderer,
-    vtkRenderWindowInteractor,
-    vtkRenderWindow,
-    vtkActor,
-    vtkPolyDataMapper,
-)
+from pathlib import Path
+
+import vtkmodules.vtkRenderingOpenGL2  # noqa: F401
+import xarray as xr
+from vtkmodules.vtkCommonCore import vtkLookupTable
 from vtkmodules.vtkCommonDataModel import vtkDataObject, vtkDataSetAttributes
+from vtkmodules.vtkFiltersCore import vtkAssignAttribute, vtkCellDataToPointData
 from vtkmodules.vtkFiltersGeometry import vtkDataSetSurfaceFilter
-from vtkmodules.vtkIOLegacy import vtkDataSetReader
-from vtkmodules.vtkFiltersCore import vtkCellDataToPointData
 from vtkmodules.vtkFiltersModeling import (
     vtkBandedPolyDataContourFilter,
     vtkLoopSubdivisionFilter,
 )
-from vtkmodules.vtkFiltersCore import vtkAssignAttribute
-from vtkmodules.vtkCommonCore import vtkLookupTable
 
 # VTK factory initialization
-from vtkmodules.vtkInteractionStyle import vtkInteractorStyleSwitch  # noqa
-import vtkmodules.vtkRenderingOpenGL2  # noqa
+from vtkmodules.vtkInteractionStyle import vtkInteractorStyleSwitch  # noqa: F401
+from vtkmodules.vtkInteractionWidgets import vtkOrientationMarkerWidget
+from vtkmodules.vtkIOLegacy import vtkDataSetReader
+from vtkmodules.vtkRenderingAnnotation import vtkAxesActor
+from vtkmodules.vtkRenderingCore import (
+    vtkActor,
+    vtkPolyDataMapper,
+    vtkRenderer,
+    vtkRenderWindow,
+    vtkRenderWindowInteractor,
+)
 
-import xarray as xr
-from pathlib import Path
-
-from trame.decorators import TrameApp, change
-from trame.app import get_server
-
-from trame.ui.vuetify3 import VAppLayout
-from trame.widgets import vuetify3 as v3, html
-
-from pan3d.utils.convert import to_float, to_image
-from pan3d.utils.presets import set_preset, PRESETS
-
-from pan3d.ui.vtk_view import Pan3DView
 from pan3d.ui.css import base, preview
+from pan3d.ui.vtk_view import Pan3DView
+from pan3d.utils.convert import to_float, to_image
+from pan3d.utils.presets import PRESETS, set_preset
+from trame.app import get_server
+from trame.decorators import TrameApp, change
+from trame.ui.vuetify3 import VAppLayout
+from trame.widgets import html
+from trame.widgets import vuetify3 as v3
 
 
 @TrameApp()
@@ -256,7 +253,6 @@ class ContourExplorer:
                     v_show=("control_expended", True),
                     classes="controller-content py-1 mt-10 px-0",
                 ):
-
                     # Actor scaling
                     with v3.VTooltip(text="Representation scaling"):
                         with html.Template(v_slot_activator="{ props }"):
@@ -278,7 +274,7 @@ class ContourExplorer:
                                         variant="solo",
                                         reverse=True,
                                         raw_attrs=[
-                                            'pattern="^\d*(\.\d)?$"',  # noqa: W605
+                                            'pattern="^\d*(\.\d)?$"',
                                             'min="0.001"',
                                             'step="0.1"',
                                         ],
@@ -293,7 +289,7 @@ class ContourExplorer:
                                         variant="solo",
                                         reverse=True,
                                         raw_attrs=[
-                                            'pattern="^\d*(\.\d)?$"',  # noqa: W605
+                                            'pattern="^\d*(\.\d)?$"',
                                             'min="0.001"',
                                             'step="0.1"',
                                         ],
@@ -308,7 +304,7 @@ class ContourExplorer:
                                         variant="solo",
                                         reverse=True,
                                         raw_attrs=[
-                                            'pattern="^\d*(\.\d)?$"',  # noqa: W605
+                                            'pattern="^\d*(\.\d)?$"',
                                             'min="0.001"',
                                             'step="0.1"',
                                         ],

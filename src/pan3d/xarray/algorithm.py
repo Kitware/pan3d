@@ -1,12 +1,12 @@
-import traceback
-from typing import List, Optional
-
 import json
+import traceback
+from typing import Optional
+
 import numpy as np
 import pandas as pd
 import xarray as xr
-from vtkmodules.vtkCommonDataModel import vtkRectilinearGrid
 from vtkmodules.util.vtkAlgorithm import VTKPythonAlgorithmBase
+from vtkmodules.vtkCommonDataModel import vtkRectilinearGrid
 from vtkmodules.vtkFiltersCore import vtkArrayCalculator
 
 # -----------------------------------------------------------------------------
@@ -22,16 +22,13 @@ def is_time_type(dtype):
     if np.issubdtype(dtype, np.datetime64):
         return True
 
-    if np.issubdtype(dtype, np.dtype("O")):
-        return True
-
-    return False
+    return np.issubdtype(dtype, np.dtype("O"))
 
 
 def slice_array(array_name, dataset, slice_info):
     if array_name is None:
         return np.zeros(1, dtype=np.float32)
-    array = dataset[array_name].values
+    array = dataset[array_name].to_numpy()
     if slice_info is None:
         return array
     if isinstance(slice_info, int):
@@ -71,7 +68,7 @@ class vtkXArrayRectilinearSource(VTKPythonAlgorithmBase):
         y: Optional[str] = None,
         z: Optional[str] = None,
         t: Optional[str] = None,
-        arrays: Optional[List[str]] = None,
+        arrays: Optional[list[str]] = None,
         order: str = "C",
     ):
         """
@@ -170,9 +167,8 @@ order: {self._order}
 
         coords = self.available_coords
         if x_array_name not in coords:
-            raise ValueError(
-                f"x={x_array_name} is not a coordinate array [{', '.join(coords)}]"
-            )
+            msg = f"x={x_array_name} is not a coordinate array [{', '.join(coords)}]"
+            raise ValueError(msg)
         if self._x != x_array_name:
             self._x = x_array_name
             self._xarray_mesh = None
@@ -202,9 +198,8 @@ order: {self._order}
 
         coords = self.available_coords
         if y_array_name not in coords:
-            raise ValueError(
-                f"y={y_array_name} is not a coordinate array [{', '.join(coords)}]"
-            )
+            msg = f"y={y_array_name} is not a coordinate array [{', '.join(coords)}]"
+            raise ValueError(msg)
         if self._y != y_array_name:
             self._y = y_array_name
             self._xarray_mesh = None
@@ -234,9 +229,8 @@ order: {self._order}
 
         coords = self.available_coords
         if z_array_name not in coords:
-            raise ValueError(
-                f"z={z_array_name} is not a coordinate array [{', '.join(coords)}]"
-            )
+            msg = f"z={z_array_name} is not a coordinate array [{', '.join(coords)}]"
+            raise ValueError(msg)
         if self._z != z_array_name:
             self._z = z_array_name
             self._xarray_mesh = None
@@ -266,9 +260,8 @@ order: {self._order}
 
         coords = self.available_coords
         if t_array_name not in coords:
-            raise ValueError(
-                f"t={t_array_name} is not a coordinate array [{', '.join(coords)}]"
-            )
+            msg = f"t={t_array_name} is not a coordinate array [{', '.join(coords)}]"
+            raise ValueError(msg)
         if self._t != t_array_name:
             self._t = t_array_name
             self._xarray_mesh = None
@@ -360,8 +353,8 @@ order: {self._order}
         t_array = self._input[self._t]
         t_type = t_array.dtype
         if np.issubdtype(t_type, np.datetime64):
-            return get_time_labels(t_array.values)
-        return [str(t) for t in t_array.values]
+            return get_time_labels(t_array.to_numpy())
+        return [str(t) for t in t_array.to_numpy()]
 
     @property
     def arrays(self):
@@ -369,7 +362,7 @@ order: {self._order}
         return list(self._array_names)
 
     @arrays.setter
-    def arrays(self, array_names: List[str]):
+    def arrays(self, array_names: list[str]):
         """update the list of arrays to load on the generated VTK mesh"""
         new_names = set(array_names or [])
         if new_names != self._array_names:
@@ -387,7 +380,7 @@ order: {self._order}
         max_dim = 0
         coords = set(self.available_coords)
         for name in set(self._input.data_vars.keys()) - set(self._input.coords.keys()):
-            if name.endswith("_bnds") or name.endswith("_bounds"):
+            if name.endswith(("_bnds", "_bounds")):
                 continue
 
             dims = set(self._input[name].dims)
@@ -604,7 +597,7 @@ order: {self._order}
                     da = self._input[field_name]
                     if indexing is not None:
                         da = da.isel(indexing)
-                    mesh.point_data[field_name] = da.values.ravel(order=self._order)
+                    mesh.point_data[field_name] = da.to_numpy().ravel(order=self._order)
 
                 self._xarray_mesh = mesh
 

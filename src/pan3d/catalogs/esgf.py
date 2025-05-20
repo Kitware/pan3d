@@ -1,7 +1,8 @@
 # https://intake-esgf.readthedocs.io/en/latest/quickstart.html
+from datetime import datetime
+
 from intake_esgf import ESGFCatalog
 from intake_esgf.exceptions import NoSearchResults
-from datetime import datetime
 
 
 def get_catalog():
@@ -23,7 +24,7 @@ def get_search_options():
 
 
 def search(**kwargs):
-    group_name = "/".join([f'{k}:{",".join(v)}' for k, v in kwargs.items()])
+    group_name = "/".join([f"{k}:{','.join(v)}" for k, v in kwargs.items()])
     if not group_name:
         group_name = "All ESGF Datasets"
     start = datetime.now()
@@ -56,5 +57,5 @@ def load_dataset(id):
     keys = list(loaded.keys())
     if len(keys) > 0:
         return loaded[keys[0]]
-    else:
-        raise ValueError(f"No dataset found for {id}.")
+    msg = f"No dataset found for {id}."
+    raise ValueError(msg)

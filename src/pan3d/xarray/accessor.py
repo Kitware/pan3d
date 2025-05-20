@@ -1,10 +1,10 @@
-from typing import Dict, List, Optional
+from typing import Optional
 
 import numpy as np
 import xarray as xr
-
 from vtkmodules.vtkCommonDataModel import vtkDataSet
-from pan3d.xarray import datasets, algorithm
+
+from pan3d.xarray import algorithm, datasets
 
 
 class _LocIndexer:
@@ -126,10 +126,9 @@ class VTKAccessor:
                 values = np.array(range(len(values))) * scale
 
             return values
-        except KeyError:
-            raise KeyError(
-                f"Key {key} not present in DataArray. Choices are: {list(self._xarray.coords.keys())}"
-            )
+        except KeyError as err:
+            msg = f"Key {key} not present in DataArray. Choices are: {list(self._xarray.coords.keys())}"
+            raise KeyError(msg) from err
 
     def dataset(
         self,
@@ -139,7 +138,7 @@ class VTKAccessor:
         order: Optional[str] = None,
         component: Optional[str] = None,
         mesh_type: Optional[str] = None,
-        scales: Optional[Dict] = None,
+        scales: Optional[dict] = None,
     ) -> vtkDataSet:
         if mesh_type is None:  # Try to guess mesh type
             max_ndim = max(
@@ -149,8 +148,8 @@ class VTKAccessor:
 
         try:
             builder = getattr(datasets, mesh_type)
-        except KeyError:
-            raise KeyError
+        except KeyError as err:
+            raise KeyError() from err
         return builder(
             self, x=x, y=y, z=z, order=order, component=component, scales=scales
         )
@@ -161,7 +160,7 @@ class VTKAccessor:
         y: Optional[str] = None,
         z: Optional[str] = None,
         t: Optional[str] = None,
-        arrays: Optional[List[str]] = None,
+        arrays: Optional[list[str]] = None,
         order: str = "C",
     ):
         return algorithm.vtkXArrayRectilinearSource(

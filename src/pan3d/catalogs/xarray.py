@@ -46,7 +46,7 @@ ALL_ENTRIES = [
     },
     {
         "name": "ersstv5",
-        "description": "NOAA’s Extended Reconstructed Sea Surface Temperature monthly averages",
+        "description": "NOAA's Extended Reconstructed Sea Surface Temperature monthly averages",
     },
 ]
 
@@ -64,14 +64,12 @@ def get_search_options():
         "name": [],
     }
     for entry_info in ALL_ENTRIES:
-        for search_option in search_options.keys():
+        for search_option, search_value in search_options.items():
             entry_value = entry_info.get(search_option)
             if entry_value:
                 if isinstance(entry_value, str):
                     entry_value = [entry_value]
-                search_options[search_option] = list(
-                    set([*search_options[search_option], *entry_value])
-                )
+                search_options[search_option] = list({*search_value, *entry_value})
 
     return search_options
 
