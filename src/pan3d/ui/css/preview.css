@@ -1,0 +1,35 @@
+html {
+    overflow: hidden;
+}
+
+.summary-toolbar {
+    position: absolute;
+    top: 1rem;
+    left: 5rem;
+    right: 5rem;
+    height: 2.4rem;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+}
+
+.controller {
+    position: absolute !important;
+    top: 1rem;
+    left: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow: auto;
+    z-index: 2;
+}
+
+.controller-content {
+    width: clamp(20rem, 25vw, 30rem);
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+.no-bg {
+    background: none;
+}
