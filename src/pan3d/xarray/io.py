@@ -34,7 +34,7 @@ def rectilinear_grid_to_dataset(mesh):
     return xr.Dataset(
         {
             name: (["z", "x", "y"], mesh.point_data[name].ravel().reshape(dims))
-            for name in mesh.point_data
+            for name in mesh.point_data.keys()
         },
         coords={
             "x": (["x"], mesh.x_coordinates),
@@ -62,7 +62,7 @@ def image_data_to_dataset(mesh):
     return xr.Dataset(
         {
             name: (["z", "x", "y"], mesh.point_data[name].ravel().reshape(dims))
-            for name in mesh.point_data
+            for name in mesh.point_data.keys()
         },
         coords={
             "x": (["x"], gen_coords(0)),
@@ -87,7 +87,7 @@ def structured_grid_to_dataset(mesh):
                 ["xi", "yi", "zi"],
                 mesh.point_data[name].ravel().reshape(dims),
             )
-            for name in mesh.point_data
+            for name in mesh.point_data.keys()
         },
         coords={
             "x": (["xi", "yi", "zi"], mesh.x_coordinates),
