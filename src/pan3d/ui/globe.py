@@ -389,7 +389,7 @@ class GlobeRenderingSettings(RenderingSettingsBasic):
     def reset_color_range(self):
         color_by = self.state.color_by
         ds = self.source()
-        if color_by in ds.point_data:
+        if color_by in ds.point_data.keys():  # vtk is missing in iter
             array = ds.point_data[color_by]
             min_value, max_value = array.GetRange()
 
