@@ -160,6 +160,7 @@ ignore = [
   "SIM117",   # using single nested with
   "EM101",    # not always convenient
   "UP031",    # useful to skip {{}} hell
+  "SIM118",   # point_data/cell_data don't actually behave like dict yet 9.5 should fix that
   # To be clean
   "ARG002",
   "RUF012",
