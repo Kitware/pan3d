@@ -1,10 +1,15 @@
 # XArray Viewer command line arguments
 
-To use the xr-viewer CLI, be sure to install the Pan3D Viewer dependencies first. This includes Trame, a Kitware toolkit for Python servers. Learn more about Trame [here][trame-link].
+To use the xr-viewer CLI, be sure to install the Pan3D Viewer dependencies
+first. This includes Trame, a Kitware toolkit for Python servers. Learn more
+about Trame [here][trame-link].
 
         pip install pan3d[viewer]
 
-By default, the command `xr-viewer`  will launch XArray Viewer as a local Python server and open a tab in your default browser and navigate to `localhost:8080`. You can change this behavior in a number of ways. For example, you can disable the browser tab launch by adding `--server` to the command.
+By default, the command `xr-viewer` will launch XArray Viewer as a local Python
+server and open a tab in your default browser and navigate to `localhost:8080`.
+You can change this behavior in a number of ways. For example, you can disable
+the browser tab launch by adding `--server` to the command.
 
 In response, `xr-viewer` will display this message in the terminal:
 
@@ -12,9 +17,11 @@ In response, `xr-viewer` will display this message in the terminal:
         - Local:   http://localhost:8080/
         - Network: http://127.0.0.1:8080/
 
-As the message indicates, pointing a browser to http://localhost:8080/ will open the application.
+As the message indicates, pointing a browser to http://localhost:8080/ will open
+the application.
 
-There are other arguments to initialize features and data. Here is the full list:
+There are other arguments to initialize features and data. Here is the full
+list:
 
 ```bash
 usage: xr-viewer [-h] [--server] [--banner] [--app] [--no-http] [--authKeyFile AUTHKEYFILE] [--hot-reload] [--trame-args TRAME_ARGS] [--debug] [--nosignalhandlers] [--host HOST] [-p PORT]
@@ -61,6 +68,6 @@ options:
   --vtkjs               Use vtk.js for local rendering
 ```
 
-
 <!-- Links -->
+
 [trame-link]: https://kitware.github.io/trame/

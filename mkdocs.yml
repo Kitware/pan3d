@@ -1,16 +1,16 @@
 site_name: Pan3D Documentation
-theme: 'material'
+theme: "material"
 plugins:
   - search
   - mkdocstrings
 nav:
   - Home: README.md
   - Tutorials:
-    - XArray Viewer: tutorials/dataset_viewer.md
-    - XArray Viewer Command Line: tutorials/command_line.md
-    - Jupyter Notebooks: tutorials/jupyter_notebook.md
-    - Catalog Search: tutorials/catalogs.md
+      - XArray Viewer: tutorials/dataset_viewer.md
+      - XArray Viewer Command Line: tutorials/command_line.md
+      - Jupyter Notebooks: tutorials/jupyter_notebook.md
+      - Catalog Search: tutorials/catalogs.md
   - API:
-    - XArray reader: api/dataset_builder.md
-    - XArray Viewer: api/dataset_viewer.md
-    - Configuration Files: api/configuration.md
+      - XArray reader: api/dataset_builder.md
+      - XArray Viewer: api/dataset_viewer.md
+      - Configuration Files: api/configuration.md
