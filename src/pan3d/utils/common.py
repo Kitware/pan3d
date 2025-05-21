@@ -7,6 +7,7 @@ from pan3d.ui.collapsible import CollapsableSection
 from pan3d.ui.css import base, preview
 from pan3d.utils.convert import update_camera
 from pan3d.utils.presets import PRESETS
+from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 from trame.app import asynchronous, get_server
 from trame.decorators import TrameApp, change
 from trame.widgets import html
@@ -82,6 +83,17 @@ class Explorer:
         self.state.nan_color = 2
 
         self.ui = None
+
+        # Initialize source
+        self.xarray = None
+        self.source = None
+
+        if source is not None:
+            self.source = source
+            self.xarray = source.input
+        elif xarray is not None:
+            self.source = vtkXArrayRectilinearSource(input=xarray)
+            self.xarray = xarray
 
         # Process CLI
         self.ctrl.on_server_ready.add(self._process_cli)
@@ -826,10 +838,10 @@ class RenderingSettingsBasic(CollapsableSection):
             return
 
         self.state.dirty_data = True
-        if len(data_arrays) == 1:
-            self.state.color_by = data_arrays[0]
-        elif len(data_arrays) == 0:
+        if len(data_arrays) == 0:
             self.state.color_by = None
+        elif self.state.color_by is None or self.state.color_by not in data_arrays:
+            self.state.color_by = data_arrays[0]
 
         self.source.arrays = data_arrays
 
