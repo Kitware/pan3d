@@ -1,6 +1,52 @@
 # CHANGELOG
 
 
+## v0.17.0 (2025-05-21)
+
+### Bug Fixes
+
+- **build**: Migrate to hatchling while using src directory
+  ([`5b2876d`](https://github.com/Kitware/pan3d/commit/5b2876d282a189840d01bb0e3a5815ff08579306))
+
+- **dep**: Update trame/vtk dependencies
+  ([`84ee1a1`](https://github.com/Kitware/pan3d/commit/84ee1a1ad82a16a6ea4e0336eb4161fce684affa))
+
+- **io**: Use keys() until vtk 9.5 fix it
+  ([`dc92515`](https://github.com/Kitware/pan3d/commit/dc92515096fccbf6280a6d439e57c9abf0355f8c))
+
+- **src**: Apply ruff fix
+  ([`790c5e6`](https://github.com/Kitware/pan3d/commit/790c5e6be72dcc226ad4788175ca233440d723b7))
+
+- **vtk**: Use keys() to get field names
+  ([`8ea77b1`](https://github.com/Kitware/pan3d/commit/8ea77b10eada711219f72f0540063c0fcda185d0))
+
+### Chores
+
+- Add ruff configuration
+  ([`233b193`](https://github.com/Kitware/pan3d/commit/233b19343e48165eb1fbbacfd63f8122b7ea09dd))
+
+### Continuous Integration
+
+- Apply pre-commit reformat
+  ([`6809f5a`](https://github.com/Kitware/pan3d/commit/6809f5aad751554623af432d5832c403dd24fbba))
+
+- Update pre-commit
+  ([`ec6081a`](https://github.com/Kitware/pan3d/commit/ec6081a7dabc90a4ce2b156d19c9e62a65e61fa7))
+
+### Documentation
+
+- Reformatting for pre-commit
+  ([`a19da8f`](https://github.com/Kitware/pan3d/commit/a19da8f6df109299e9412a638b68fc8a299a5c49))
+
+- **examples**: Reformat examples
+  ([`1f51a47`](https://github.com/Kitware/pan3d/commit/1f51a47cb8b90dd443541b7566c93c3f9b5d212b))
+
+### Features
+
+- **trame**: Expose pan3d as trame components
+  ([`ab85423`](https://github.com/Kitware/pan3d/commit/ab8542356a75027a276fe25314b051020a119169))
+
+
 ## v0.16.2 (2025-04-21)
 
 ### Bug Fixes
