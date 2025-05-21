@@ -181,6 +181,7 @@ class SliceRenderingSettings(RenderingSettingsBasic):
         with self.state:
             self.state.data_arrays_available = source.available_arrays
             self.state.data_arrays = source.arrays
+
             self.state.color_by = None
             self.state.axis_names = [
                 x for x in [source.x, source.y, source.z] if x is not None
