@@ -7,15 +7,10 @@ from trame.widgets import vuetify3 as v3
 
 
 class ContourRenderingSettings(RenderingSettingsBasic):
-    def __init__(self, source, update_rendering):
-        super().__init__(source, update_rendering)
+    def __init__(self, retrieve_source, retrieve_mapper, update_rendering):
+        super().__init__(retrieve_source, retrieve_mapper, update_rendering)
 
-        self.source = source
-        fields = list(self.source.available_arrays)
-        active_field = fields[0] if len(fields) > 0 else None
-        nb_times = (
-            self.source.input[active_field].shape[0] if active_field is not None else 0
-        )
+        self._retrieve_source = retrieve_source
 
         with self.content:
             # Actor scaling
@@ -112,7 +107,7 @@ class ContourRenderingSettings(RenderingSettingsBasic):
                             prepend_icon="mdi-clock-outline",
                             v_model=("time_idx", 0),
                             min=0,
-                            max=("slice_t_max", nb_times - 1),
+                            max=("slice_t_max", 0),
                             step=1,
                             hide_details=True,
                             density="compact",
@@ -133,25 +128,25 @@ class ContourRenderingSettings(RenderingSettingsBasic):
             )
 
     def update_from_source(self, source=None):
+        state = self.state
+        source = source or self._retrieve_source()
         if source is None:
-            source = self.source
+            return
 
         with self.state:
-            self.state.data_arrays_available = source.available_arrays
-            self.state.data_arrays = source.arrays
-            self.state.color_by = None
-            self.state.axis_names = [source.x, source.y, source.z]
-            self.state.slice_extents = source.slice_extents
+            state.data_arrays_available = source.available_arrays
+            state.data_arrays = source.arrays
+            state.color_by = None
+            state.axis_names = [source.x, source.y, source.z]
+            state.slice_extents = source.slice_extents
 
             # Update time
-            self.state.slice_t = source.t_index
-            self.state.slice_t_max = source.t_size - 1
-            self.state.t_labels = source.t_labels
-            self.state.max_time_width = math.ceil(
-                0.58 * max_str_length(self.state.t_labels)
-            )
+            state.slice_t = source.t_index
+            state.slice_t_max = source.t_size - 1
+            state.t_labels = source.t_labels
+            state.max_time_width = math.ceil(0.58 * max_str_length(state.t_labels))
 
-            if self.state.slice_t_max > 0:
-                self.state.max_time_index_width = math.ceil(
-                    0.6 + (math.log10(self.state.slice_t_max + 1) + 1) * 2 * 0.58
+            if state.slice_t_max > 0:
+                state.max_time_index_width = math.ceil(
+                    0.6 + (math.log10(state.slice_t_max + 1) + 1) * 2 * 0.58
                 )
