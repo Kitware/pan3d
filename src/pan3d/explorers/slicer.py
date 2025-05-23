@@ -26,7 +26,7 @@ from vtkmodules.vtkRenderingCore import (
 )
 
 from pan3d.ui.slicer import SliceRenderingSettings
-from pan3d.ui.vtk_view import Pan3DScalarBar, Pan3DView
+from pan3d.ui.vtk_view import Pan3DView, ScalarBar
 from pan3d.utils.common import ControlPanel, Explorer, SummaryToolbar
 from pan3d.utils.convert import to_image
 from pan3d.utils.presets import set_preset
@@ -258,7 +258,7 @@ class SliceExplorer(Explorer):
             )
 
             # Scalar bar
-            Pan3DScalarBar(
+            ScalarBar(
                 v_show="!control_expended",
                 v_if="color_by",
                 img_src="preset_img",
