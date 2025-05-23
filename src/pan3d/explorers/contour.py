@@ -29,7 +29,6 @@ from pan3d.ui.vtk_view import Pan3DScalarBar, Pan3DView
 from pan3d.utils.common import ControlPanel, Explorer, SummaryToolbar
 from pan3d.utils.convert import to_float, to_image
 from pan3d.utils.presets import set_preset
-from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 from trame.decorators import change
 from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import vuetify3 as v3
@@ -38,8 +37,6 @@ from trame.widgets import vuetify3 as v3
 class ContourExplorer(Explorer):
     def __init__(self, xarray=None, source=None, server=None, local_rendering=None):
         super().__init__(xarray, source, server, local_rendering)
-        self.xarray = xarray
-
         # setup
         self.last_field = None
         self.last_preset = None
@@ -52,8 +49,6 @@ class ContourExplorer(Explorer):
     # -------------------------------------------------------------------------
 
     def _setup_vtk(self):
-        self.source = vtkXArrayRectilinearSource(input=self.xarray)
-
         ds = self.source()
 
         self.lut = vtkLookupTable()

@@ -28,7 +28,6 @@ from pan3d.utils.common import ControlPanel, Explorer, SummaryToolbar
 from pan3d.utils.convert import to_image, update_camera
 from pan3d.utils.globe import get_continent_outlines, get_globe, get_globe_textures
 from pan3d.utils.presets import set_preset
-from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 from trame.app import asynchronous
 from trame.decorators import change
 from trame.ui.vuetify3 import VAppLayout
@@ -49,7 +48,6 @@ class GlobeExplorer(Explorer):
 
     def __init__(self, xarray=None, source=None, server=None, local_rendering=None):
         super().__init__(xarray, source, server, local_rendering)
-        self.xarray = xarray
 
         self.textures = get_globe_textures()
         self.state.textures = list(self.textures.keys())
@@ -71,8 +69,6 @@ class GlobeExplorer(Explorer):
         self.render_window.AddRenderer(self.renderer)
         self.interactor.SetRenderWindow(self.render_window)
         self.interactor.SetInteractorStyle(vtkInteractorStyleTerrain())
-
-        self.source = vtkXArrayRectilinearSource(input=self.xarray)
 
         self.globe = get_globe()
         self.gmapper = vtkPolyDataMapper(input_data_object=self.globe)
