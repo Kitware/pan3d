@@ -1,5 +1,4 @@
 import vtkmodules.vtkRenderingOpenGL2  # noqa: F401
-from vtkmodules.vtkCommonCore import vtkLookupTable
 from vtkmodules.vtkCommonDataModel import (
     vtkPlane,
 )
@@ -26,10 +25,10 @@ from vtkmodules.vtkRenderingCore import (
 )
 
 from pan3d.ui.slicer import SliceRenderingSettings
-from pan3d.ui.vtk_view import Pan3DScalarBar, Pan3DView
+from pan3d.ui.vtk_view import Pan3DView
 from pan3d.utils.common import ControlPanel, Explorer, SummaryToolbar
-from pan3d.utils.convert import to_image
-from pan3d.utils.presets import set_preset
+from pan3d.widgets.color import ScalarBar
+from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 from trame.decorators import change
 from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import html
@@ -145,6 +144,8 @@ class SliceExplorer(Explorer):
 
     def __init__(self, xarray=None, source=None, server=None, local_rendering=None):
         super().__init__(xarray, source, server, local_rendering)
+        if self.source is None:
+            self.source = vtkXArrayRectilinearSource()  # To initialize the pipeline
 
         self._setup_vtk()
         self._build_ui()
@@ -159,9 +160,6 @@ class SliceExplorer(Explorer):
             0.5 * (bounds[4] + bounds[5]),
         ]
 
-        # Create lookup table
-        self.lut = vtkLookupTable()
-
         # Build rendering pipeline
         self.renderer = vtkRenderer()
         self.interactor = vtkRenderWindowInteractor()
@@ -174,7 +172,7 @@ class SliceExplorer(Explorer):
         cutter.SetCutFunction(plane)
         cutter.input_connection = self.source.output_port
         slice_actor = vtkActor()
-        slice_mapper = vtkDataSetMapper(lookup_table=self.lut)
+        slice_mapper = vtkDataSetMapper()
         slice_mapper.SetInputConnection(cutter.GetOutputPort())
         slice_mapper.SetScalarModeToUsePointFieldData()
         slice_mapper.InterpolateScalarsBeforeMappingOn()
@@ -186,7 +184,7 @@ class SliceExplorer(Explorer):
 
         outline = vtkOutlineFilter()
         outline_actor = vtkActor()
-        outline_mapper = vtkPolyDataMapper(lookup_table=self.lut)
+        outline_mapper = vtkPolyDataMapper()
         outline.input_connection = self.source.output_port
         outline_mapper.SetInputConnection(outline.GetOutputPort())
         outline_actor.SetMapper(outline_mapper)
@@ -196,7 +194,7 @@ class SliceExplorer(Explorer):
         self.outline_mapper = outline_mapper
 
         data_actor = vtkActor()
-        data_mapper = vtkDataSetMapper(lookup_table=self.lut)
+        data_mapper = vtkDataSetMapper()
         data_mapper.input_connection = self.source.output_port
         data_actor.SetMapper(data_mapper)
         data_actor.GetProperty().SetOpacity(0.1)
@@ -254,7 +252,7 @@ class SliceExplorer(Explorer):
             )
 
             # Scalar bar
-            Pan3DScalarBar(
+            ScalarBar(
                 v_show="!control_expended",
                 v_if="color_by",
                 img_src="preset_img",
@@ -325,9 +323,18 @@ class SliceExplorer(Explorer):
                 panel_label="Slice Explorer",
             ).ui_content:
                 self.ctrl.source_update_rendering_panel = SliceRenderingSettings(
-                    self.source,
+                    self.retrieve_source,
+                    self.retrieve_mapper,
                     self.update_rendering,
                 ).update_from_source
+
+    def retrieve_mapper(self):
+        """Used as a callback to retrieve the mapper."""
+        return self.slice_mapper
+
+    def retrieve_source(self):
+        """Used as a callback to retrieve the source."""
+        return self.source
 
     def update_rendering(self, reset_camera=False):
         self.renderer.ResetCamera()
@@ -438,34 +445,6 @@ class SliceExplorer(Explorer):
         self.renderer.ResetCamera()
 
         self.on_view_mode_change(self.state.view_mode)
-
-    @change("color_by")
-    def _on_color_by_change(self, color_by, **_):
-        if color_by is None:
-            return
-
-        color_min, color_max = self.source().point_data[color_by].GetRange()
-
-        self.slice_mapper.SetScalarRange(color_min, color_max)
-        self.slice_mapper.SelectColorArray(color_by)
-
-        self.state.color_min = color_min
-        self.state.color_max = color_max
-
-    @change("color_min", "color_max", "color_preset", "nan_color")
-    def _on_update_color_range(
-        self, color_min, color_max, color_preset, nan_color, nan_colors, **_
-    ):
-        set_preset(self.lut, color_preset)
-        self.state.preset_img = to_image(self.lut, 255)
-
-        color = nan_colors[nan_color]
-        self.lut.SetNanColor(color)
-
-        color_min = float(color_min)
-        color_max = float(color_max)
-        self.slice_mapper.SetScalarRange(color_min, color_max)
-        self.ctrl.view_update()
 
     def _set_view_2D(self, axis):
         camera = self.renderer.GetActiveCamera()
