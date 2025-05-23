@@ -15,10 +15,11 @@ from vtkmodules.vtkRenderingCore import (
 )
 
 from pan3d.ui.preview import RenderingSettings
-from pan3d.ui.vtk_view import Pan3DScalarBar, Pan3DView
+from pan3d.ui.vtk_view import Pan3DView
 from pan3d.utils.common import ControlPanel, Explorer, SummaryToolbar
 from pan3d.utils.convert import to_float, to_image
 from pan3d.utils.presets import set_preset
+from pan3d.widgets.color import ScalarBar
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 from trame.decorators import change
 from trame.ui.vuetify3 import VAppLayout
@@ -90,7 +91,7 @@ class XArrayViewer(Explorer):
             )
 
             # Scalar bar
-            Pan3DScalarBar(
+            ScalarBar(
                 v_show="!control_expended",
                 v_if="color_by",
                 img_src="preset_img",
@@ -182,19 +183,20 @@ class XArrayViewer(Explorer):
             self.state.color_min = 0
             self.state.color_max = 1
 
-    @change("color_preset", "color_min", "color_max", "nan_color")
-    def _on_color_preset(
+    @change("color_preset")
+    def _on_color_preset(self, color_preset, **_):
+        set_preset(self.lut, color_preset)
+        self.state.preset_img = to_image(self.lut, 255)
+
+        self.ctrl.view_update()
+
+    @change("color_min", "color_max", "nan_color")
+    def _on_color_props(
         self, nan_color, nan_colors, color_preset, color_min, color_max, **_
     ):
         color_min = float(color_min)
         color_max = float(color_max)
         self.mapper.SetScalarRange(color_min, color_max)
-
-        color = nan_colors[nan_color]
-        self.lut.SetNanColor(color)
-
-        set_preset(self.lut, color_preset)
-        self.state.preset_img = to_image(self.lut, 255)
 
         self.ctrl.view_update()
 
