@@ -47,6 +47,7 @@ pangeo = [
     "intake-esm>=2023.11",
     "s3fs>=2024.2",
     "gcsfs>=2024.2",
+    "zarr<3", # support PFlotran data loading from spec
 ]
 all = [
     # viewers/explorers
@@ -64,6 +65,7 @@ all = [
     "intake-esm>=2023.11",
     "s3fs>=2024.2",
     "gcsfs>=2024.2",
+    "zarr<3", # support PFlotran data loading from spec
 ]
 dev = [
     "pytest >=6",
