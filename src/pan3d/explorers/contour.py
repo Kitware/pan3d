@@ -1,5 +1,4 @@
 import vtkmodules.vtkRenderingOpenGL2  # noqa: F401
-from vtkmodules.vtkCommonCore import vtkLookupTable
 from vtkmodules.vtkCommonDataModel import vtkDataObject, vtkDataSetAttributes
 from vtkmodules.vtkFiltersCore import (
     vtkAssignAttribute,
@@ -25,10 +24,11 @@ from vtkmodules.vtkRenderingCore import (
 )
 
 from pan3d.ui.contour import ContourRenderingSettings
-from pan3d.ui.vtk_view import Pan3DScalarBar, Pan3DView
+from pan3d.ui.vtk_view import Pan3DView
 from pan3d.utils.common import ControlPanel, Explorer, SummaryToolbar
-from pan3d.utils.convert import to_float, to_image
-from pan3d.utils.presets import set_preset
+from pan3d.utils.convert import to_float
+from pan3d.widgets.color import ScalarBar
+from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 from trame.decorators import change
 from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import vuetify3 as v3
@@ -37,6 +37,12 @@ from trame.widgets import vuetify3 as v3
 class ContourExplorer(Explorer):
     def __init__(self, xarray=None, source=None, server=None, local_rendering=None):
         super().__init__(xarray, source, server, local_rendering)
+
+        if self.source is None:
+            self.source = vtkXArrayRectilinearSource(
+                input=self.xarray
+            )  # To initialize the pipeline
+
         # setup
         self.last_field = None
         self.last_preset = None
@@ -50,8 +56,6 @@ class ContourExplorer(Explorer):
 
     def _setup_vtk(self):
         ds = self.source()
-
-        self.lut = vtkLookupTable()
 
         self.renderer = vtkRenderer(background=(0.8, 0.8, 0.8))
         self.interactor = vtkRenderWindowInteractor()
@@ -86,7 +90,6 @@ class ContourExplorer(Explorer):
             input_connection=self.bands.output_port,
             scalar_visibility=1,
             interpolate_scalars_before_mapping=1,
-            lookup_table=self.lut,
         )
         self.mapper.SetScalarModeToUsePointFieldData()
         self.actor = vtkActor(mapper=self.mapper)
@@ -141,7 +144,7 @@ class ContourExplorer(Explorer):
             )
 
             # Scalar bar
-            Pan3DScalarBar(
+            ScalarBar(
                 v_show="!control_expended",
                 v_if="color_by",
                 img_src="preset_img",
@@ -205,7 +208,8 @@ class ContourExplorer(Explorer):
                 panel_label="Contour Explorer",
             ).ui_content:
                 self.ctrl.source_update_rendering_panel = ContourRenderingSettings(
-                    self.source,
+                    self.retrieve_source,
+                    self.retrieve_mapper,
                     self.update_rendering,
                 ).update_from_source
 
@@ -217,14 +221,13 @@ class ContourExplorer(Explorer):
 
         self.ctrl.view_reset_camera()
 
-    def reset_color_range(self):
-        if self.state.color_by is None:
-            return
+    def retrieve_mapper(self):
+        """Used as a callback to retrieve the mapper."""
+        return self.mapper
 
-        field_array = self.source.input[self.state.color_by].values
-        with self.state:
-            self.state.color_min = float(field_array.min())
-            self.state.color_max = float(field_array.max())
+    def retrieve_source(self):
+        """Used as a callback to retrieve the source."""
+        return self.source
 
     # -----------------------------------------------------
     # State change callbacks
@@ -266,20 +269,13 @@ class ContourExplorer(Explorer):
         # update range
         if self.last_field != color_by:
             self.last_field = color_by
-            self.reset_color_range()
 
         self.ctrl.view_update()
 
-    @change("color_min", "color_max", "color_preset", "nan_color", "nb_contours")
+    @change("nb_contours")
     def _on_update_color_range(
         self, nb_contours, color_min, color_max, color_preset, **_
     ):
-        if self.last_preset != color_preset:
-            self.last_preset = color_preset
-            set_preset(self.lut, color_preset)
-            self.state.preset_img = to_image(self.lut, 255)
-
-        self.mapper.SetScalarRange(color_min, color_max)
         self.bands.GenerateValues(nb_contours, [color_min, color_max])
         self.ctrl.view_update()
 

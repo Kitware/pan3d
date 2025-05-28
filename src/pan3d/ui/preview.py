@@ -11,10 +11,10 @@ from trame.widgets import vuetify3 as v3
 
 
 class RenderingSettings(RenderingSettingsBasic):
-    def __init__(self, source, update_rendering, **kwargs):
-        super().__init__(source, update_rendering, **kwargs)
+    def __init__(self, retrieve_source, retrieve_mapper, update_rendering, **kwargs):
+        super().__init__(retrieve_source, retrieve_mapper, update_rendering, **kwargs)
 
-        self.source = source
+        self._retrieve_source = retrieve_source
         self.state.setdefault("slice_extents", {})
         self.state.setdefault("axis_names", [])
         self.state.setdefault("t_labels", [])
@@ -311,7 +311,7 @@ class RenderingSettings(RenderingSettingsBasic):
 
     def update_from_source(self, source=None):
         if source is None:
-            source = self.source
+            source = self._retrieve_source()
 
         with self.state:
             self.state.data_arrays_available = source.available_arrays
@@ -355,19 +355,6 @@ class RenderingSettings(RenderingSettingsBasic):
                     0.6 + (math.log10(self.state.slice_t_max + 1) + 1) * 2 * 0.58
                 )
 
-    def reset_color_range(self):
-        color_by = self.state.color_by
-        ds = self.source()
-        if color_by in ds.point_data.keys():  # vtk is missing in iter
-            array = ds.point_data[color_by]
-            min_value, max_value = array.GetRange()
-
-            self.state.color_min = min_value
-            self.state.color_max = max_value
-        else:
-            self.state.color_min = 0
-            self.state.color_max = 1
-
     @change("data_origin_source")
     def _on_data_origin_source(self, data_origin_source, **kwargs):
         if self.state.import_pending:
@@ -395,12 +382,16 @@ class RenderingSettings(RenderingSettingsBasic):
 
     @change("slice_t", *[var.format(axis) for axis in XYZ for var in SLICE_VARS])
     def on_change(self, slice_t, **_):
+        source = self._retrieve_source()
+        if source is None:
+            return
+
         if self.state.import_pending:
             return
 
-        slices = {self.source.t: slice_t}
+        slices = {source.t: slice_t}
         for axis in XYZ:
-            axis_name = getattr(self.source, axis)
+            axis_name = getattr(source, axis)
             if axis_name is None:
                 continue
 
@@ -415,8 +406,8 @@ class RenderingSettings(RenderingSettingsBasic):
             else:
                 slices[axis_name] = self.state[f"slice_{axis}_cut"]
 
-        self.source.slices = slices
-        ds = self.source()
+        source.slices = slices
+        ds = source()
         self.state.dataset_bounds = ds.bounds
 
         self.ctrl.view_reset_clipping_range()
@@ -424,10 +415,13 @@ class RenderingSettings(RenderingSettingsBasic):
 
     @change("slice_t")
     def _on_slice_t(self, slice_t, **_):
+        source = self._retrieve_source()
+        if source is None:
+            return
         if self.state.import_pending:
             return
 
-        self.source.t_index = slice_t
+        source.t_index = slice_t
         self.ctrl.view_update()
 
     @change("data_arrays")
@@ -440,5 +434,6 @@ class RenderingSettings(RenderingSettingsBasic):
             self.state.color_by = data_arrays[0]
         elif len(data_arrays) == 0:
             self.state.color_by = None
-
-        self.source.arrays = data_arrays
+        source = self._retrieve_source()
+        if source is not None:
+            source.arrays = data_arrays

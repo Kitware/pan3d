@@ -7,9 +7,9 @@ from trame.widgets import vuetify3 as v3
 
 
 class SliceRenderingSettings(RenderingSettingsBasic):
-    def __init__(self, source, update_rendering):
-        super().__init__(source, update_rendering)
-        self.source = source
+    def __init__(self, retrieve_source, retrieve_mapper, update_rendering):
+        super().__init__(retrieve_source, retrieve_mapper, update_rendering)
+        self._retrieve_source = retrieve_source
 
         style = {"density": "compact", "hide_details": True}
         with self.content:
@@ -168,8 +168,10 @@ class SliceRenderingSettings(RenderingSettingsBasic):
             )
 
     def update_from_source(self, source=None):
+        state = self.state
+        source = source or self._retrieve_source()
         if source is None:
-            source = self.source
+            return
 
         ds = source()
         bounds = ds.bounds
@@ -178,33 +180,31 @@ class SliceRenderingSettings(RenderingSettingsBasic):
             0.5 * (bounds[2] + bounds[3]),
             0.5 * (bounds[4] + bounds[5]),
         ]
-        with self.state:
-            self.state.data_arrays_available = source.available_arrays
-            self.state.data_arrays = source.arrays
+        with state:
+            state.data_arrays_available = source.available_arrays
+            state.data_arrays = source.arrays
 
-            self.state.color_by = None
-            self.state.axis_names = [
+            state.color_by = None
+            state.axis_names = [
                 x for x in [source.x, source.y, source.z] if x is not None
             ]
-            self.state.slice_extents = source.slice_extents
+            state.slice_extents = source.slice_extents
 
             # Update time
-            self.state.slice_t = source.t_index
-            self.state.slice_t_max = source.t_size - 1
-            self.state.t_labels = source.t_labels
-            self.state.max_time_width = math.ceil(
-                0.58 * max_str_length(self.state.t_labels)
-            )
+            state.slice_t = source.t_index
+            state.slice_t_max = source.t_size - 1
+            state.t_labels = source.t_labels
+            state.max_time_width = math.ceil(0.58 * max_str_length(state.t_labels))
 
-            if self.state.slice_t_max > 0:
-                self.state.max_time_index_width = math.ceil(
-                    0.6 + (math.log10(self.state.slice_t_max + 1) + 1) * 2 * 0.58
+            if state.slice_t_max > 0:
+                state.max_time_index_width = math.ceil(
+                    0.6 + (math.log10(state.slice_t_max + 1) + 1) * 2 * 0.58
                 )
 
             # Update state from dataset
-            self.state.bounds = ds.bounds
-            self.state.cut_x = origin[0]
-            self.state.cut_y = origin[1]
-            self.state.cut_z = origin[2]
-            self.state.slice_axis = source.z if source.z is not None else source.y
-            self.state.slice_axes = self.state.axis_names
+            state.bounds = ds.bounds
+            state.cut_x = origin[0]
+            state.cut_y = origin[1]
+            state.cut_z = origin[2]
+            state.slice_axis = source.z if source.z is not None else source.y
+            state.slice_axes = state.axis_names

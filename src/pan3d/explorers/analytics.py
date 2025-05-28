@@ -1,5 +1,4 @@
 import vtkmodules.vtkRenderingOpenGL2  # noqa: F401
-from vtkmodules.vtkCommonCore import vtkLookupTable
 from vtkmodules.vtkFiltersGeometry import vtkDataSetSurfaceFilter
 
 # VTK factory initialization
@@ -16,10 +15,10 @@ from vtkmodules.vtkRenderingCore import (
 
 from pan3d.ui.analytics import Plotting
 from pan3d.ui.preview import RenderingSettings
-from pan3d.ui.vtk_view import Pan3DScalarBar, Pan3DView
+from pan3d.ui.vtk_view import Pan3DView
 from pan3d.utils.common import ControlPanel, Explorer, SummaryToolbar
-from pan3d.utils.convert import to_float, to_image
-from pan3d.utils.presets import set_preset
+from pan3d.utils.convert import to_float
+from pan3d.widgets.color import ScalarBar
 from trame.decorators import change
 from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import html
@@ -64,15 +63,12 @@ class AnalyticsExplorer(Explorer):
         self.interactor.SetRenderWindow(self.render_window)
         self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
 
-        self.lut = vtkLookupTable()
-
         # Need explicit geometry extraction when used with WASM
         self.geometry = vtkDataSetSurfaceFilter(
             input_connection=self.source.output_port
         )
         self.mapper = vtkPolyDataMapper(
             input_connection=self.geometry.output_port,
-            lookup_table=self.lut,
         )
         self.actor = vtkActor(mapper=self.mapper, visibility=0)
 
@@ -128,6 +124,7 @@ class AnalyticsExplorer(Explorer):
                             label="File path to save",
                             v_model=("save_dataset_path", ""),
                             hide_details=True,
+                            change=self.property_changed,
                         )
                     with v3.VCardActions():
                         v3.VSpacer()
@@ -171,7 +168,7 @@ class AnalyticsExplorer(Explorer):
                         )
 
                         # Scalar bar
-                        Pan3DScalarBar(
+                        ScalarBar(
                             v_show="!control_expended",
                             v_if="color_by",
                             img_src="preset_img",
@@ -194,7 +191,8 @@ class AnalyticsExplorer(Explorer):
                             panel_label="Analytics Explorer",
                         ).ui_content:
                             self.ctrl.source_update_rendering_panel = RenderingSettings(
-                                self.source,
+                                self.retrieve_source,
+                                self.retrieve_mapper,
                                 self.update_rendering,
                             ).update_from_source
 
@@ -210,49 +208,21 @@ class AnalyticsExplorer(Explorer):
                         source=self.source, toggle="chart_expanded"
                     )
 
+    def retrieve_mapper(self):
+        """Used as a callback to retrieve the mapper."""
+        return self.mapper
+
+    def retrieve_source(self):
+        """Used as a callback to retrieve the source."""
+        return self.source
+
     # -----------------------------------------------------
     # State change callbacks
     # -----------------------------------------------------
 
     @change("color_by")
-    def _on_color_by(self, color_by, **__):
-        if self.source.input is None:
-            return
-
-        ds = self.source()
-        if color_by in ds.point_data.keys():  # vtk is missing in iter
-            array = ds.point_data[color_by]
-            min_value, max_value = array.GetRange()
-
-            self.state.color_min = min_value
-            self.state.color_max = max_value
-
-            self.mapper.SelectColorArray(color_by)
-            self.mapper.SetScalarModeToUsePointFieldData()
-            self.mapper.InterpolateScalarsBeforeMappingOn()
-            self.mapper.SetScalarVisibility(1)
-        else:
-            self.mapper.SetScalarVisibility(0)
-            self.state.color_min = 0
-            self.state.color_max = 1
-
+    def _on_color_by(self, **__):
         self.plotting.update_plot()
-
-    @change("color_preset", "color_min", "color_max", "nan_color")
-    def _on_color_preset(
-        self, nan_color, nan_colors, color_preset, color_min, color_max, **_
-    ):
-        color_min = float(color_min)
-        color_max = float(color_max)
-        self.mapper.SetScalarRange(color_min, color_max)
-
-        color = nan_colors[nan_color]
-        self.lut.SetNanColor(color)
-
-        set_preset(self.lut, color_preset)
-        self.state.preset_img = to_image(self.lut, 255)
-
-        self.ctrl.view_update()
 
     @change("scale_x", "scale_y", "scale_z")
     def _on_scale_change(self, scale_x, scale_y, scale_z, **_):

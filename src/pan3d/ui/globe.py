@@ -10,9 +10,10 @@ from trame.widgets import vuetify3 as v3
 
 @TrameApp()
 class GlobeRenderingSettings(RenderingSettingsBasic):
-    def __init__(self, source, update_rendering):
-        super().__init__("Rendering", "show_rendering")
-        self.source = source
+    def __init__(self, retrieve_source, retrieve_mapper, update_rendering):
+        super().__init__(retrieve_source, retrieve_mapper, update_rendering)
+        self._retrieve_source = retrieve_source
+
         with self.content:
             v3.VDivider()
             v3.VSelect(
@@ -341,90 +342,81 @@ class GlobeRenderingSettings(RenderingSettingsBasic):
             )
 
     def update_from_source(self, source=None):
+        state = self.state
+        source = source or self._retrieve_source()
         if source is None:
-            source = self.source
+            return
 
         with self.state:
-            self.state.data_arrays_available = source.available_arrays
-            self.state.data_arrays = source.arrays
-            self.state.color_by = None
-            self.state.axis_names = [source.x, source.y, source.z]
-            self.state.slice_extents = source.slice_extents
+            state.data_arrays_available = source.available_arrays
+            state.data_arrays = source.arrays
+            state.color_by = None
+            state.axis_names = [source.x, source.y, source.z]
+            state.slice_extents = source.slice_extents
             slices = source.slices
             for axis in XYZ:
                 # default
                 axis_extent = self.state.slice_extents.get(getattr(source, axis))
-                self.state[f"slice_{axis}_range"] = axis_extent
-                self.state[f"slice_{axis}_cut"] = 0
-                self.state[f"slice_{axis}_step"] = 1
-                self.state[f"slice_{axis}_type"] = "range"
+                state[f"slice_{axis}_range"] = axis_extent
+                state[f"slice_{axis}_cut"] = 0
+                state[f"slice_{axis}_step"] = 1
+                state[f"slice_{axis}_type"] = "range"
 
                 # use slice info if available
                 axis_slice = slices.get(getattr(source, axis))
                 if axis_slice is not None:
                     if isinstance(axis_slice, int):
                         # cut
-                        self.state[f"slice_{axis}_cut"] = axis_slice
-                        self.state[f"slice_{axis}_type"] = "cut"
+                        state[f"slice_{axis}_cut"] = axis_slice
+                        state[f"slice_{axis}_type"] = "cut"
                     else:
                         # range
-                        self.state[f"slice_{axis}_range"] = [
+                        state[f"slice_{axis}_range"] = [
                             axis_slice[0],
                             axis_slice[1] - 1,
                         ]  # end is inclusive
-                        self.state[f"slice_{axis}_step"] = axis_slice[2]
+                        state[f"slice_{axis}_step"] = axis_slice[2]
 
             # Update time
-            self.state.slice_t = source.t_index
-            self.state.slice_t_max = source.t_size - 1
-            self.state.t_labels = source.t_labels
-            self.state.max_time_width = math.ceil(
-                0.58 * max_str_length(self.state.t_labels)
-            )
-            if self.state.slice_t_max > 0:
-                self.state.max_time_index_width = math.ceil(
-                    0.6 + (math.log10(self.state.slice_t_max + 1) + 1) * 2 * 0.58
+            state.slice_t = source.t_index
+            state.slice_t_max = source.t_size - 1
+            state.t_labels = source.t_labels
+            state.max_time_width = math.ceil(0.58 * max_str_length(state.t_labels))
+            if state.slice_t_max > 0:
+                state.max_time_index_width = math.ceil(
+                    0.6 + (math.log10(state.slice_t_max + 1) + 1) * 2 * 0.58
                 )
-
-    def reset_color_range(self):
-        color_by = self.state.color_by
-        ds = self.source()
-        if color_by in ds.point_data.keys():  # vtk is missing in iter
-            array = ds.point_data[color_by]
-            min_value, max_value = array.GetRange()
-
-            self.state.color_min = min_value
-            self.state.color_max = max_value
-        else:
-            self.state.color_min = 0
-            self.state.color_max = 1
 
     @change("slice_t", *[var.format(axis) for axis in XYZ for var in SLICE_VARS])
     def on_change(self, slice_t, **_):
         if self.state.import_pending:
             return
+        source = self._retrieve_source()
+        if source is None:
+            return
 
-        slices = {self.source.t: slice_t}
+        state = self.state
+        slices = {source.t: slice_t}
         for axis in XYZ:
-            axis_name = getattr(self.source, axis)
+            axis_name = getattr(source, axis)
             if axis_name is None:
                 continue
 
-            if self.state[f"slice_{axis}_type"] == "range":
-                if self.state[f"slice_{axis}_range"] is None:
+            if state[f"slice_{axis}_type"] == "range":
+                if state[f"slice_{axis}_range"] is None:
                     continue
 
                 slices[axis_name] = [
-                    *self.state[f"slice_{axis}_range"],
-                    int(self.state[f"slice_{axis}_step"]),
+                    *state[f"slice_{axis}_range"],
+                    int(state[f"slice_{axis}_step"]),
                 ]
                 slices[axis_name][1] += 1  # end is exclusive
             else:
-                slices[axis_name] = self.state[f"slice_{axis}_cut"]
+                slices[axis_name] = state[f"slice_{axis}_cut"]
 
-        self.source.slices = slices
-        ds = self.source()
-        self.state.dataset_bounds = ds.bounds
+        source.slices = slices
+        ds = source()
+        state.dataset_bounds = ds.bounds
 
         self.ctrl.view_reset_clipping_range()
         self.ctrl.view_update()
@@ -433,6 +425,7 @@ class GlobeRenderingSettings(RenderingSettingsBasic):
     def _on_slice_t(self, slice_t, **_):
         if self.state.import_pending:
             return
-
-        self.source.t_index = slice_t
-        self.ctrl.view_update()
+        source = self._retrieve_source()
+        if source is not None:
+            source.t_index = slice_t
+            self.ctrl.view_update()
