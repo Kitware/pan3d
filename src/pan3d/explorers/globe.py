@@ -27,8 +27,8 @@ from pan3d.ui.vtk_view import Pan3DView
 from pan3d.utils.common import ControlPanel, Explorer, SummaryToolbar
 from pan3d.utils.convert import update_camera
 from pan3d.utils.globe import get_continent_outlines, get_globe, get_globe_textures
-from pan3d.widgets.color import ScalarBar
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
+from src.pan3d.widgets.color_by import ScalarBar
 from trame.app import asynchronous
 from trame.decorators import change
 from trame.ui.vuetify3 import VAppLayout

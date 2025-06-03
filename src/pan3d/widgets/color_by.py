@@ -1,7 +1,6 @@
 from vtkmodules.vtkCommonCore import vtkLookupTable
 from vtkmodules.vtkRenderingCore import vtkMapper
 
-from pan3d.ui.css import base, vtk_view
 from pan3d.utils.convert import to_image
 from pan3d.utils.presets import PRESETS, set_preset
 from trame.widgets import html
@@ -241,51 +240,3 @@ class ColorBy(html.Div):
             state[self._color_max] = 1
 
         self.ctrl.view_update()
-
-
-class ScalarBar(v3.VTooltip):
-    def __init__(self, img_src, color_min="color_min", color_max="color_max", **kwargs):
-        """Scalar bar for the XArray Explorers."""
-        super().__init__(location="top")
-
-        # Activate CSS
-        self.server.enable_module(base)
-        self.server.enable_module(vtk_view)
-
-        self.state.setdefault("scalarbar_probe", [])
-        self.state.client_only("scalarbar_probe", "scalarbar_probe_available")
-
-        with self:
-            # Content
-            with html.Template(v_slot_activator="{ props }"):
-                with html.Div(
-                    classes="scalarbar",
-                    rounded="pill",
-                    v_bind="props",
-                    **kwargs,
-                ):
-                    html.Div(
-                        f"{{{{ {color_min}.toFixed(6) }}}}", classes="scalarbar-left"
-                    )
-                    html.Img(
-                        src=(img_src, None),
-                        style="height: 100%; width: 100%;",
-                        classes="rounded-lg border-thin",
-                        mousemove="scalarbar_probe = [$event.x, $event.target.getBoundingClientRect()]",
-                        mouseenter="scalarbar_probe_available = 1",
-                        mouseleave="scalarbar_probe_available = 0",
-                        __events=["mousemove", "mouseenter", "mouseleave"],
-                    )
-                    html.Div(
-                        v_show=("scalarbar_probe_available", False),
-                        classes="scalar-cursor",
-                        style=(
-                            "`left: ${scalarbar_probe?.[0] - scalarbar_probe?.[1]?.left}px`",
-                        ),
-                    )
-                    html.Div(
-                        f"{{{{ {color_max}.toFixed(6) }}}}", classes="scalarbar-right"
-                    )
-            html.Span(
-                f"{{{{ (({color_max} - {color_min}) * (scalarbar_probe?.[0] - scalarbar_probe?.[1]?.left) / scalarbar_probe?.[1]?.width + {color_min}).toFixed(6) }}}}"
-            )
