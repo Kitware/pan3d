@@ -18,7 +18,7 @@ from pan3d.ui.preview import RenderingSettings
 from pan3d.ui.vtk_view import Pan3DView
 from pan3d.utils.common import ControlPanel, Explorer, SummaryToolbar
 from pan3d.utils.convert import to_float
-from pan3d.widgets.color import ScalarBar
+from src.pan3d.widgets.color_by import ScalarBar
 from trame.decorators import change
 from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import html

@@ -6,7 +6,7 @@ from pan3d import catalogs as pan3d_catalogs
 from pan3d.ui.collapsible import CollapsableSection
 from pan3d.ui.css import base, preview
 from pan3d.utils.convert import update_camera
-from pan3d.widgets.color import ColorBy
+from pan3d.widgets.color_by import ColorBy
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 from trame.app import asynchronous, get_server
 from trame.decorators import TrameApp, change
