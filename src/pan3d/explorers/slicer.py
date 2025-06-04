@@ -344,6 +344,14 @@ class SliceExplorer(Explorer):
 
         self.ctrl.view_reset_camera()
 
+    @change("color_preset")
+    def _on_preset_change(self, color_preset, **_):
+        self.scalar_bar.preset = color_preset
+
+    @change("color_min", "color_max")
+    def _on_color_range_change(self, color_min, color_max, **_):
+        self.scalar_bar.set_color_range(color_min, color_max)
+
     # -------------------------------------------------------------------------
     # Property API
     # -------------------------------------------------------------------------

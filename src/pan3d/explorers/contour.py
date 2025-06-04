@@ -279,6 +279,14 @@ class ContourExplorer(Explorer):
         self.bands.GenerateValues(nb_contours, [color_min, color_max])
         self.ctrl.view_update()
 
+    @change("color_preset")
+    def _on_preset_change(self, color_preset, **_):
+        self.scalar_bar.preset = color_preset
+
+    @change("color_min", "color_max")
+    def _on_color_range_change(self, color_min, color_max, **_):
+        self.scalar_bar.set_color_range(color_min, color_max)
+
 
 def main():
     app = ContourExplorer()
