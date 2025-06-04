@@ -224,6 +224,14 @@ class AnalyticsExplorer(Explorer):
     def _on_color_by(self, **__):
         self.plotting.update_plot()
 
+    @change("color_preset")
+    def _on_preset_change(self, color_preset, **_):
+        self.scalar_bar.preset = color_preset
+
+    @change("color_min", "color_max")
+    def _on_color_range_change(self, color_min, color_max, **_):
+        self.scalar_bar.set_color_range(color_min, color_max)
+
     @change("scale_x", "scale_y", "scale_z")
     def _on_scale_change(self, scale_x, scale_y, scale_z, **_):
         self.actor.SetScale(
