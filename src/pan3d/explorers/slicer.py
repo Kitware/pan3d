@@ -27,8 +27,8 @@ from vtkmodules.vtkRenderingCore import (
 from pan3d.ui.slicer import SliceRenderingSettings
 from pan3d.ui.vtk_view import Pan3DView
 from pan3d.utils.common import ControlPanel, Explorer, SummaryToolbar
+from pan3d.widgets.scalar_bar import ScalarBar
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
-from src.pan3d.widgets.color_by import ScalarBar
 from trame.decorators import change
 from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import html
@@ -180,7 +180,7 @@ class SliceExplorer(Explorer):
         self.plane = plane
         self.cutter = cutter
         self.slice_actor = slice_actor
-        self.slice_mapper = slice_mapper
+        self.mapper = slice_mapper
 
         outline = vtkOutlineFilter()
         outline_actor = vtkActor()
@@ -253,9 +253,9 @@ class SliceExplorer(Explorer):
 
             # Scalar bar
             ScalarBar(
+                ctx_name="scalar_bar",
                 v_show="!control_expended",
                 v_if="color_by",
-                img_src="preset_img",
             )
 
             # Save dialog
@@ -322,19 +322,11 @@ class SliceExplorer(Explorer):
                 xr_update_info="xr_update_info",
                 panel_label="Slice Explorer",
             ).ui_content:
-                self.ctrl.source_update_rendering_panel = SliceRenderingSettings(
-                    self.retrieve_source,
-                    self.retrieve_mapper,
-                    self.update_rendering,
-                ).update_from_source
-
-    def retrieve_mapper(self):
-        """Used as a callback to retrieve the mapper."""
-        return self.slice_mapper
-
-    def retrieve_source(self):
-        """Used as a callback to retrieve the source."""
-        return self.source
+                SliceRenderingSettings(
+                    ctx_name="rendering",
+                    source=self.source,
+                    update_rendering=self.update_rendering,
+                )
 
     def update_rendering(self, reset_camera=False):
         self.renderer.ResetCamera()
@@ -343,14 +335,6 @@ class SliceExplorer(Explorer):
             self.ctrl.view_update(push_camera=True)
 
         self.ctrl.view_reset_camera()
-
-    @change("color_preset")
-    def _on_preset_change(self, color_preset, **_):
-        self.scalar_bar.preset = color_preset
-
-    @change("color_min", "color_max")
-    def _on_color_range_change(self, color_min, color_max, **_):
-        self.scalar_bar.set_color_range(color_min, color_max)
 
     # -------------------------------------------------------------------------
     # Property API
@@ -423,21 +407,6 @@ class SliceExplorer(Explorer):
         self.data_actor.SetScale(*sfac)
         self.outline_actor.SetScale(*sfac)
         self.on_view_mode_change(s.view_mode)
-
-    @property
-    def color_map(self):
-        """
-        Returns the color map currently used for visualization
-        """
-        return self.state.cmap
-
-    @color_map.setter
-    def color_map(self, cmap):
-        """
-        Sets the color map used for visualization
-        """
-        with self.state:
-            self.state.cmap = cmap
 
     # -------------------------------------------------------------------------
     # UI triggers

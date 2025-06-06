@@ -1,20 +1,17 @@
 import math
-from pathlib import Path
 
-from pan3d import catalogs as pan3d_catalogs
 from pan3d.utils.common import RenderingSettingsBasic
-from pan3d.utils.constants import SLICE_VARS, XYZ
+from pan3d.utils.constants import XYZ
 from pan3d.utils.convert import max_str_length
-from trame.decorators import change
 from trame.widgets import html
 from trame.widgets import vuetify3 as v3
 
 
 class RenderingSettings(RenderingSettingsBasic):
-    def __init__(self, retrieve_source, retrieve_mapper, update_rendering, **kwargs):
-        super().__init__(retrieve_source, retrieve_mapper, update_rendering, **kwargs)
+    def __init__(self, source, update_rendering, **kwargs):
+        super().__init__(source, update_rendering, **kwargs)
 
-        self._retrieve_source = retrieve_source
+        self.source = source
         self.state.setdefault("slice_extents", {})
         self.state.setdefault("axis_names", [])
         self.state.setdefault("t_labels", [])
@@ -310,130 +307,44 @@ class RenderingSettings(RenderingSettingsBasic):
             )
 
     def update_from_source(self, source=None):
-        if source is None:
-            source = self._retrieve_source()
+        self.source = source or self.source
 
-        with self.state:
-            self.state.data_arrays_available = source.available_arrays
-            self.state.data_arrays = source.arrays
-            self.state.color_by = None
-            self.state.axis_names = [source.x, source.y, source.z]
-            self.state.slice_extents = source.slice_extents
+        with self.state as state:
+            state.data_arrays_available = source.available_arrays
+            state.data_arrays = source.arrays
+            # state.color_by = None
+            state.axis_names = [source.x, source.y, source.z]
+            state.slice_extents = source.slice_extents
             slices = source.slices
             for axis in XYZ:
                 # default
-                axis_extent = self.state.slice_extents.get(getattr(source, axis))
-                self.state[f"slice_{axis}_range"] = axis_extent
-                self.state[f"slice_{axis}_cut"] = 0
-                self.state[f"slice_{axis}_step"] = 1
-                self.state[f"slice_{axis}_type"] = "range"
+                axis_extent = state.slice_extents.get(getattr(source, axis))
+                state[f"slice_{axis}_range"] = axis_extent
+                state[f"slice_{axis}_cut"] = 0
+                state[f"slice_{axis}_step"] = 1
+                state[f"slice_{axis}_type"] = "range"
 
                 # use slice info if available
                 axis_slice = slices.get(getattr(source, axis))
                 if axis_slice is not None:
                     if isinstance(axis_slice, int):
                         # cut
-                        self.state[f"slice_{axis}_cut"] = axis_slice
-                        self.state[f"slice_{axis}_type"] = "cut"
+                        state[f"slice_{axis}_cut"] = axis_slice
+                        state[f"slice_{axis}_type"] = "cut"
                     else:
                         # range
-                        self.state[f"slice_{axis}_range"] = [
+                        state[f"slice_{axis}_range"] = [
                             axis_slice[0],
                             axis_slice[1] - 1,
                         ]  # end is inclusive
-                        self.state[f"slice_{axis}_step"] = axis_slice[2]
+                        state[f"slice_{axis}_step"] = axis_slice[2]
 
             # Update time
-            self.state.slice_t = source.t_index
-            self.state.slice_t_max = source.t_size - 1
-            self.state.t_labels = source.t_labels
-            self.state.max_time_width = math.ceil(
-                0.58 * max_str_length(self.state.t_labels)
-            )
-            if self.state.slice_t_max > 0:
-                self.state.max_time_index_width = math.ceil(
-                    0.6 + (math.log10(self.state.slice_t_max + 1) + 1) * 2 * 0.58
+            state.slice_t = source.t_index
+            state.slice_t_max = source.t_size - 1
+            state.t_labels = source.t_labels
+            state.max_time_width = math.ceil(0.58 * max_str_length(state.t_labels))
+            if state.slice_t_max > 0:
+                state.max_time_index_width = math.ceil(
+                    0.6 + (math.log10(state.slice_t_max + 1) + 1) * 2 * 0.58
                 )
-
-    @change("data_origin_source")
-    def _on_data_origin_source(self, data_origin_source, **kwargs):
-        if self.state.import_pending:
-            return
-
-        self.state.data_origin_id = ""
-        results, *_ = pan3d_catalogs.search(data_origin_source)
-        self.state.data_origin_ids = [v["name"] for v in results]
-        self.state.data_origin_id_to_desc = {
-            v["name"]: v["description"] for v in results
-        }
-
-    @change("data_origin_id")
-    def _on_data_origin_id(self, data_origin_id, data_origin_source, **kwargs):
-        if self.state.import_pending:
-            return
-
-        self.state.load_button_text = "Load"
-        self.state.can_load = True
-
-        if data_origin_source == "file":
-            self.state.data_origin_id_error = not Path(data_origin_id).exists()
-        elif self.state.data_origin_id_error:
-            self.state.data_origin_id_error = False
-
-    @change("slice_t", *[var.format(axis) for axis in XYZ for var in SLICE_VARS])
-    def on_change(self, slice_t, **_):
-        source = self._retrieve_source()
-        if source is None:
-            return
-
-        if self.state.import_pending:
-            return
-
-        slices = {source.t: slice_t}
-        for axis in XYZ:
-            axis_name = getattr(source, axis)
-            if axis_name is None:
-                continue
-
-            if self.state[f"slice_{axis}_type"] == "range":
-                if self.state[f"slice_{axis}_range"] is None:
-                    continue
-                slices[axis_name] = [
-                    *self.state[f"slice_{axis}_range"],
-                    int(self.state[f"slice_{axis}_step"]),
-                ]
-                slices[axis_name][1] += 1  # end is exclusive
-            else:
-                slices[axis_name] = self.state[f"slice_{axis}_cut"]
-
-        source.slices = slices
-        ds = source()
-        self.state.dataset_bounds = ds.bounds
-
-        self.ctrl.view_reset_clipping_range()
-        self.ctrl.view_update()
-
-    @change("slice_t")
-    def _on_slice_t(self, slice_t, **_):
-        source = self._retrieve_source()
-        if source is None:
-            return
-        if self.state.import_pending:
-            return
-
-        source.t_index = slice_t
-        self.ctrl.view_update()
-
-    @change("data_arrays")
-    def _on_array_selection(self, data_arrays, **_):
-        if self.state.import_pending:
-            return
-
-        self.state.dirty_data = True
-        if len(data_arrays) == 1:
-            self.state.color_by = data_arrays[0]
-        elif len(data_arrays) == 0:
-            self.state.color_by = None
-        source = self._retrieve_source()
-        if source is not None:
-            source.arrays = data_arrays

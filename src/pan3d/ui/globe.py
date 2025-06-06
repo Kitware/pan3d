@@ -1,18 +1,17 @@
 import math
 
 from pan3d.utils.common import RenderingSettingsBasic
-from pan3d.utils.constants import SLICE_VARS, XYZ
+from pan3d.utils.constants import XYZ
 from pan3d.utils.convert import max_str_length
-from trame.decorators import TrameApp, change
 from trame.widgets import html
 from trame.widgets import vuetify3 as v3
 
 
-@TrameApp()
 class GlobeRenderingSettings(RenderingSettingsBasic):
-    def __init__(self, retrieve_source, retrieve_mapper, update_rendering):
-        super().__init__(retrieve_source, retrieve_mapper, update_rendering)
-        self._retrieve_source = retrieve_source
+    def __init__(self, source, update_rendering, **kwargs):
+        super().__init__(source, update_rendering, **kwargs)
+
+        self.source = source
 
         with self.content:
             v3.VDivider()
@@ -342,12 +341,10 @@ class GlobeRenderingSettings(RenderingSettingsBasic):
             )
 
     def update_from_source(self, source=None):
-        state = self.state
-        source = source or self._retrieve_source()
         if source is None:
             return
 
-        with self.state:
+        with self.state as state:
             state.data_arrays_available = source.available_arrays
             state.data_arrays = source.arrays
             state.color_by = None
@@ -356,7 +353,7 @@ class GlobeRenderingSettings(RenderingSettingsBasic):
             slices = source.slices
             for axis in XYZ:
                 # default
-                axis_extent = self.state.slice_extents.get(getattr(source, axis))
+                axis_extent = state.slice_extents.get(getattr(source, axis))
                 state[f"slice_{axis}_range"] = axis_extent
                 state[f"slice_{axis}_cut"] = 0
                 state[f"slice_{axis}_step"] = 1
@@ -386,46 +383,3 @@ class GlobeRenderingSettings(RenderingSettingsBasic):
                 state.max_time_index_width = math.ceil(
                     0.6 + (math.log10(state.slice_t_max + 1) + 1) * 2 * 0.58
                 )
-
-    @change("slice_t", *[var.format(axis) for axis in XYZ for var in SLICE_VARS])
-    def on_change(self, slice_t, **_):
-        if self.state.import_pending:
-            return
-        source = self._retrieve_source()
-        if source is None:
-            return
-
-        state = self.state
-        slices = {source.t: slice_t}
-        for axis in XYZ:
-            axis_name = getattr(source, axis)
-            if axis_name is None:
-                continue
-
-            if state[f"slice_{axis}_type"] == "range":
-                if state[f"slice_{axis}_range"] is None:
-                    continue
-
-                slices[axis_name] = [
-                    *state[f"slice_{axis}_range"],
-                    int(state[f"slice_{axis}_step"]),
-                ]
-                slices[axis_name][1] += 1  # end is exclusive
-            else:
-                slices[axis_name] = state[f"slice_{axis}_cut"]
-
-        source.slices = slices
-        ds = source()
-        state.dataset_bounds = ds.bounds
-
-        self.ctrl.view_reset_clipping_range()
-        self.ctrl.view_update()
-
-    @change("slice_t")
-    def _on_slice_t(self, slice_t, **_):
-        if self.state.import_pending:
-            return
-        source = self._retrieve_source()
-        if source is not None:
-            source.t_index = slice_t
-            self.ctrl.view_update()
