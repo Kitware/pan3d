@@ -2,20 +2,22 @@ import json
 import traceback
 from pathlib import Path
 
+import numpy as np
+
 from pan3d import catalogs as pan3d_catalogs
 from pan3d.ui.collapsible import CollapsableSection
 from pan3d.ui.css import base, preview
+from pan3d.utils.constants import SLICE_VARS, XYZ
 from pan3d.utils.convert import update_camera
 from pan3d.widgets.color_by import ColorBy
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
-from trame.app import asynchronous, get_server
-from trame.decorators import TrameApp, change
+from trame.app import TrameApp, asynchronous
+from trame.decorators import change
 from trame.widgets import html
 from trame.widgets import vuetify3 as v3
 
 
-@TrameApp()
-class Explorer:
+class Explorer(TrameApp):
     def __init__(self, xarray=None, source=None, server=None, local_rendering=None):
         """
         Parameters:
@@ -32,7 +34,7 @@ class Explorer:
             - `--wasm`: Use WASM for local rendering
             - `--vtkjs`: Use vtk.js for local rendering
         """
-        self.server = get_server(server, client_type="vue3")
+        super().__init__(server, client_type="vue3")
 
         parser = self.server.cli
         explorer = parser.add_argument_group("Explorer Properties")
@@ -129,7 +131,7 @@ class Explorer:
         elif self.xarray is not None:
             self.state.show_data_information = True
             self.ctrl.xr_update_info(self.source.input, self.source.available_arrays)
-            self.ctrl.source_update_rendering_panel(self.source)
+            self.ctx.rendering.update_from_source(self.source)
 
     def start(self, **kwargs):
         """Initialize the UI and start the server for XArray Viewer."""
@@ -184,6 +186,60 @@ class Explorer:
             self.state.data_origin_id_error = False
 
     # -----------------------------------------------------
+    # UI Components
+    # -----------------------------------------------------
+    @change("color_by", "color_preset", "color_min", "color_max", "nan_color")
+    def _on_color_properties_change(self, **_):
+        if self.mapper:
+            self.ctx.rendering.color_by.configure_mapper(self.mapper)
+            self.ctx.scalar_bar.preset = self.state.color_preset
+            self.ctx.scalar_bar.set_color_range(
+                self.state.color_min, self.state.color_max
+            )
+            self.ctrl.view_update()
+
+    @change("slice_t", *[var.format(axis) for axis in XYZ for var in SLICE_VARS])
+    def on_change(self, slice_t, **_):
+        source = self.source
+        if source is None:
+            return
+
+        if self.state.import_pending:
+            return
+
+        slices = {source.t: slice_t}
+        for axis in XYZ:
+            axis_name = getattr(source, axis)
+            if axis_name is None:
+                continue
+
+            if self.state[f"slice_{axis}_type"] == "range":
+                if self.state[f"slice_{axis}_range"] is None:
+                    continue
+                slices[axis_name] = [
+                    *self.state[f"slice_{axis}_range"],
+                    int(self.state[f"slice_{axis}_step"]),
+                ]
+                slices[axis_name][1] += 1  # end is exclusive
+            else:
+                slices[axis_name] = self.state[f"slice_{axis}_cut"]
+
+        source.slices = slices
+        ds = source()
+        self.state.dataset_bounds = ds.bounds
+
+        self.ctrl.view_reset_clipping_range()
+        self.ctrl.view_update()
+
+    @change("slice_t")
+    def _on_slice_t(self, slice_t, **_):
+        if self.state.import_pending:
+            return
+
+        self.source.t_index = slice_t
+        self.ctrl.view_update()
+
+    # -----------------------------------------------------
     # Triggers
     # -----------------------------------------------------
 
@@ -225,7 +281,7 @@ class Explorer:
 
             # Extract UI
             self.ctrl.xr_update_info(self.source.input, self.source.available_arrays)
-            self.ctrl.source_update_rendering_panel(self.source)
+            self.ctx.rendering.update_from_source(self.source)
 
             # no error
             self.state.data_origin_error = False
@@ -696,11 +752,10 @@ class ControlPanel(v3.VCard):
                 self.ctrl[xr_update_info] = DataInformation().update_information
 
 
-@TrameApp()
 class RenderingSettingsBasic(CollapsableSection):
-    def __init__(self, retrieve_source, retrieve_mapper, update_rendering):
-        super().__init__("Rendering", "show_rendering")
-        self._retrieve_source = retrieve_source
+    def __init__(self, source=None, update_rendering=None, **kwargs):
+        super().__init__(self, "Rendering", "show_rendering", **kwargs)
+        self.source = source
 
         with self.content:
             v3.VSelect(
@@ -718,16 +773,62 @@ class RenderingSettingsBasic(CollapsableSection):
                 variant="solo",
             )
             v3.VDivider()
-            ColorBy(retrieve_source=retrieve_source, retrieve_mapper=retrieve_mapper)
+            self.color_by = ColorBy(
+                color_by_name="color_by",
+                preset_name="color_preset",
+                color_min_name="color_min",
+                color_max_name="color_max",
+                nan_color_name="nan_color",
+                reset_color_range=self.reset_color_range,
+            )
+
+    def reset_color_range(self):
+        """Reset the color range to the min and max values of the selected data array."""
+        color_by = self.color_by.color_by
+        ds = self.source()
+        array = (
+            ds.point_data[color_by]
+            if color_by in ds.point_data.keys()
+            else ds.cell_data[color_by]
+            if color_by in ds.cell_data.keys()
+            else None
+        )
+        if array is not None:
+            self.color_by.color_min = float(np.min(array))
+            self.color_by.color_max = float(np.max(array))
+        else:
+            self.color_by.color_min = 0.0
+            self.color_by.color_max = 1.0
+
+        self.ctrl.view_update()
+
+    def _get_array_info(self):
+        if self.source is None or self.source.input is None:
+            return []
+        ds = self.source()
+        array_info = []
+        for association in ["point_data", "cell_data", "field_data"]:
+            arrays = getattr(ds, association, None)
+            if arrays is not None:
+                for array in arrays:
+                    array_info.append(
+                        {
+                            "name": array.GetName(),
+                            "min": np.min(array),
+                            "max": np.max(array),
+                            "assoc": association,
+                        }
+                    )
+        return array_info
 
     @change("data_arrays")
     def _on_array_selection(self, data_arrays, **_):
-        if self.state.import_pending:
-            return
+        # if self.state.import_pending:
+        #    return
         self.state.dirty_data = True
-        source = self._retrieve_source()
-        if source is not None:
-            source.arrays = data_arrays
+        if self.source is not None:
+            self.source.arrays = data_arrays
+        self.color_by.data_arrays = self._get_array_info()
 
     def update_from_source(self, source=None):
         raise NotImplementedError(

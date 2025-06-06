@@ -6,8 +6,8 @@ from trame.widgets import vuetify3 as v3
 class CollapsableSection(AbstractElement):
     id_count = 0
 
-    def __init__(self, title, var_name=None, expended=False):
-        super().__init__(None)
+    def __init__(self, title, var_name=None, expended=False, **kwargs):
+        super().__init__(None, **kwargs)
         CollapsableSection.id_count += 1
         show = var_name or f"show_section_{CollapsableSection.id_count}"
         with v3.VCardSubtitle(

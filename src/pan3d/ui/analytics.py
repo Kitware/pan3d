@@ -6,7 +6,11 @@ from trame.widgets import html, plotly
 from trame.widgets import vuetify3 as v3
 
 try:
+    import logging
+
     import xcdat  # noqa: F401
+
+    logging.getLogger().setLevel(logging.CRITICAL + 1)
 except ModuleNotFoundError as e:
     print(
         f"""

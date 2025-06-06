@@ -7,9 +7,10 @@ from trame.widgets import vuetify3 as v3
 
 
 class SliceRenderingSettings(RenderingSettingsBasic):
-    def __init__(self, retrieve_source, retrieve_mapper, update_rendering):
-        super().__init__(retrieve_source, retrieve_mapper, update_rendering)
-        self._retrieve_source = retrieve_source
+    def __init__(self, source, update_rendering, **kwargs):
+        super().__init__(source, update_rendering, **kwargs)
+
+        self.source = source
 
         style = {"density": "compact", "hide_details": True}
         with self.content:
@@ -168,8 +169,6 @@ class SliceRenderingSettings(RenderingSettingsBasic):
             )
 
     def update_from_source(self, source=None):
-        state = self.state
-        source = source or self._retrieve_source()
         if source is None:
             return
 
@@ -180,7 +179,7 @@ class SliceRenderingSettings(RenderingSettingsBasic):
             0.5 * (bounds[2] + bounds[3]),
             0.5 * (bounds[4] + bounds[5]),
         ]
-        with state:
+        with self.state as state:
             state.data_arrays_available = source.available_arrays
             state.data_arrays = source.arrays
 

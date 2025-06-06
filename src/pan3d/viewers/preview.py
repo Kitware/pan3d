@@ -73,14 +73,6 @@ class XArrayViewer(Explorer):
     # UI
     # -------------------------------------------------------------------------
 
-    def retrieve_mapper(self):
-        """Used as a callback to retrieve the mapper."""
-        return self.mapper
-
-    def retrieve_source(self):
-        """Used as a callback to retrieve the source."""
-        return self.source
-
     def _build_ui(self, **kwargs):
         self.state.trame__title = "XArray Viewer"
 
@@ -95,7 +87,8 @@ class XArrayViewer(Explorer):
             )
 
             # Scalar bar
-            self.scalar_bar = ScalarBar(
+            ScalarBar(
+                ctx_name="scalar_bar",
                 v_show="!control_expended",
                 v_if="color_by",
             )
@@ -155,11 +148,11 @@ class XArrayViewer(Explorer):
                 export_file_download=self.export_state,
                 xr_update_info="xr_update_info",
             ).ui_content:
-                self.ctrl.source_update_rendering_panel = RenderingSettings(
-                    self.retrieve_source,
-                    self.retrieve_mapper,
-                    self.update_rendering,
-                ).update_from_source
+                RenderingSettings(
+                    ctx_name="rendering",
+                    source=self.source,
+                    update_rendering=self.update_rendering,
+                )
 
     # -----------------------------------------------------
     # State change callbacks
@@ -183,22 +176,6 @@ class XArrayViewer(Explorer):
                 self.ctrl.view_update(push_camera=True)
 
             self.ctrl.view_reset_camera()
-
-    @change("color_preset")
-    def _on_preset_change(self, color_preset, **_):
-        self.scalar_bar.preset = color_preset
-
-    @change("color_min", "color_max")
-    def _on_color_range_change(self, color_min, color_max, **_):
-        self.scalar_bar.set_color_range(color_min, color_max)
-
-    @change("data_origin_order")
-    def _on_order_change(self, **_):
-        if self.state.import_pending:
-            return
-
-        self.state.load_button_text = "Load"
-        self.state.can_load = True
 
     # -----------------------------------------------------
     # Triggers

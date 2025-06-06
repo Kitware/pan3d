@@ -22,8 +22,8 @@ from pan3d.ui.globe import GlobeRenderingSettings
 from pan3d.ui.vtk_view import Pan3DView
 from pan3d.utils.common import ControlPanel, Explorer, SummaryToolbar
 from pan3d.utils.globe import get_continent_outlines, get_globe, get_globe_textures
+from pan3d.widgets.scalar_bar import ScalarBar
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
-from src.pan3d.widgets.color_by import ScalarBar
 from trame.decorators import change
 from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import vuetify3 as v3
@@ -133,9 +133,9 @@ class GlobeExplorer(Explorer):
 
             # Scalar bar
             ScalarBar(
+                ctx_name="scalar_bar",
                 v_show="!control_expended",
                 v_if="color_by",
-                img_src="preset_img",
             )
 
             # Save dialog
@@ -194,19 +194,11 @@ class GlobeExplorer(Explorer):
                 xr_update_info="xr_update_info",
                 panel_label="Globe Explorer",
             ).ui_content:
-                self.ctrl.source_update_rendering_panel = GlobeRenderingSettings(
-                    self.retrieve_source,
-                    self.retrieve_mapper,
-                    self.update_rendering,
-                ).update_from_source
-
-    def retrieve_mapper(self):
-        """Used as a callback to retrieve the mapper."""
-        return self.mapper
-
-    def retrieve_source(self):
-        """Used as a callback to retrieve the source."""
-        return self.source
+                GlobeRenderingSettings(
+                    ctx_name="rendering",
+                    source=self.source,
+                    update_rendering=self.update_rendering,
+                )
 
     # -----------------------------------------------------
     # State change callbacks
@@ -259,14 +251,6 @@ class GlobeExplorer(Explorer):
             self.ctrl.view_reset_camera()
         else:
             self.ctrl.view_update()
-
-    @change("color_preset")
-    def _on_preset_change(self, color_preset, **_):
-        self.scalar_bar.preset = color_preset
-
-    @change("color_min", "color_max")
-    def _on_color_range_change(self, color_min, color_max, **_):
-        self.scalar_bar.set_color_range(color_min, color_max)
 
 
 # -----------------------------------------------------------------------------
