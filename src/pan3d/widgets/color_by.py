@@ -1,0 +1,276 @@
+from vtkmodules.vtkCommonCore import vtkLookupTable
+
+from pan3d.utils.convert import to_image
+from pan3d.utils.presets import PRESETS, set_preset
+from trame.widgets import html
+from trame.widgets import vuetify3 as v3
+
+
+class ColorBy(html.Div):
+    """
+    Color settings for the XArray Explorers.
+    """
+
+    _next_id = 0
+
+    @classmethod
+    def next_id(cls):
+        """Get the next unique ID for the scalar bar."""
+        cls._next_id += 1
+        return f"pan3d_scalarbar{cls._next_id}"
+
+    def __init__(
+        self,
+        data_arrays=None,
+        color_by=None,
+        preset="Fast",
+        color_min=0.0,
+        color_max=1.0,
+        nan_color=0,
+        color_by_name=None,
+        preset_name=None,
+        color_min_name=None,
+        color_max_name=None,
+        nan_color_name=None,
+        reset_color_range=None,
+        **kwargs,
+    ):
+        self._lut = vtkLookupTable()
+        super().__init__(**kwargs)
+
+        ns = self.next_id()
+        # Variables that serve and input/output (interactive) can be user specified
+        self.__color_by = color_by_name or f"{ns}_color_by"
+        self.__color_preset = preset_name or f"{ns}_preset"
+        self.__color_min = color_min_name or f"{ns}_color_min"
+        self.__color_max = color_max_name or f"{ns}_color_max"
+        self.__nan_color = nan_color_name or f"{ns}_nan_color"
+
+        # Variables that are only input or only output do not need user specification
+        self.__data_arrays = f"{ns}_data_arrays"
+        self.__preset_image = f"{ns}_preset_img"
+        self.__color_presets = f"{ns}_color_presets"
+
+        # Register changes based on state update within the widget
+        self.state.change(self.__color_preset)(self.set_preset)
+        self.state.change(self.__nan_color)(self.set_nan_color)
+
+        self.data_arrays = data_arrays
+        self.color_by = color_by
+        self.preset = preset
+        self.color_min = color_min
+        self.color_max = color_max
+        self.nan_color = nan_color
+
+        with self:
+            v3.VSelect(
+                placeholder="Color By",
+                prepend_inner_icon="mdi-format-color-fill",
+                v_model=(self.__color_by, None),
+                items=(self.__data_arrays, []),
+                clearable=True,
+                hide_details=True,
+                density="compact",
+                flat=True,
+                variant="solo",
+            )
+            v3.VDivider()
+            with v3.VRow(no_gutters=True, classes="align-center mr-0"):
+                with v3.VCol():
+                    v3.VTextField(
+                        prepend_inner_icon="mdi-water-minus",
+                        v_model_number=(self.__color_min, 0.45),
+                        type="number",
+                        hide_details=True,
+                        density="compact",
+                        flat=True,
+                        variant="solo",
+                        reverse=True,
+                    )
+                with v3.VCol():
+                    v3.VTextField(
+                        prepend_inner_icon="mdi-water-plus",
+                        v_model_number=(self.__color_max, 5.45),
+                        type="number",
+                        hide_details=True,
+                        density="compact",
+                        flat=True,
+                        variant="solo",
+                        reverse=True,
+                    )
+                with html.Div(classes="flex-0"):
+                    v3.VBtn(
+                        icon="mdi-arrow-split-vertical",
+                        size="sm",
+                        density="compact",
+                        flat=True,
+                        variant="outlined",
+                        classes="mx-2",
+                        click=reset_color_range,
+                    )
+            # v3.VDivider()
+            with html.Div(classes="mx-2"):
+                html.Img(
+                    src=(self.__preset_image, None),
+                    style="height: 0.75rem; width: 100%;",
+                    classes="rounded-lg border-thin",
+                )
+            v3.VSelect(
+                placeholder="Color Preset",
+                prepend_inner_icon="mdi-palette",
+                v_model=(self.__color_preset, "Fast"),
+                items=(self.__color_presets, list(PRESETS.keys())),
+                hide_details=True,
+                density="compact",
+                flat=True,
+                variant="solo",
+            )
+
+            with v3.VTooltip(
+                text=("`NaN Color (${nan_colors[nan_color]})`",),
+            ):
+                with html.Template(v_slot_activator="{ props }"):
+                    with v3.VItemGroup(
+                        v_model=self.__nan_color,
+                        v_bind="props",
+                        classes="d-inline-flex ga-1 pa-2",
+                        mandatory="force",
+                    ):
+                        v3.VIcon(
+                            "mdi-eyedropper-variant",
+                            classes="my-auto mx-1 text-medium-emphasis",
+                        )
+                        with v3.VItem(
+                            v_for="(color, i) in nan_colors", key="i", value=("i",)
+                        ):
+                            with v3.Template(
+                                raw_attrs=['#default="{ isSelected, toggle }"']
+                            ):
+                                with v3.VAvatar(
+                                    density="compact",
+                                    color=("isSelected ? 'primary': 'transparent'",),
+                                ):
+                                    v3.VBtn(
+                                        "{{ color[3] < 0.1 ? 't' : '' }}",
+                                        density="compact",
+                                        border="md surface opacity-100",
+                                        color=(
+                                            "color[3] ? `rgb(${color[0] * 255}, ${color[1] * 255}, ${color[2] * 255})` : undefined",
+                                        ),
+                                        flat=True,
+                                        icon=True,
+                                        ripple=False,
+                                        size="small",
+                                        click="toggle",
+                                    )
+
+    @property
+    def data_arrays(self):
+        """Get the data arrays available for coloring."""
+        return self.state[self.__data_arrays]
+
+    @data_arrays.setter
+    def data_arrays(self, value):
+        with self.state:
+            self.state[self.__data_arrays] = value
+            color_by = self.color_by
+            # If the data arrays are empty, set color_by to None
+            if len(value) == 0:
+                self.color_by = None
+            # If the color_by is not in the new data arrays, reset it to the first available
+            elif color_by is None or color_by not in value:
+                self.color_by = value[0]
+
+    @property
+    def color_by(self):
+        return self.state[self.__color_by]
+
+    @color_by.setter
+    def color_by(self, value):
+        with self.state:
+            self.state[self.__color_by] = value
+
+    @property
+    def color_by_name(self):
+        return self.__color_by
+
+    def set_preset(self, **_):
+        """Set the color preset for the scalar bar."""
+        self.preset = self.state[self.__color_preset]
+
+    @property
+    def preset(self):
+        return self._preset
+
+    @preset.setter
+    def preset(self, value):
+        if value not in PRESETS:
+            err_msg = f"Preset '{value}' not found."
+            raise ValueError(err_msg)
+        self._preset = value
+        set_preset(self._lut, value)
+        with self.state:
+            self.state[self.__preset_image] = to_image(self._lut)
+
+    @property
+    def preset_image_name(self):
+        return self.__preset_image
+
+    def set_color_range(self, color_min, color_max):
+        """Set the color range for the scalar bar."""
+        self.state[self.__color_min] = color_min
+        self.state[self.__color_max] = color_max
+
+    @property
+    def color_min(self):
+        return self.state[self.__color_min]
+
+    @color_min.setter
+    def color_min(self, value):
+        with self.state:
+            self.state[self.__color_min] = value
+
+    @property
+    def color_min_name(self):
+        return self.__color_min
+
+    @property
+    def color_max(self):
+        return self.state[self.__color_max]
+
+    @color_max.setter
+    def color_max(self, value):
+        with self.state:
+            self.state[self.__color_max] = value
+
+    @property
+    def color_max_name(self):
+        return self.__color_max
+
+    @property
+    def nan_color(self):
+        nan_colors = self.state.nan_colors
+        nan_color = self.state[self.__nan_color]
+        return nan_colors.get(nan_color, [0, 0, 0, 0])
+
+    @nan_color.setter
+    def nan_color(self, value: int):
+        with self.state:
+            self.state[self.__nan_color] = value
+            nan_color = self.state.nan_colors[value]
+            self._lut.SetNanColor(nan_color)
+
+    def set_nan_color(self, **_):
+        nan_colors = self.state.nan_colors
+        nan_color = nan_colors[self.state[self.__nan_color]]
+        """Set the color for NaN values."""
+        self._lut.SetNanColor(nan_color)
+
+    def configure_mapper(self, mapper, min_value=None, max_value=None):
+        """Configure the color mapper with the current settings."""
+        if min_value is not None:
+            self.color_min = min_value
+        if max_value is not None:
+            self.color_max = max_value
+        mapper.SetScalarRange(self.color_min, self.color_max)
+        mapper.SetLookupTable(self._lut)
