@@ -22,8 +22,8 @@ from pan3d.ui.globe import GlobeRenderingSettings
 from pan3d.ui.vtk_view import Pan3DView
 from pan3d.utils.common import ControlPanel, Explorer, SummaryToolbar
 from pan3d.utils.globe import get_continent_outlines, get_globe, get_globe_textures
+from pan3d.widgets.scalar_bar import ScalarBar
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
-from src.pan3d.widgets.color_by import ScalarBar
 from trame.decorators import change
 from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import vuetify3 as v3
@@ -132,10 +132,9 @@ class GlobeExplorer(Explorer):
             )
 
             # Scalar bar
-            ScalarBar(
+            self.scalar_bar = ScalarBar(
                 v_show="!control_expended",
                 v_if="color_by",
-                img_src="preset_img",
             )
 
             # Save dialog
@@ -194,19 +193,11 @@ class GlobeExplorer(Explorer):
                 xr_update_info="xr_update_info",
                 panel_label="Globe Explorer",
             ).ui_content:
-                self.ctrl.source_update_rendering_panel = GlobeRenderingSettings(
-                    self.retrieve_source,
-                    self.retrieve_mapper,
+                self.rendering = GlobeRenderingSettings(
+                    self.source,
                     self.update_rendering,
-                ).update_from_source
-
-    def retrieve_mapper(self):
-        """Used as a callback to retrieve the mapper."""
-        return self.mapper
-
-    def retrieve_source(self):
-        """Used as a callback to retrieve the source."""
-        return self.source
+                )
+        self.ctrl.source_update_rendering_panel = self.rendering.update_from_source
 
     # -----------------------------------------------------
     # State change callbacks
@@ -236,6 +227,37 @@ class GlobeExplorer(Explorer):
         self.gactor.SetTexture(self.textures[texture])
         self.ctrl.view_update()
 
+    @change("color_by")
+    def _on_color_by_change(self, color_by, **_):
+        if self.source.input is None:
+            return
+        ds = self.source()
+        if color_by not in ds.point_data.keys() and color_by not in ds.cell_data.keys():
+            self.mapper.SetScalarVisibility(0)
+            self.state.color_min = 0
+            self.state.color_max = 1
+        else:
+            array = (
+                ds.point_data[color_by]
+                if color_by in ds.point_data.keys()
+                else ds.cell_data[color_by]
+            )
+            self.mapper.SelectColorArray(color_by)
+            self.mapper.SetScalarModeToUsePointFieldData()
+            self.mapper.InterpolateScalarsBeforeMappingOn()
+            self.mapper.SetScalarVisibility(1)
+            self.rendering.color_by.configure_mapper(self.mapper, *array.GetRange())
+            self.scalar_bar.set_color_range(*array.GetRange())
+
+        self.ctrl.view_update()
+
+    @change("color_preset", "color_min", "color_max", "nan_color")
+    def _on_preset_change(self, color_preset, color_min, color_max, **_):
+        self.rendering.color_by.configure_mapper(self.mapper)
+        self.scalar_bar.preset = color_preset
+        self.scalar_bar.set_color_range(color_min, color_max)
+        self.ctrl.view_update()
+
     def update_rendering(self, reset_camera=False):
         self.state.dirty_data = False
 
@@ -259,14 +281,6 @@ class GlobeExplorer(Explorer):
             self.ctrl.view_reset_camera()
         else:
             self.ctrl.view_update()
-
-    @change("color_preset")
-    def _on_preset_change(self, color_preset, **_):
-        self.scalar_bar.preset = color_preset
-
-    @change("color_min", "color_max")
-    def _on_color_range_change(self, color_min, color_max, **_):
-        self.scalar_bar.set_color_range(color_min, color_max)
 
 
 # -----------------------------------------------------------------------------

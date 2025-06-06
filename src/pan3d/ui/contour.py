@@ -7,10 +7,10 @@ from trame.widgets import vuetify3 as v3
 
 
 class ContourRenderingSettings(RenderingSettingsBasic):
-    def __init__(self, retrieve_source, retrieve_mapper, update_rendering):
-        super().__init__(retrieve_source, retrieve_mapper, update_rendering)
+    def __init__(self, source, update_rendering):
+        super().__init__(source, update_rendering)
 
-        self._retrieve_source = retrieve_source
+        self.source = source
 
         with self.content:
             # Actor scaling
@@ -105,7 +105,7 @@ class ContourRenderingSettings(RenderingSettingsBasic):
                     ):
                         v3.VSlider(
                             prepend_icon="mdi-clock-outline",
-                            v_model=("time_idx", 0),
+                            v_model=("slice_t", 0),
                             min=0,
                             max=("slice_t_max", 0),
                             step=1,

@@ -11,10 +11,10 @@ from trame.widgets import vuetify3 as v3
 
 
 class RenderingSettings(RenderingSettingsBasic):
-    def __init__(self, retrieve_source, retrieve_mapper, update_rendering, **kwargs):
-        super().__init__(retrieve_source, retrieve_mapper, update_rendering, **kwargs)
+    def __init__(self, source, update_rendering, **kwargs):
+        super().__init__(source, update_rendering, **kwargs)
 
-        self._retrieve_source = retrieve_source
+        self.source = source
         self.state.setdefault("slice_extents", {})
         self.state.setdefault("axis_names", [])
         self.state.setdefault("t_labels", [])
@@ -310,8 +310,7 @@ class RenderingSettings(RenderingSettingsBasic):
             )
 
     def update_from_source(self, source=None):
-        if source is None:
-            source = self._retrieve_source()
+        self.source = source or self.source
 
         with self.state:
             self.state.data_arrays_available = source.available_arrays
@@ -382,7 +381,7 @@ class RenderingSettings(RenderingSettingsBasic):
 
     @change("slice_t", *[var.format(axis) for axis in XYZ for var in SLICE_VARS])
     def on_change(self, slice_t, **_):
-        source = self._retrieve_source()
+        source = self.source
         if source is None:
             return
 
@@ -415,25 +414,8 @@ class RenderingSettings(RenderingSettingsBasic):
 
     @change("slice_t")
     def _on_slice_t(self, slice_t, **_):
-        source = self._retrieve_source()
-        if source is None:
-            return
         if self.state.import_pending:
             return
 
-        source.t_index = slice_t
+        self.source.t_index = slice_t
         self.ctrl.view_update()
-
-    @change("data_arrays")
-    def _on_array_selection(self, data_arrays, **_):
-        if self.state.import_pending:
-            return
-
-        self.state.dirty_data = True
-        if len(data_arrays) == 1:
-            self.state.color_by = data_arrays[0]
-        elif len(data_arrays) == 0:
-            self.state.color_by = None
-        source = self._retrieve_source()
-        if source is not None:
-            source.arrays = data_arrays

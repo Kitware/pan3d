@@ -698,9 +698,9 @@ class ControlPanel(v3.VCard):
 
 @TrameApp()
 class RenderingSettingsBasic(CollapsableSection):
-    def __init__(self, retrieve_source, retrieve_mapper, update_rendering):
+    def __init__(self, source, update_rendering):
         super().__init__("Rendering", "show_rendering")
-        self._retrieve_source = retrieve_source
+        self.source = source
 
         with self.content:
             v3.VSelect(
@@ -718,16 +718,43 @@ class RenderingSettingsBasic(CollapsableSection):
                 variant="solo",
             )
             v3.VDivider()
-            ColorBy(retrieve_source=retrieve_source, retrieve_mapper=retrieve_mapper)
+            self.color_by = ColorBy(
+                color_by_name="color_by",
+                preset_name="color_preset",
+                color_min_name="color_min",
+                color_max_name="color_max",
+                nan_color_name="nan_color",
+                reset_color_range=self.reset_color_range,
+            )
+
+    @change("data_arrays")
+    def _on_change_data_arrays(self, data_arrays, **__):
+        self.color_by.data_arrays = data_arrays
+
+    def reset_color_range(self):
+        """Reset the color range to the min and max values of the selected data array."""
+        color_by = self.color_by.color_by
+        ds = self.source()
+
+        if color_by in ds.point_data.keys():  # vtk is missing in iter
+            array = ds.point_data[color_by]
+            min_value, max_value = array.GetRange()
+
+            self.color_by.color_min = min_value
+            self.color_by.color_max = max_value
+        else:
+            self.color_by.color_min = 0
+            self.color_by.color_max = 1
+
+        self.ctrl.view_update()
 
     @change("data_arrays")
     def _on_array_selection(self, data_arrays, **_):
         if self.state.import_pending:
             return
         self.state.dirty_data = True
-        source = self._retrieve_source()
-        if source is not None:
-            source.arrays = data_arrays
+        if self.source is not None:
+            self.source.arrays = data_arrays
 
     def update_from_source(self, source=None):
         raise NotImplementedError(

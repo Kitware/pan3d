@@ -10,9 +10,10 @@ from trame.widgets import vuetify3 as v3
 
 @TrameApp()
 class GlobeRenderingSettings(RenderingSettingsBasic):
-    def __init__(self, retrieve_source, retrieve_mapper, update_rendering):
-        super().__init__(retrieve_source, retrieve_mapper, update_rendering)
-        self._retrieve_source = retrieve_source
+    def __init__(self, source, update_rendering):
+        super().__init__(source, update_rendering)
+
+        self.source = source
 
         with self.content:
             v3.VDivider()
