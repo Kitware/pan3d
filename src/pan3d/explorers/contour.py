@@ -27,8 +27,8 @@ from pan3d.ui.contour import ContourRenderingSettings
 from pan3d.ui.vtk_view import Pan3DView
 from pan3d.utils.common import ControlPanel, Explorer, SummaryToolbar
 from pan3d.utils.convert import to_float
+from pan3d.widgets.scalar_bar import ScalarBar
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
-from src.pan3d.widgets.color_by import ScalarBar
 from trame.decorators import change
 from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import vuetify3 as v3
@@ -144,10 +144,9 @@ class ContourExplorer(Explorer):
             )
 
             # Scalar bar
-            ScalarBar(
+            self.scalar_bar = ScalarBar(
                 v_show="!control_expended",
                 v_if="color_by",
-                img_src="preset_img",
             )
 
             # Save dialog
@@ -207,11 +206,12 @@ class ContourExplorer(Explorer):
                 xr_update_info="xr_update_info",
                 panel_label="Contour Explorer",
             ).ui_content:
-                self.ctrl.source_update_rendering_panel = ContourRenderingSettings(
-                    self.retrieve_source,
-                    self.retrieve_mapper,
+                self.rendering = ContourRenderingSettings(
+                    self.source,
                     self.update_rendering,
-                ).update_from_source
+                )
+
+        self.ctrl.source_update_rendering_panel = self.rendering.update_from_source
 
     def update_rendering(self, reset_camera=False):
         self.renderer.ResetCamera()
@@ -220,14 +220,6 @@ class ContourExplorer(Explorer):
             self.ctrl.view_update(push_camera=True)
 
         self.ctrl.view_reset_camera()
-
-    def retrieve_mapper(self):
-        """Used as a callback to retrieve the mapper."""
-        return self.mapper
-
-    def retrieve_source(self):
-        """Used as a callback to retrieve the source."""
-        return self.source
 
     # -----------------------------------------------------
     # State change callbacks
@@ -252,40 +244,19 @@ class ContourExplorer(Explorer):
 
         self.ctrl.view_reset_camera()
 
-    @change("color_by", "time_idx")
-    def _on_update_data(self, color_by, time_idx, **_):
-        if self.source.input is None:
-            return
-
-        self.source.t_index = time_idx
-        self.source.arrays = [color_by]
+    @change("color_by")
+    def _on_color_by_change(self, color_by, **_):
         self.assign.Assign(
             color_by,
             vtkDataSetAttributes.SCALARS,
             vtkDataObject.FIELD_ASSOCIATION_POINTS,
         )
-        self.mapper.SelectColorArray(color_by)
-        self.mapper.Update()
-        # update range
-        if self.last_field != color_by:
-            self.last_field = color_by
-
-        self.ctrl.view_update()
+        super()._on_color_by_change(color_by)
 
     @change("nb_contours")
-    def _on_update_color_range(
-        self, nb_contours, color_min, color_max, color_preset, **_
-    ):
+    def _on_update_color_range(self, nb_contours, color_min, color_max, **_):
         self.bands.GenerateValues(nb_contours, [color_min, color_max])
         self.ctrl.view_update()
-
-    @change("color_preset")
-    def _on_preset_change(self, color_preset, **_):
-        self.scalar_bar.preset = color_preset
-
-    @change("color_min", "color_max")
-    def _on_color_range_change(self, color_min, color_max, **_):
-        self.scalar_bar.set_color_range(color_min, color_max)
 
 
 def main():

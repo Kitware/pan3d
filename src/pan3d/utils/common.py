@@ -5,6 +5,7 @@ from pathlib import Path
 from pan3d import catalogs as pan3d_catalogs
 from pan3d.ui.collapsible import CollapsableSection
 from pan3d.ui.css import base, preview
+from pan3d.utils.constants import SLICE_VARS, XYZ
 from pan3d.utils.convert import update_camera
 from pan3d.widgets.color_by import ColorBy
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
@@ -182,6 +183,76 @@ class Explorer:
             self.state.data_origin_id_error = not Path(data_origin_id).exists()
         elif self.state.data_origin_id_error:
             self.state.data_origin_id_error = False
+
+    # -----------------------------------------------------
+    # UI Components
+    # -----------------------------------------------------
+    @change("color_by")
+    def _on_color_by_change(self, color_by, **_):
+        if self.source is None or self.source.input is None:
+            return
+        ds = self.source()
+        if color_by not in ds.point_data.keys() and color_by not in ds.cell_data.keys():
+            self.mapper.SetScalarVisibility(0)
+        else:
+            self.mapper.SetScalarVisibility(1)
+            array = (
+                ds.point_data[color_by]
+                if color_by in ds.point_data.keys()
+                else ds.cell_data[color_by]
+            )
+            self._on_preset_change(self.state.color_preset, *array.GetRange())
+            self.ctrl.view_update()
+
+    @change("color_preset", "color_min", "color_max", "nan_color")
+    def _on_preset_change(self, color_preset, color_min, color_max, **_):
+        if self.mapper:
+            self.rendering.color_by.configure_mapper(self.mapper, color_min, color_max)
+            print(self.ctx.scalar_bar)
+            self.scalar_bar.preset = color_preset
+            self.scalar_bar.set_color_range(color_min, color_max)
+            self.ctrl.view_update()
+
+    @change("slice_t", *[var.format(axis) for axis in XYZ for var in SLICE_VARS])
+    def on_change(self, slice_t, **_):
+        source = self.source
+        if source is None:
+            return
+
+        if self.state.import_pending:
+            return
+
+        slices = {source.t: slice_t}
+        for axis in XYZ:
+            axis_name = getattr(source, axis)
+            if axis_name is None:
+                continue
+
+            if self.state[f"slice_{axis}_type"] == "range":
+                if self.state[f"slice_{axis}_range"] is None:
+                    continue
+                slices[axis_name] = [
+                    *self.state[f"slice_{axis}_range"],
+                    int(self.state[f"slice_{axis}_step"]),
+                ]
+                slices[axis_name][1] += 1  # end is exclusive
+            else:
+                slices[axis_name] = self.state[f"slice_{axis}_cut"]
+
+        source.slices = slices
+        ds = source()
+        self.state.dataset_bounds = ds.bounds
+
+        self.ctrl.view_reset_clipping_range()
+        self.ctrl.view_update()
+
+    @change("slice_t")
+    def _on_slice_t(self, slice_t, **_):
+        if self.state.import_pending:
+            return
+
+        self.source.t_index = slice_t
+        self.ctrl.view_update()
 
     # -----------------------------------------------------
     # Triggers
@@ -698,9 +769,9 @@ class ControlPanel(v3.VCard):
 
 @TrameApp()
 class RenderingSettingsBasic(CollapsableSection):
-    def __init__(self, retrieve_source, retrieve_mapper, update_rendering):
-        super().__init__("Rendering", "show_rendering")
-        self._retrieve_source = retrieve_source
+    def __init__(self, source, update_rendering, **kwargs):
+        super().__init__("Rendering", "show_rendering", **kwargs)
+        self.source = source
 
         with self.content:
             v3.VSelect(
@@ -718,16 +789,43 @@ class RenderingSettingsBasic(CollapsableSection):
                 variant="solo",
             )
             v3.VDivider()
-            ColorBy(retrieve_source=retrieve_source, retrieve_mapper=retrieve_mapper)
+            self.color_by = ColorBy(
+                color_by_name="color_by",
+                preset_name="color_preset",
+                color_min_name="color_min",
+                color_max_name="color_max",
+                nan_color_name="nan_color",
+                reset_color_range=self.reset_color_range,
+            )
+
+    @change("data_arrays")
+    def _on_change_data_arrays(self, data_arrays, **__):
+        self.color_by.data_arrays = data_arrays
+
+    def reset_color_range(self):
+        """Reset the color range to the min and max values of the selected data array."""
+        color_by = self.color_by.color_by
+        ds = self.source()
+
+        if color_by in ds.point_data.keys():  # vtk is missing in iter
+            array = ds.point_data[color_by]
+            min_value, max_value = array.GetRange()
+
+            self.color_by.color_min = min_value
+            self.color_by.color_max = max_value
+        else:
+            self.color_by.color_min = 0
+            self.color_by.color_max = 1
+
+        self.ctrl.view_update()
 
     @change("data_arrays")
     def _on_array_selection(self, data_arrays, **_):
         if self.state.import_pending:
             return
         self.state.dirty_data = True
-        source = self._retrieve_source()
-        if source is not None:
-            source.arrays = data_arrays
+        if self.source is not None:
+            self.source.arrays = data_arrays
 
     def update_from_source(self, source=None):
         raise NotImplementedError(

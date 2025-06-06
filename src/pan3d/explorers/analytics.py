@@ -18,7 +18,8 @@ from pan3d.ui.preview import RenderingSettings
 from pan3d.ui.vtk_view import Pan3DView
 from pan3d.utils.common import ControlPanel, Explorer, SummaryToolbar
 from pan3d.utils.convert import to_float
-from src.pan3d.widgets.color_by import ScalarBar
+from pan3d.widgets.scalar_bar import ScalarBar
+from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 from trame.decorators import change
 from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import html
@@ -46,6 +47,11 @@ class AnalyticsExplorer(Explorer):
         """Create an instance of the AnalyticsExplorer class."""
         super().__init__(xarray, source, server, local_rendering)
 
+        if self.source is None:
+            self.source = vtkXArrayRectilinearSource(
+                input=self.xarray
+            )  # To initialize the pipeline
+
         self.ui = None
         self._setup_vtk()
         self._build_ui()
@@ -70,6 +76,9 @@ class AnalyticsExplorer(Explorer):
         self.mapper = vtkPolyDataMapper(
             input_connection=self.geometry.output_port,
         )
+        self.mapper.SetScalarModeToUsePointFieldData()
+        self.mapper.InterpolateScalarsBeforeMappingOn()
+
         self.actor = vtkActor(mapper=self.mapper, visibility=0)
 
         self.interactor.Initialize()
@@ -124,7 +133,6 @@ class AnalyticsExplorer(Explorer):
                             label="File path to save",
                             v_model=("save_dataset_path", ""),
                             hide_details=True,
-                            change=self.property_changed,
                         )
                     with v3.VCardActions():
                         v3.VSpacer()
@@ -168,10 +176,10 @@ class AnalyticsExplorer(Explorer):
                         )
 
                         # Scalar bar
-                        ScalarBar(
+                        self.scalar_bar = ScalarBar(
                             v_show="!control_expended",
                             v_if="color_by",
-                            img_src="preset_img",
+                            ctx_name="scalar_bar",
                         )
 
                         #  # Summary toolbar
@@ -190,11 +198,13 @@ class AnalyticsExplorer(Explorer):
                             xr_update_info="xr_update_info",
                             panel_label="Analytics Explorer",
                         ).ui_content:
-                            self.ctrl.source_update_rendering_panel = RenderingSettings(
-                                self.retrieve_source,
-                                self.retrieve_mapper,
-                                self.update_rendering,
-                            ).update_from_source
+                            self.rendering = RenderingSettings(
+                                source=self.source,
+                                update_rendering=self.update_rendering,
+                            )
+                            self.ctrl.source_update_rendering_panel = (
+                                self.rendering.update_from_source
+                            )
 
                 with v3.VNavigationDrawer(
                     disable_resize_watcher=True,
@@ -208,29 +218,15 @@ class AnalyticsExplorer(Explorer):
                         source=self.source, toggle="chart_expanded"
                     )
 
-    def retrieve_mapper(self):
-        """Used as a callback to retrieve the mapper."""
-        return self.mapper
-
-    def retrieve_source(self):
-        """Used as a callback to retrieve the source."""
-        return self.source
-
     # -----------------------------------------------------
     # State change callbacks
     # -----------------------------------------------------
 
     @change("color_by")
-    def _on_color_by(self, **__):
+    def _on_color_by_change(self, color_by, **_):
+        print(f"ANALYTICS Color by changed to: {color_by}")
+        super()._on_color_by_change(color_by, **_)
         self.plotting.update_plot()
-
-    @change("color_preset")
-    def _on_preset_change(self, color_preset, **_):
-        self.scalar_bar.preset = color_preset
-
-    @change("color_min", "color_max")
-    def _on_color_range_change(self, color_min, color_max, **_):
-        self.scalar_bar.set_color_range(color_min, color_max)
 
     @change("scale_x", "scale_y", "scale_z")
     def _on_scale_change(self, scale_x, scale_y, scale_z, **_):
