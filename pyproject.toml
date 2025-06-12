@@ -34,6 +34,7 @@ classifiers = [
 [project.optional-dependencies]
 viewer = [
     "trame>=3.9",
+    "trame-client>=3.9.1",
     "trame-vtk>=2.8.15",
     "trame-vtklocal>=0.12.2",
     "trame-vuetify>=3.0.1",
@@ -52,6 +53,7 @@ pangeo = [
 all = [
     # viewers/explorers
     "trame>=3.9",
+    "trame-client>=3.9.1",
     "trame-vtk>=2.8.15",
     "trame-vtklocal>=0.12.2",
     "trame-vuetify>=3.0.1",

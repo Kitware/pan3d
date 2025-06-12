@@ -5,8 +5,9 @@ from pathlib import Path
 from pan3d import catalogs as pan3d_catalogs
 from pan3d.ui.collapsible import CollapsableSection
 from pan3d.ui.css import base, preview
+from pan3d.utils.constants import SLICE_VARS, XYZ
 from pan3d.utils.convert import update_camera
-from pan3d.utils.presets import PRESETS
+from pan3d.widgets.color_by import ColorBy
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 from trame.app import asynchronous, get_server
 from trame.decorators import TrameApp, change
@@ -182,6 +183,76 @@ class Explorer:
             self.state.data_origin_id_error = not Path(data_origin_id).exists()
         elif self.state.data_origin_id_error:
             self.state.data_origin_id_error = False
+
+    # -----------------------------------------------------
+    # UI Components
+    # -----------------------------------------------------
+    @change("color_by")
+    def _on_color_by_change(self, color_by, **_):
+        if self.source is None or self.source.input is None:
+            return
+        ds = self.source()
+        if color_by not in ds.point_data.keys() and color_by not in ds.cell_data.keys():
+            self.mapper.SetScalarVisibility(0)
+        else:
+            self.mapper.SetScalarVisibility(1)
+            array = (
+                ds.point_data[color_by]
+                if color_by in ds.point_data.keys()
+                else ds.cell_data[color_by]
+            )
+            self._on_preset_change(self.state.color_preset, *array.GetRange())
+            self.ctrl.view_update()
+
+    @change("color_preset", "color_min", "color_max", "nan_color")
+    def _on_preset_change(self, color_preset, color_min, color_max, **_):
+        if self.mapper:
+            self.rendering.color_by.configure_mapper(self.mapper, color_min, color_max)
+            print(self.ctx.scalar_bar)
+            self.scalar_bar.preset = color_preset
+            self.scalar_bar.set_color_range(color_min, color_max)
+            self.ctrl.view_update()
+
+    @change("slice_t", *[var.format(axis) for axis in XYZ for var in SLICE_VARS])
+    def on_change(self, slice_t, **_):
+        source = self.source
+        if source is None:
+            return
+
+        if self.state.import_pending:
+            return
+
+        slices = {source.t: slice_t}
+        for axis in XYZ:
+            axis_name = getattr(source, axis)
+            if axis_name is None:
+                continue
+
+            if self.state[f"slice_{axis}_type"] == "range":
+                if self.state[f"slice_{axis}_range"] is None:
+                    continue
+                slices[axis_name] = [
+                    *self.state[f"slice_{axis}_range"],
+                    int(self.state[f"slice_{axis}_step"]),
+                ]
+                slices[axis_name][1] += 1  # end is exclusive
+            else:
+                slices[axis_name] = self.state[f"slice_{axis}_cut"]
+
+        source.slices = slices
+        ds = source()
+        self.state.dataset_bounds = ds.bounds
+
+        self.ctrl.view_reset_clipping_range()
+        self.ctrl.view_update()
+
+    @change("slice_t")
+    def _on_slice_t(self, slice_t, **_):
+        if self.state.import_pending:
+            return
+
+        self.source.t_index = slice_t
+        self.ctrl.view_update()
 
     # -----------------------------------------------------
     # Triggers
@@ -453,19 +524,6 @@ class DataOrigin(CollapsableSection):
                         flat=True,
                         variant="solo",
                     )
-
-            # v3.VDivider()
-            # v3.VSwitch(
-            #     label=("`Order ${data_origin_order}`",),
-            #     v_model=("data_origin_order", "C"),
-            #     true_value="C",
-            #     false_value="F",
-            #     hide_details=True,
-            #     density="compact",
-            #     flat=True,
-            #     variant="solo",
-            #     classes="mx-6",
-            # )
             v3.VDivider()
             v3.VBtn(
                 "{{ load_button_text }}",
@@ -711,10 +769,10 @@ class ControlPanel(v3.VCard):
 
 @TrameApp()
 class RenderingSettingsBasic(CollapsableSection):
-    def __init__(self, source, update_rendering):
-        super().__init__("Rendering", "show_rendering")
-
+    def __init__(self, source, update_rendering, **kwargs):
+        super().__init__("Rendering", "show_rendering", **kwargs)
         self.source = source
+
         with self.content:
             v3.VSelect(
                 placeholder="Data arrays",
@@ -731,132 +789,43 @@ class RenderingSettingsBasic(CollapsableSection):
                 variant="solo",
             )
             v3.VDivider()
-            v3.VSelect(
-                placeholder="Color By",
-                prepend_inner_icon="mdi-format-color-fill",
-                v_model=("color_by", None),
-                items=("data_arrays", []),
-                clearable=True,
-                hide_details=True,
-                density="compact",
-                flat=True,
-                variant="solo",
-            )
-            v3.VDivider()
-            with v3.VRow(no_gutters=True, classes="align-center mr-0"):
-                with v3.VCol():
-                    v3.VTextField(
-                        prepend_inner_icon="mdi-water-minus",
-                        v_model_number=("color_min", 0.45),
-                        type="number",
-                        hide_details=True,
-                        density="compact",
-                        flat=True,
-                        variant="solo",
-                        reverse=True,
-                    )
-                with v3.VCol():
-                    v3.VTextField(
-                        prepend_inner_icon="mdi-water-plus",
-                        v_model_number=("color_max", 5.45),
-                        type="number",
-                        hide_details=True,
-                        density="compact",
-                        flat=True,
-                        variant="solo",
-                        reverse=True,
-                    )
-                with html.Div(classes="flex-0"):
-                    v3.VBtn(
-                        icon="mdi-arrow-split-vertical",
-                        size="sm",
-                        density="compact",
-                        flat=True,
-                        variant="outlined",
-                        classes="mx-2",
-                        click=self.reset_color_range,
-                    )
-            # v3.VDivider()
-            with html.Div(classes="mx-2"):
-                html.Img(
-                    src=("preset_img", None),
-                    style="height: 0.75rem; width: 100%;",
-                    classes="rounded-lg border-thin",
-                )
-            v3.VSelect(
-                placeholder="Color Preset",
-                prepend_inner_icon="mdi-palette",
-                v_model=("color_preset", "Fast"),
-                items=("color_presets", list(PRESETS.keys())),
-                hide_details=True,
-                density="compact",
-                flat=True,
-                variant="solo",
+            self.color_by = ColorBy(
+                color_by_name="color_by",
+                preset_name="color_preset",
+                color_min_name="color_min",
+                color_max_name="color_max",
+                nan_color_name="nan_color",
+                reset_color_range=self.reset_color_range,
             )
 
-            with v3.VTooltip(
-                text=("`NaN Color (${nan_colors[nan_color]})`",),
-            ):
-                with html.Template(v_slot_activator="{ props }"):
-                    with v3.VItemGroup(
-                        v_model="nan_color",
-                        v_bind="props",
-                        classes="d-inline-flex ga-1 pa-2",
-                        mandatory="force",
-                    ):
-                        v3.VIcon(
-                            "mdi-eyedropper-variant",
-                            classes="my-auto mx-1 text-medium-emphasis",
-                        )
-                        with v3.VItem(
-                            v_for="(color, i) in nan_colors", key="i", value=("i",)
-                        ):
-                            with v3.Template(
-                                raw_attrs=['#default="{ isSelected, toggle }"']
-                            ):
-                                with v3.VAvatar(
-                                    density="compact",
-                                    color=("isSelected ? 'primary': 'transparent'",),
-                                ):
-                                    v3.VBtn(
-                                        "{{ color[3] < 0.1 ? 't' : '' }}",
-                                        density="compact",
-                                        border="md surface opacity-100",
-                                        color=(
-                                            "color[3] ? `rgb(${color[0] * 255}, ${color[1] * 255}, ${color[2] * 255})` : undefined",
-                                        ),
-                                        flat=True,
-                                        icon=True,
-                                        ripple=False,
-                                        size="small",
-                                        click="toggle",
-                                    )
+    @change("data_arrays")
+    def _on_change_data_arrays(self, data_arrays, **__):
+        self.color_by.data_arrays = data_arrays
+
+    def reset_color_range(self):
+        """Reset the color range to the min and max values of the selected data array."""
+        color_by = self.color_by.color_by
+        ds = self.source()
+
+        if color_by in ds.point_data.keys():  # vtk is missing in iter
+            array = ds.point_data[color_by]
+            min_value, max_value = array.GetRange()
+
+            self.color_by.color_min = min_value
+            self.color_by.color_max = max_value
+        else:
+            self.color_by.color_min = 0
+            self.color_by.color_max = 1
+
+        self.ctrl.view_update()
 
     @change("data_arrays")
     def _on_array_selection(self, data_arrays, **_):
         if self.state.import_pending:
             return
-
         self.state.dirty_data = True
-        if len(data_arrays) == 0:
-            self.state.color_by = None
-        elif self.state.color_by is None or self.state.color_by not in data_arrays:
-            self.state.color_by = data_arrays[0]
-
-        self.source.arrays = data_arrays
-
-    def reset_color_range(self):
-        color_by = self.state.color_by
-        ds = self.source()
-        if color_by in ds.point_data.keys():  # vtk is missing in iter
-            array = ds.point_data[color_by]
-            min_value, max_value = array.GetRange()
-
-            self.state.color_min = min_value
-            self.state.color_max = max_value
-        else:
-            self.state.color_min = 0
-            self.state.color_max = 1
+        if self.source is not None:
+            self.source.arrays = data_arrays
 
     def update_from_source(self, source=None):
         raise NotImplementedError(
