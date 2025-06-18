@@ -142,16 +142,6 @@ class Explorer(TrameApp):
         """Start and wait for the XArray Viewer corroutine to be ready."""
         await self.ui.ready
 
-    @property
-    def state(self):
-        """Returns the current the trame server state."""
-        return self.server.state
-
-    @property
-    def ctrl(self):
-        """Returns the Controller for the trame server."""
-        return self.server.controller
-
     @change("data_origin_order")
     def _on_order_change(self, **_):
         if self.state.import_pending:
@@ -383,13 +373,6 @@ class Explorer(TrameApp):
         """
         self.state.show_save_dialog = False
         return asynchronous.create_task(self._save_dataset(file_path))
-
-    async def _async_display(self):
-        await self.ui.ready
-        self.ui._ipython_display_()
-
-    def _ipython_display_(self):
-        asynchronous.create_task(self._async_display())
 
 
 class SummaryToolbar(v3.VCard):
@@ -802,25 +785,6 @@ class RenderingSettingsBasic(CollapsableSection):
 
         self.ctrl.view_update()
 
-    def _get_array_info(self):
-        if self.source is None or self.source.input is None:
-            return []
-        ds = self.source()
-        array_info = []
-        for association in ["point_data", "cell_data", "field_data"]:
-            arrays = getattr(ds, association, None)
-            if arrays is not None:
-                for array in arrays:
-                    array_info.append(
-                        {
-                            "name": array.GetName(),
-                            "min": np.min(array),
-                            "max": np.max(array),
-                            "assoc": association,
-                        }
-                    )
-        return array_info
-
     @change("data_arrays")
     def _on_array_selection(self, data_arrays, **_):
         # if self.state.import_pending:
@@ -828,7 +792,11 @@ class RenderingSettingsBasic(CollapsableSection):
         self.state.dirty_data = True
         if self.source is not None:
             self.source.arrays = data_arrays
-        self.color_by.data_arrays = self._get_array_info()
+
+        if self.source is None or self.source.input is None:
+            self.color_by.data_arrays = []
+        else:
+            self.color_by.set_data_arrays_from_vtk(self.source())
 
     def update_from_source(self, source=None):
         raise NotImplementedError(

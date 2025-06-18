@@ -1,5 +1,6 @@
 from typing import Optional
 
+import numpy as np
 from vtkmodules.vtkCommonCore import vtkLookupTable
 
 from pan3d.utils.convert import to_image
@@ -353,6 +354,30 @@ class ColorBy(html.Div):
         nan_colors = self.state.nan_colors
         nan_color = nan_colors[self.state[self.__nan_color]]
         self._lut.SetNanColor(nan_color)
+
+    def set_data_arrays_from_vtk(self, dataset, associations=None):
+        """Inspect dataset to extract arrays metadata. Only works with scalar fields."""
+        if dataset is None:
+            self.data_arrays = []
+            return
+
+        array_info = []
+        if associations is None:
+            associations = [POINT_DATA, CELL_DATA, FIELD_DATA]
+
+        for association in associations:
+            arrays = getattr(dataset, association, None)
+            if arrays is not None:
+                for array in arrays:
+                    array_info.append(
+                        {
+                            "name": array.GetName(),
+                            "min": np.min(array),
+                            "max": np.max(array),
+                            "assoc": association,
+                        }
+                    )
+        self.data_arrays = array_info
 
     def configure_mapper(self, mapper):
         """Configure the color mapper with the current settings for any data association."""
