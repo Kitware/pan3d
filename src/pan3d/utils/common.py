@@ -18,9 +18,13 @@ from trame.widgets import vuetify3 as v3
 
 
 class Explorer(TrameApp):
-    def __init__(self, xarray=None, source=None, server=None, local_rendering=None):
+    def __init__(self, xarray=None, source=None, pipeline=None, server=None, local_rendering=None):
         """
         Parameters:
+            xarray : An instance of a xarray dataset
+            source : vtkXArrayRectilinearSource or another VTKAlgorithm wrapper over the xarray dataset
+            pipeline: List of instantiated VTK filters to be appended to the explorer's pipeline
+                      The filters must be limited to single source, and variables available on the xarray data
             server (str/server): Trame server name or instance.
             local_rendering (str): If provided (wasm, vtkjs) local rendering will be used
 

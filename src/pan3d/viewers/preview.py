@@ -27,19 +27,21 @@ from trame.widgets import vuetify3 as v3
 class XArrayViewer(Explorer):
     """Create a Trame GUI for a Pan3D XArray Viewer"""
 
-    def __init__(self, xarray=None, source=None, server=None, local_rendering=None):
+    def __init__(
+        self, xarray=None, source=None, pipeline=None, server=None, local_rendering=None
+    ):
         """Create an instance of the XArrayViewer class."""
-        super().__init__(xarray, source, server, local_rendering)
+        super().__init__(xarray, source, pipeline, server, local_rendering)
         self.xarray = xarray
 
-        self._setup_vtk()
+        self._setup_vtk(pipeline)
         self._build_ui()
 
     # -------------------------------------------------------------------------
     # VTK Setup
     # -------------------------------------------------------------------------
 
-    def _setup_vtk(self):
+    def _setup_vtk(self, pipeline):
         self.renderer = vtkRenderer(background=(0.8, 0.8, 0.8))
         self.interactor = vtkRenderWindowInteractor()
         self.render_window = vtkRenderWindow(off_screen_rendering=1)
@@ -50,10 +52,13 @@ class XArrayViewer(Explorer):
 
         self.source = vtkXArrayRectilinearSource(input=self.xarray)
 
-        # Need explicit geometry extraction when used with WASM
-        self.geometry = vtkDataSetSurfaceFilter(
-            input_connection=self.source.output_port
-        )
+        tail = self.source
+        if pipeline and len(pipeline) > 0:
+            for filter in pipeline:
+                filter.input_connection = tail.output_port
+                tail = filter
+        self.geometry = vtkDataSetSurfaceFilter(input_connection=tail.output_port)
+
         self.mapper = vtkPolyDataMapper(
             input_connection=self.geometry.output_port,
         )
