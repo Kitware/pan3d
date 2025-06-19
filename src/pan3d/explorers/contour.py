@@ -5,7 +5,7 @@ from vtkmodules.vtkFiltersCore import (
     vtkCellDataToPointData,
     vtkTriangleFilter,
 )
-from vtkmodules.vtkFiltersGeometry import vtkDataSetSurfaceFilter
+from vtkmodules.vtkFiltersGeometry import vtkGeometryFilter
 from vtkmodules.vtkFiltersModeling import (
     vtkBandedPolyDataContourFilter,
     vtkLoopSubdivisionFilter,
@@ -35,8 +35,10 @@ from trame.widgets import vuetify3 as v3
 
 
 class ContourExplorer(Explorer):
-    def __init__(self, xarray=None, source=None, server=None, local_rendering=None):
-        super().__init__(xarray, source, server, local_rendering)
+    def __init__(
+        self, xarray=None, source=None, pipeline=None, server=None, local_rendering=None
+    ):
+        super().__init__(xarray, source, server, pipeline, local_rendering)
 
         if self.source is None:
             self.source = vtkXArrayRectilinearSource(
@@ -47,14 +49,14 @@ class ContourExplorer(Explorer):
         self.last_field = None
         self.last_preset = None
 
-        self._setup_vtk()
+        self._setup_vtk(pipeline)
         self._build_ui()
 
     # -------------------------------------------------------------------------
     # VTK Setup
     # -------------------------------------------------------------------------
 
-    def _setup_vtk(self):
+    def _setup_vtk(self, pipeline=None):
         ds = self.source()
 
         self.renderer = vtkRenderer(background=(0.8, 0.8, 0.8))
@@ -66,9 +68,8 @@ class ContourExplorer(Explorer):
         self.interactor.GetInteractorStyle().SetCurrentStyleToTrackballCamera()
 
         # Need explicit geometry extraction when used with WASM
-        self.geometry = vtkDataSetSurfaceFilter(
-            input_connection=self.source.output_port
-        )
+        tail = self.extend_pipeline(head=self.source, pipeline=pipeline)
+        self.geometry = vtkGeometryFilter(input_connection=tail.output_port)
         self.triangle = vtkTriangleFilter(input_connection=self.geometry.output_port)
         self.cell2point = vtkCellDataToPointData(
             input_connection=self.triangle.output_port

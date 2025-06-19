@@ -142,15 +142,17 @@ class SliceExplorer(Explorer):
     using VTK while interacting with the slice in 2D or 3D.
     """
 
-    def __init__(self, xarray=None, source=None, server=None, local_rendering=None):
-        super().__init__(xarray, source, server, local_rendering)
+    def __init__(
+        self, xarray=None, source=None, pipeline=None, server=None, local_rendering=None
+    ):
+        super().__init__(xarray, source, pipeline, server, local_rendering)
         if self.source is None:
             self.source = vtkXArrayRectilinearSource()  # To initialize the pipeline
 
-        self._setup_vtk()
+        self._setup_vtk(pipeline)
         self._build_ui()
 
-    def _setup_vtk(self):
+    def _setup_vtk(self, pipeline=None):
         ds = self.source()
         bounds = ds.bounds
         self.normal = [0, 0, 1]
@@ -165,12 +167,14 @@ class SliceExplorer(Explorer):
         self.interactor = vtkRenderWindowInteractor()
         self.render_window = vtkRenderWindow()
 
+        tail = self.extend_pipeline(head=self.source, pipeline=pipeline)
+
         plane = vtkPlane()
         plane.SetOrigin(self.origin)
         plane.SetNormal(self.normal)
         cutter = vtkCutter()
         cutter.SetCutFunction(plane)
-        cutter.input_connection = self.source.output_port
+        cutter.input_connection = tail.output_port
         slice_actor = vtkActor()
         slice_mapper = vtkDataSetMapper()
         slice_mapper.SetInputConnection(cutter.GetOutputPort())

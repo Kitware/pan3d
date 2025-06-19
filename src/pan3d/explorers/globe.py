@@ -1,6 +1,6 @@
 import vtkmodules.vtkRenderingOpenGL2  # noqa: F401
 from vtkmodules.vtkCommonCore import vtkObject
-from vtkmodules.vtkFiltersGeometry import vtkDataSetSurfaceFilter
+from vtkmodules.vtkFiltersGeometry import vtkGeometryFilter
 
 # VTK factory initialization
 from vtkmodules.vtkInteractionStyle import (
@@ -41,21 +41,23 @@ class GlobeExplorer(Explorer):
     relevant data and visualizes it using VTK while interacting with the slice in 2D or 3D.
     """
 
-    def __init__(self, xarray=None, source=None, server=None, local_rendering=None):
-        super().__init__(xarray, source, server, local_rendering)
+    def __init__(
+        self, xarray=None, source=None, pipeline=None, server=None, local_rendering=None
+    ):
+        super().__init__(xarray, source, pipeline, server, local_rendering)
         if self.source is None:
             self.source = vtkXArrayRectilinearSource()  # To initialize the pipeline
         self.textures = get_globe_textures()
         self.state.textures = list(self.textures.keys())
 
-        self._setup_vtk()
+        self._setup_vtk(pipeline)
         self._build_ui()
 
     # -------------------------------------------------------------------------
     # VTK Setup
     # -------------------------------------------------------------------------
 
-    def _setup_vtk(self):
+    def _setup_vtk(self, pipeline=None):
         self.renderer = vtkRenderer(background=(0.8, 0.8, 0.8))
         self.interactor = vtkRenderWindowInteractor()
         self.render_window = vtkRenderWindow(off_screen_rendering=1)
@@ -72,14 +74,14 @@ class GlobeExplorer(Explorer):
         self.cmapper = vtkPolyDataMapper(input_data_object=self.continents)
         self.cactor = vtkActor(mapper=self.cmapper, visibility=1)
 
+        tail = self.extend_pipeline(head=self.source, pipeline=pipeline)
+
         dglobe = ProjectToSphere()
         dglobe.isData = True
-        dglobe.input_connection = self.source.output_port
+        dglobe.input_connection = tail.output_port
         self.dglobe = dglobe
         # Need explicit geometry extraction when used with WASM
-        self.geometry = vtkDataSetSurfaceFilter(
-            input_connection=self.dglobe.output_port
-        )
+        self.geometry = vtkGeometryFilter(input_connection=self.dglobe.output_port)
 
         self.mapper = vtkPolyDataMapper(input_connection=self.geometry.output_port)
         self.actor = vtkActor(mapper=self.mapper, visibility=0)
