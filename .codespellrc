@@ -1,3 +1,3 @@
 [codespell]
 skip = CHANGELOG.md,tests/data/*
-ignore-words-list = watermask
+ignore-words-list = watermask, fo
