@@ -371,7 +371,7 @@ class ColorBy(html.Div):
                 for array in arrays:
                     array_info.append(
                         {
-                            "name": array.GetName(),
+                            "name": array.VTKObject.GetName(),
                             "min": np.min(array),
                             "max": np.max(array),
                             "assoc": association,
