@@ -368,10 +368,17 @@ class ColorBy(html.Div):
         for association in associations:
             arrays = getattr(dataset, association, None)
             if arrays is not None:
-                for array in arrays:
+                for inst in arrays:
+                    if isinstance(inst, str):  # VTK 9.5 returns array names
+                        array_name = inst
+                        array = arrays[array_name]
+                    else:
+                        array = inst  # VTK 9.4 returns array instances
+                        array_name = array.GetName()
+                    # Now array is guaranteed to be the actual array object
                     array_info.append(
                         {
-                            "name": array.VTKObject.GetName(),
+                            "name": array_name,
                             "min": np.min(array),
                             "max": np.max(array),
                             "assoc": association,
