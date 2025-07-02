@@ -223,22 +223,20 @@ class Plotting(v3.VCard):
         """
         Calculate spatial average for data for full temporal resoulution
         """
-        if axis is None:
-            axis = ["X"]
-
         ds = self.source.input
         active_var = self.state.color_by
-
         select = self.get_selection_criteria(full_temporal=True)
-        average = (
-            ds.isel(select).spatial.average(active_var, axis)
-            if axis is not None
-            else ds.isel(select).spatial.average(active_var)
-        )
-
+        # Apply spatial average
+        if axis is not None:
+            average = ds.isel(select).spatial.average(active_var, axis)
+        else:
+            average = ds.isel(select).spatial.average(active_var)
+        # Optionally apply temporal grouping
         group_by = self.state.group_by
+
         if group_by == group_options.get(GroupBy.NONE):
             return average
+
         return average.temporal.group_average(
             active_var, freq=group_by.lower(), weighted=True
         )
