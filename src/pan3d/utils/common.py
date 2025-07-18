@@ -1,4 +1,5 @@
 import json
+import math
 import traceback
 from pathlib import Path
 
@@ -8,7 +9,7 @@ from pan3d import catalogs as pan3d_catalogs
 from pan3d.ui.collapsible import CollapsableSection
 from pan3d.ui.css import base, preview
 from pan3d.utils.constants import SLICE_VARS, XYZ
-from pan3d.utils.convert import update_camera
+from pan3d.utils.convert import max_str_length, update_camera
 from pan3d.widgets.color_by import ColorBy
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 from trame.app import TrameApp, asynchronous
@@ -844,9 +845,41 @@ class RenderingSettingsBasic(CollapsableSection):
             self.color_by.set_data_arrays_from_vtk(self.source())
 
     def update_from_source(self, source=None):
-        raise NotImplementedError(
-            """
-            This method needs to be implemented in the specialization of this class.
-            Please override it in the necessary class representing the rendering settings for the Explorer.
-            """
-        )
+        """Update the UI state from the given data source.
+
+        This base implementation handles common updates across all rendering settings.
+        Subclasses should call super().update_from_source(source) and then add their
+        specific customizations.
+
+        Parameters:
+            source: The data source to update from (e.g., vtkXArrayRectilinearSource)
+        """
+        # Handle source update
+        if source is not None:
+            self.source = source
+
+        if self.source is None:
+            return
+
+        # Common state updates
+        with self.state as state:
+            # Data arrays
+            state.data_arrays_available = self.source.available_arrays
+            state.data_arrays = self.source.arrays
+
+            # Axis names - basic version
+            state.axis_names = [self.source.x, self.source.y, self.source.z]
+
+            # Slice extents
+            state.slice_extents = self.source.slice_extents
+
+            # Time-related updates
+            state.slice_t = self.source.t_index
+            state.slice_t_max = self.source.t_size - 1
+            state.t_labels = self.source.t_labels
+            state.max_time_width = math.ceil(0.58 * max_str_length(state.t_labels))
+
+            if state.slice_t_max > 0:
+                state.max_time_index_width = math.ceil(
+                    0.6 + (math.log10(state.slice_t_max + 1) + 1) * 2 * 0.58
+                )
