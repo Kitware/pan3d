@@ -1,4 +1,3 @@
-import hashlib
 import sys
 
 from trame.decorators import TrameApp, change
@@ -31,10 +30,10 @@ from pan3d.xarray.algorithm import to_isel
 
 
 class PlotTypes(Enum):
-    ZONAL = (0,)
-    ZONALTIME = (1,)
-    GLOBAL = (2,)
-    TEMPORAL = (3,)
+    ZONAL = 0
+    ZONALTIME = 1
+    GLOBAL = 2
+    TEMPORAL = 3
 
 
 plot_options = {
@@ -69,12 +68,6 @@ zonal_axes = {
 }
 
 
-class CacheEntry:
-    def __init__(self, data, figure):
-        self.data = data
-        self.figure = figure
-
-
 @TrameApp()
 class Plotting(v3.VCard):
     def __init__(
@@ -88,9 +81,6 @@ class Plotting(v3.VCard):
             **kwargs,
         )
         self.source = source
-        self.spatial_cache = {}
-        self.temporal_cache = {}
-        self.zonal_cache = {}
 
         # State variables controlling the UI for various types of plots
         self.state.figure_height = 50
@@ -195,9 +185,6 @@ class Plotting(v3.VCard):
         # Update state in a single call
         state.update(config)
 
-    def get_key(self, selection):
-        return hashlib.sha256(repr(selection).encode()).hexdigest()
-
     def get_selection_criteria(self, full_temporal=False):
         """
         Get the xarray slicing criteria based on current selection of data
@@ -255,31 +242,28 @@ class Plotting(v3.VCard):
         )
 
     def generate_plot(self):
-        state = self.state
         active_var = self.state.color_by
-        (x, y, _, t) = (self.source.x, self.source.y, self.source.z, self.source.t)
         if active_var is None:
             return None
 
-        plot_type = state.active_plot
-        zonal_axis = state.zonal_axis
-        axis = x if zonal_axes.get(zonal_axis) == "X" else y
-        if plot_type == plot_options.get(PlotTypes.ZONAL):
-            return self.zonal_average(active_var, axis)
-        if plot_type == plot_options.get(PlotTypes.ZONALTIME):
-            return self.zonal_with_time(active_var, axis, t)
-        if plot_type == plot_options.get(PlotTypes.GLOBAL):
-            return self.global_full_temporal(active_var, t)
-        if plot_type == plot_options.get(PlotTypes.TEMPORAL):
-            return self.temporal_average(active_var, x, y, t)
-        return None
+        plot_type = self.state.active_plot
+        plot_map = {
+            plot_options.get(PlotTypes.ZONAL): self.zonal_average,
+            plot_options.get(PlotTypes.ZONALTIME): self.zonal_with_time,
+            plot_options.get(PlotTypes.GLOBAL): self.global_full_temporal,
+            plot_options.get(PlotTypes.TEMPORAL): self.temporal_average,
+        }
 
-    def zonal_average(self, active_var, axis):
+        plot_func = plot_map.get(plot_type)
+        return plot_func(active_var) if plot_func else None
+
+    def zonal_average(self, active_var):
         """
         Get a plotly figure for the zonal average for current sptio-temporal selection.
         Average is calculated over a certain specified spatial dimension (Longitude or Latitude).
         """
-        data = self.apply_spatial_average(axis=zonal_axes.get(self.state.zonal_axis))
+        axis = zonal_axes.get(self.state.zonal_axis)
+        data = self.apply_spatial_average(axis=axis)
         to_plot = data[active_var]
         dim = to_plot.dims[0]
         plot = px.line(x=to_plot[dim].to_numpy(), y=to_plot.to_numpy())
@@ -287,23 +271,24 @@ class Plotting(v3.VCard):
         var_long_name = data[active_var].attrs.get("long_name", active_var)
         var_units = data[active_var].attrs.get("units", "")
         x_axis_name = data[dim].attrs.get("long_name", dim)
+        axis_name = self.source.x if axis == "X" else self.source.y
         plot.update_layout(
-            title=f'Zonal Average for {active_var} "{var_long_name}" over {axis} (unit: {var_units})',
+            title=f'Zonal Average for {active_var} "{var_long_name}" over {axis_name} (unit: {var_units})',
             xaxis_title=x_axis_name,
             yaxis_title=var_long_name,
         )
         return plot
 
-    def zonal_with_time(self, active_var, axis, t):
+    def zonal_with_time(self, active_var):
         """
         Get a plotly figure for the zonal average along with current and full temporal selection.
         Average is calculated over a certain specified spatial dimension (Longitude or Latitude).
         """
-        data_t = self.apply_spatial_average(axis=zonal_axes.get(self.state.zonal_axis))
-        data = self.apply_spatial_average_full_temporal(
-            axis=zonal_axes.get(self.state.zonal_axis)
-        )
+        axis = zonal_axes.get(self.state.zonal_axis)
+        data_t = self.apply_spatial_average(axis=axis)
+        data = self.apply_spatial_average_full_temporal(axis=axis)
 
+        t = self.source.t
         var_long_name = data[active_var].attrs.get("long_name", active_var)
         var_units = data[active_var].attrs.get("units", "")
         figure = make_subplots(
@@ -333,12 +318,13 @@ class Plotting(v3.VCard):
 
         return figure
 
-    def global_full_temporal(self, active_var, t):
+    def global_full_temporal(self, active_var):
         """
         Get a plotly figure for the global average for all data with full temporal resolution.
         Data from spatial dimension is averaged yielding a single quantity with tempoal dimension.
         """
         data = self.apply_spatial_average_full_temporal(axis=None)
+        t = self.source.t
         time = self.get_time_labels(data[t])
         plot = px.line(x=time, y=data[active_var])
         # plot.update_layout(title_text=f"Global Average for {active_var}")
@@ -353,21 +339,22 @@ class Plotting(v3.VCard):
         )
         return plot
 
-    def temporal_average(self, active_var, x, y, t):
+    def temporal_average(self, active_var):
         """
         Get a time based average of data, data in temporal domain in averaged keeping spatial dimensions same
         """
+        x, y, t = self.source.x, self.source.y, self.source.t
         data = self.apply_temporal_average(active_var)
         self.state.time_groups = len(data[t])
-        slice = self.state.temporal_slice
-        plot = px.imshow(data[active_var][slice])
+        slice_idx = self.state.temporal_slice
+        plot = px.imshow(data[active_var][slice_idx])
         plot.update_yaxes(autorange="reversed")
         var_long_name = data[active_var].attrs.get("long_name", active_var)
         var_units = data[active_var].attrs.get("units", "")
         x_axis_name = data[x].attrs.get("long_name", x)
         y_axis_name = data[y].attrs.get("long_name", y)
         plot.update_layout(
-            title=f'Temporal average for {active_var} "{var_long_name}" (unit: {var_units}) at time {slice}/{len(data[t])}',
+            title=f'Temporal average for {active_var} "{var_long_name}" (unit: {var_units}) at time {slice_idx}/{len(data[t])}',
             xaxis_title=x_axis_name,
             yaxis_title=y_axis_name,
             coloraxis_colorbar={"orientation": "h"},
@@ -384,12 +371,11 @@ class Plotting(v3.VCard):
         return np.vectorize(lambda dt: f"{dt.isoformat()}")(time_array)
 
     @change("temporal_slice")
-    def on_change_group(self, **kwargs):
+    def on_change_temporal_slice(self, **kwargs):
         active_var = self.state.color_by
-        (x, y, _, t) = (self.source.x, self.source.y, self.source.z, self.source.t)
         if active_var is None:
             return
-        plot = self.temporal_average(active_var, x, y, t)
+        plot = self.temporal_average(active_var)
         self.ctrl.figure_update(plot)
 
     @change(
@@ -406,9 +392,9 @@ class Plotting(v3.VCard):
     @change("active_plot")
     def on_change_active_plot(self, **kwargs):
         self.expose_plot_specific_config()
-        plot_type = self.state.active_plot
-        if plot_type != plot_options.get(PlotTypes.ZONAL):
+        # ZONAL plots update automatically, others show empty figure until update button clicked
+        if self.state.active_plot == plot_options.get(PlotTypes.ZONAL):
+            figure = self.generate_plot()
+            self.ctrl.figure_update(figure)
+        else:
             self.ctrl.figure_update(go.Figure())
-            return
-        figure = self.generate_plot()
-        self.ctrl.figure_update(figure)
