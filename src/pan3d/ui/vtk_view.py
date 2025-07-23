@@ -69,7 +69,7 @@ class Pan3DView(html.Div):
                             }
                         }
                         for w in widgets or []:
-                            view.register_widget(w)
+                            view.register_vtk_object(w)
                 else:
                     with vtkw.VtkLocalView(self.render_window) as view:
                         self.ctrl.view_update = view.update
