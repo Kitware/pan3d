@@ -782,7 +782,7 @@ class ControlPanel(v3.VCard):
 
 class RenderingSettingsBasic(CollapsableSection):
     def __init__(self, source=None, update_rendering=None, **kwargs):
-        super().__init__(self, "Rendering", "show_rendering", **kwargs)
+        super().__init__("Rendering", "show_rendering", **kwargs)
         self.source = source
 
         with self.content:
