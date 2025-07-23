@@ -38,6 +38,7 @@ viewer = [
     "trame-vtk>=2.8.15",
     "trame-vtklocal>=0.12.2",
     "trame-vuetify>=3.0.1",
+    "trame-plotly>=3.1.0",
 ]
 esgf = [
     "intake-esgf>=2024.1",
@@ -57,6 +58,7 @@ all = [
     "trame-vtk>=2.8.15",
     "trame-vtklocal>=0.12.2",
     "trame-vuetify>=3.0.1",
+    "trame-plotly>=3.1.0",
 
     # esgf
     "intake-esgf>=2024.1",
