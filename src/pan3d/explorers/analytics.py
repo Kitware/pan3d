@@ -92,29 +92,6 @@ class AnalyticsExplorer(Explorer):
         self.widget.InteractiveOff()
 
     # -------------------------------------------------------------------------
-    # Trame API
-    # -------------------------------------------------------------------------
-
-    def start(self, **kwargs):
-        """Initialize the UI and start the server for XArray Viewer."""
-        self.ui.server.start(**kwargs)
-
-    @property
-    async def ready(self):
-        """Start and wait for the XArray Viewer corroutine to be ready."""
-        await self.ui.ready
-
-    @property
-    def state(self):
-        """Returns the current the trame server state."""
-        return self.server.state
-
-    @property
-    def ctrl(self):
-        """Returns the Controller for the trame server."""
-        return self.server.controller
-
-    # -------------------------------------------------------------------------
     # UI
     # -------------------------------------------------------------------------
 
