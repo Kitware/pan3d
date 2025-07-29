@@ -81,11 +81,69 @@ You may have to install the required dependencies:
 > To launch without opening your browser, add the `--server` argument to your
 > command.
 
+## Explorers
+
+Another key component of Pan3D is its modular, web-based 3D visualization system
+built using trame. This system powers a suite of focused tools called Explorers,
+designed to be modular, reusable, and easily extended. Each Explorer is built
+around a specific task—think of them as "one-trick ponies" with clean interfaces
+tailored to their purpose. This avoids the clutter and complexity of
+general-purpose tools.
+
+Pan3D currently includes four Explorer tools:
+
+- **Slice Explorer** – Navigate through 3D datasets by extracting 2D slices
+  along any axis. Features interactive slice controls, dual 2D/3D view modes,
+  and the ability to visualize slices within their 3D context using transparency
+  and outlines. Perfect for exploring internal structures of volumetric data.
+
+- **Globe Explorer** – Visualize geographic data on a realistic 3D Earth.
+  Projects latitude/longitude data onto a spherical surface with various texture
+  options (satellite imagery, topography), continental outlines, and terrain
+  elevation effects. Includes specialized camera controls optimized for globe
+  navigation.
+
+- **Contour Explorer** – Generate smooth contour visualizations with
+  color-banded regions between isolevels. Creates both filled contour bands and
+  contour lines, with automatic surface refinement for publication-quality
+  results. Ideal for visualizing scalar fields and identifying data patterns
+  through isosurfaces.
+
+- **Analytics Explorer** – Combines interactive 3D visualization with
+  statistical analysis powered by xCDAT. Provides multiple plot types including
+  zonal averages, time series, and global statistics. Features a side panel with
+  Plotly charts that update based on your 3D data selection, enabling deep data
+  exploration through both visual and quantitative analysis
+
+### Launching the Explorers
+
+Similar to the main XArray Viewer (`xr-viewer`), each explorer can be launched
+from the command line:
+
+```bash
+# Launch Slice Explorer
+xr-slicer
+
+# Launch Globe Explorer
+xr-globe
+
+# Launch Contour Explorer
+xr-contour
+
+# Launch Analytics Explorer
+xr-analytics
+```
+
+Each explorer will automatically open your default browser to `localhost:8080`.
+To launch without opening your browser, add the `--server` argument to any
+command.
+
 ## Tutorials
 
 - [How to use XArray Viewer](tutorials/dataset_viewer.md)
 - [XArray Viewer command line](tutorials/command_line.md)
 - [Catalogs Tutorial](tutorials/catalogs.md)
+- [How to use Pan3D Explorers](tutorials/explorers.md)
 - [How to use Pan3D in a Jupyter notebook](tutorials/jupyter_notebook.md)
 
 ## Examples
