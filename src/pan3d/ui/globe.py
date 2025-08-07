@@ -1,6 +1,6 @@
 from pan3d.utils.common import RenderingSettingsBasic
 from pan3d.utils.constants import XYZ
-from pan3d.widgets.clip_slice_control import ClipSliceControl
+from pan3d.widgets import ClipSliceControl
 from pan3d.widgets.level_of_detail import LevelOfDetail
 from pan3d.widgets.time_navigation import TimeNavigation
 from trame.widgets import html
@@ -114,35 +114,15 @@ class GlobeRenderingSettings(RenderingSettingsBasic):
                         )
 
             v3.VDivider()
-
-            # X crop/cut
+            # Clip/Slice controls for all axes
             ClipSliceControl(
-                axis="x",
-                axis_name_expr="axis_names?.[0]",
-                bounds_min_expr="dataset_bounds[0]",
-                bounds_max_expr="dataset_bounds[1]",
-                extents_min_expr="slice_extents[axis_names[0]][0]",
-                extents_max_expr="slice_extents[axis_names[0]][1]",
-            )
-
-            # Y crop/cut
-            ClipSliceControl(
-                axis="y",
-                axis_name_expr="axis_names?.[1]",
-                bounds_min_expr="dataset_bounds[2]",
-                bounds_max_expr="dataset_bounds[3]",
-                extents_min_expr="slice_extents[axis_names[1]][0]",
-                extents_max_expr="slice_extents[axis_names[1]][1]",
-            )
-
-            # Z crop/cut
-            ClipSliceControl(
-                axis="z",
-                axis_name_expr="axis_names?.[2]",
-                bounds_min_expr="dataset_bounds[4]",
-                bounds_max_expr="dataset_bounds[5]",
-                extents_min_expr="slice_extents[axis_names[2]][0]",
-                extents_max_expr="slice_extents[axis_names[2]][1]",
+                axis_names_var="axis_names",
+                dataset_bounds_var="dataset_bounds",
+                slice_extents_var="slice_extents",
+                type_vars=["slice_x_type", "slice_y_type", "slice_z_type"],
+                range_vars=["slice_x_range", "slice_y_range", "slice_z_range"],
+                cut_vars=["slice_x_cut", "slice_y_cut", "slice_z_cut"],
+                step_vars=["slice_x_step", "slice_y_step", "slice_z_step"],
             )
             v3.VDivider()
 
