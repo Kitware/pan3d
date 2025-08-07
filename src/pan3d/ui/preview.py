@@ -1,9 +1,6 @@
-import math
-
 from pan3d.utils.common import RenderingSettingsBasic
 from pan3d.utils.constants import XYZ
-from pan3d.utils.convert import max_str_length
-from trame.widgets import html
+from pan3d.widgets import ClipSliceControl, LevelOfDetail, ScaleControl, TimeNavigation
 from trame.widgets import vuetify3 as v3
 
 
@@ -22,278 +19,69 @@ class RenderingSettings(RenderingSettingsBasic):
         with self.content:
             v3.VDivider()
             # X crop/cut
-            with v3.VTooltip(
-                v_if="axis_names?.[0]",
-                text=(
-                    "`${axis_names[0]}: [${dataset_bounds[0]}, ${dataset_bounds[1]}] ${slice_x_type ==='range' ? ('(' + slice_x_range.map((v,i) => v+1).concat(slice_x_step).join(', ') + ')'): slice_x_cut}`",
-                ),
-            ):
-                with html.Template(v_slot_activator="{ props }"):
-                    with html.Div(
-                        classes="d-flex",
-                        v_if="axis_names?.[0]",
-                        v_bind="props",
-                    ):
-                        v3.VRangeSlider(
-                            v_if="slice_x_type === 'range'",
-                            prepend_icon="mdi-axis-x-arrow",
-                            v_model=("slice_x_range", None),
-                            min=("slice_extents[axis_names[0]][0]",),
-                            max=("slice_extents[axis_names[0]][1]",),
-                            step=1,
-                            hide_details=True,
-                            density="compact",
-                            flat=True,
-                            variant="solo",
-                        )
-                        v3.VSlider(
-                            v_else=True,
-                            prepend_icon="mdi-axis-x-arrow",
-                            v_model=("slice_x_cut", 0),
-                            min=("slice_extents[axis_names[0]][0]",),
-                            max=("slice_extents[axis_names[0]][1]",),
-                            step=1,
-                            hide_details=True,
-                            density="compact",
-                            flat=True,
-                            variant="solo",
-                        )
-                        v3.VCheckbox(
-                            v_model=("slice_x_type", "range"),
-                            true_value="range",
-                            false_value="cut",
-                            true_icon="mdi-crop",
-                            false_icon="mdi-box-cutter",
-                            hide_details=True,
-                            density="compact",
-                            size="sm",
-                            classes="mx-2",
-                        )
+            ClipSliceControl(
+                axis="x",
+                axis_name_expr="axis_names?.[0]",
+                bounds_min_expr="dataset_bounds[0]",
+                bounds_max_expr="dataset_bounds[1]",
+                extents_min_expr="slice_extents[axis_names[0]][0]",
+                extents_max_expr="slice_extents[axis_names[0]][1]",
+            )
 
             # Y crop/cut
-            with v3.VTooltip(
-                v_if="axis_names?.[1]",
-                text=(
-                    "`${axis_names[1]}: [${dataset_bounds[2]}, ${dataset_bounds[3]}] ${slice_y_type ==='range' ? ('(' + slice_y_range.map((v,i) => v+1).join(', ') + ', 1)'): slice_y_cut}`",
-                ),
-            ):
-                with html.Template(v_slot_activator="{ props }"):
-                    with html.Div(
-                        classes="d-flex",
-                        v_if="axis_names?.[1]",
-                        v_bind="props",
-                    ):
-                        v3.VRangeSlider(
-                            v_if="slice_y_type === 'range'",
-                            prepend_icon="mdi-axis-y-arrow",
-                            v_model=("slice_y_range", None),
-                            min=("slice_extents[axis_names[1]][0]",),
-                            max=("slice_extents[axis_names[1]][1]",),
-                            step=1,
-                            hide_details=True,
-                            density="compact",
-                            flat=True,
-                            variant="solo",
-                        )
-                        v3.VSlider(
-                            v_else=True,
-                            prepend_icon="mdi-axis-y-arrow",
-                            v_model=("slice_y_cut", 0),
-                            min=("slice_extents[axis_names[1]][0]",),
-                            max=("slice_extents[axis_names[1]][1]",),
-                            step=1,
-                            hide_details=True,
-                            density="compact",
-                            flat=True,
-                            variant="solo",
-                        )
-                        v3.VCheckbox(
-                            v_model=("slice_y_type", "range"),
-                            true_value="range",
-                            false_value="cut",
-                            true_icon="mdi-crop",
-                            false_icon="mdi-box-cutter",
-                            hide_details=True,
-                            density="compact",
-                            size="sm",
-                            classes="mx-2",
-                        )
+            ClipSliceControl(
+                axis="y",
+                axis_name_expr="axis_names?.[1]",
+                bounds_min_expr="dataset_bounds[2]",
+                bounds_max_expr="dataset_bounds[3]",
+                extents_min_expr="slice_extents[axis_names[1]][0]",
+                extents_max_expr="slice_extents[axis_names[1]][1]",
+            )
 
             # Z crop/cut
-            with v3.VTooltip(
-                v_if="axis_names?.[2]",
-                text=(
-                    "`${axis_names[2]}: [${dataset_bounds[4]}, ${dataset_bounds[5]}] ${slice_z_type ==='range' ? ('(' + slice_z_range.map((v,i) => v+1).join(', ') + ', 1)'): slice_z_cut}`",
-                ),
-            ):
-                with html.Template(v_slot_activator="{ props }"):
-                    with html.Div(
-                        classes="d-flex",
-                        v_bind="props",
-                    ):
-                        v3.VRangeSlider(
-                            v_if="slice_z_type === 'range'",
-                            prepend_icon="mdi-axis-z-arrow",
-                            v_model=("slice_z_range", None),
-                            min=("slice_extents[axis_names[2]][0]",),
-                            max=("slice_extents[axis_names[2]][1]",),
-                            step=1,
-                            hide_details=True,
-                            density="compact",
-                            flat=True,
-                            variant="solo",
-                        )
-                        v3.VSlider(
-                            v_else=True,
-                            prepend_icon="mdi-axis-z-arrow",
-                            v_model=("slice_z_cut", 0),
-                            min=("slice_extents[axis_names[2]][0]",),
-                            max=("slice_extents[axis_names[2]][1]",),
-                            step=1,
-                            hide_details=True,
-                            density="compact",
-                            flat=True,
-                            variant="solo",
-                        )
-                        v3.VCheckbox(
-                            v_model=("slice_z_type", "range"),
-                            true_value="range",
-                            false_value="cut",
-                            true_icon="mdi-crop",
-                            false_icon="mdi-box-cutter",
-                            hide_details=True,
-                            density="compact",
-                            size="sm",
-                            classes="mx-2",
-                        )
-                    v3.VDivider()
+            ClipSliceControl(
+                axis="z",
+                axis_name_expr="axis_names?.[2]",
+                bounds_min_expr="dataset_bounds[4]",
+                bounds_max_expr="dataset_bounds[5]",
+                extents_min_expr="slice_extents[axis_names[2]][0]",
+                extents_max_expr="slice_extents[axis_names[2]][1]",
+            )
+
+            v3.VDivider()
 
             # Slice steps
-            with v3.VTooltip(text="Level Of Details / Slice stepping"):
-                with html.Template(v_slot_activator="{ props }"):
-                    with v3.VRow(
-                        v_bind="props",
-                        no_gutter=True,
-                        classes="align-center my-0 mx-0 border-b-thin",
-                    ):
-                        v3.VIcon(
-                            "mdi-stairs",
-                            classes="ml-2 text-medium-emphasis",
-                        )
-                        with v3.VCol(classes="pa-0", v_if="axis_names?.[0]"):
-                            v3.VTextField(
-                                v_model_number=("slice_x_step", 1),
-                                hide_details=True,
-                                density="compact",
-                                flat=True,
-                                variant="solo",
-                                reverse=True,
-                                raw_attrs=['min="1"'],
-                                type="number",
-                            )
-                        with v3.VCol(classes="pa-0", v_if="axis_names?.[1]"):
-                            v3.VTextField(
-                                v_model_number=("slice_y_step", 1),
-                                hide_details=True,
-                                density="compact",
-                                flat=True,
-                                variant="solo",
-                                reverse=True,
-                                raw_attrs=['min="1"'],
-                                type="number",
-                            )
-                        with v3.VCol(classes="pa-0", v_if="axis_names?.[2]"):
-                            v3.VTextField(
-                                v_model_number=("slice_z_step", 1),
-                                hide_details=True,
-                                density="compact",
-                                flat=True,
-                                variant="solo",
-                                reverse=True,
-                                raw_attrs=['min="1"'],
-                                type="number",
-                            )
+            LevelOfDetail(
+                step_x_name="slice_x_step",
+                step_y_name="slice_y_step",
+                step_z_name="slice_z_step",
+                axis_names_var="axis_names",
+                min_value=1,
+            )
 
             # Actor scaling
-            with v3.VTooltip(text="Representation scaling"):
-                with html.Template(v_slot_activator="{ props }"):
-                    with v3.VRow(
-                        v_bind="props",
-                        no_gutter=True,
-                        classes="align-center my-0 mx-0 border-b-thin",
-                    ):
-                        v3.VIcon(
-                            "mdi-ruler-square",
-                            classes="ml-2 text-medium-emphasis",
-                        )
-                        with v3.VCol(classes="pa-0", v_if="axis_names?.[0]"):
-                            v3.VTextField(
-                                v_model=("scale_x", 1),
-                                hide_details=True,
-                                density="compact",
-                                flat=True,
-                                variant="solo",
-                                reverse=True,
-                                raw_attrs=[
-                                    'pattern="^\d*(\.\d)?$"',
-                                    'min="0.001"',
-                                    'step="0.1"',
-                                ],
-                                type="number",
-                            )
-                        with v3.VCol(classes="pa-0", v_if="axis_names?.[1]"):
-                            v3.VTextField(
-                                v_model=("scale_y", 1),
-                                hide_details=True,
-                                density="compact",
-                                flat=True,
-                                variant="solo",
-                                reverse=True,
-                                raw_attrs=[
-                                    'pattern="^\d*(\.\d)?$"',
-                                    'min="0.001"',
-                                    'step="0.1"',
-                                ],
-                                type="number",
-                            )
-                        with v3.VCol(classes="pa-0", v_if="axis_names?.[2]"):
-                            v3.VTextField(
-                                v_model=("scale_z", 1),
-                                hide_details=True,
-                                density="compact",
-                                flat=True,
-                                variant="solo",
-                                reverse=True,
-                                raw_attrs=[
-                                    'pattern="^\d*(\.\d)?$"',
-                                    'min="0.001"',
-                                    'step="0.1"',
-                                ],
-                                type="number",
-                            )
+            ScaleControl(
+                scale_x_name="scale_x",
+                scale_y_name="scale_y",
+                scale_z_name="scale_z",
+                axis_names_var="axis_names",
+                min_value=0.001,
+                max_value=100,
+                step=0.1,
+                density="compact",
+                classes="mx-2 my-2",
+            )
 
-            # Time slider
-            with v3.VTooltip(
+            # Time navigation
+            TimeNavigation(
                 v_if="slice_t_max > 0",
-                text=("`time: ${t_labels[slice_t]} (${slice_t+1}/${slice_t_max+1})`",),
-            ):
-                with html.Template(v_slot_activator="{ props }"):
-                    with html.Div(
-                        classes="d-flex pr-2",
-                        v_bind="props",
-                    ):
-                        v3.VSlider(
-                            prepend_icon="mdi-clock-outline",
-                            v_model=("slice_t", 0),
-                            min=0,
-                            max=("slice_t_max", 0),
-                            step=1,
-                            hide_details=True,
-                            density="compact",
-                            flat=True,
-                            variant="solo",
-                        )
-                    v3.VDivider()
+                index_name="slice_t",
+                labels_name="t_labels",
+                labels=[],
+                ctx_name="time_nav",
+                classes="mx-2 my-2",
+            )
+            v3.VDivider()
             v3.VBtn(
                 "Update 3D view",
                 block=True,
@@ -315,6 +103,17 @@ class RenderingSettings(RenderingSettingsBasic):
             # state.color_by = None
             state.axis_names = [source.x, source.y, source.z]
             state.slice_extents = source.slice_extents
+
+            # Update dataset bounds for each axis
+            bounds = []
+            for axis in XYZ:
+                axis_name = getattr(source, axis)
+                if axis_name and axis_name in source.slice_extents:
+                    extent = source.slice_extents[axis_name]
+                    bounds.extend([extent[0], extent[1]])
+                else:
+                    bounds.extend([0, 1])
+            state.dataset_bounds = bounds
             slices = source.slices
             for axis in XYZ:
                 # default
@@ -339,12 +138,7 @@ class RenderingSettings(RenderingSettingsBasic):
                         ]  # end is inclusive
                         state[f"slice_{axis}_step"] = axis_slice[2]
 
-            # Update time
-            state.slice_t = source.t_index
-            state.slice_t_max = source.t_size - 1
-            state.t_labels = source.t_labels
-            state.max_time_width = math.ceil(0.58 * max_str_length(state.t_labels))
-            if state.slice_t_max > 0:
-                state.max_time_index_width = math.ceil(
-                    0.6 + (math.log10(state.slice_t_max + 1) + 1) * 2 * 0.58
-                )
+            # Update TimeNavigation widget through context
+            if hasattr(self.ctx, "time_nav"):
+                self.ctx.time_nav.labels = source.t_labels
+                self.ctx.time_nav.index = source.t_index
