@@ -25,12 +25,10 @@ from pan3d.ui.analytics import (
 )
 from pan3d.ui.preview import RenderingSettings
 from pan3d.ui.vtk_view import Pan3DView
-from pan3d.utils.common import ControlPanel, Explorer, SummaryToolbar
+from pan3d.utils.common import Explorer
 from pan3d.utils.convert import to_float
-from pan3d.widgets.scalar_bar import ScalarBar
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 from trame.decorators import change
-from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import html
 from trame.widgets import vuetify3 as v3
 
@@ -373,107 +371,40 @@ class AnalyticsExplorer(Explorer):
         self.state.setdefault("time_groups", 0)
         self.state.setdefault("figure_height", 50)
 
-        with VAppLayout(self.server, fill_height=True) as layout:
-            self.ui = layout
-            # Save dialog
-            with v3.VDialog(v_model=("show_save_dialog", False)):
-                with v3.VCard(classes="mx-auto w-50"):
-                    v3.VCardTitle("Save dataset to disk")
-                    v3.VDivider()
-                    with v3.VCardText():
-                        v3.VTextField(
-                            label="File path to save",
-                            v_model=("save_dataset_path", ""),
-                            hide_details=True,
-                        )
-                    with v3.VCardActions():
-                        v3.VSpacer()
-                        v3.VBtn(
-                            "Save",
-                            classes="text-none",
-                            variant="flat",
-                            color="primary",
-                            click=(self.save_dataset, "[save_dataset_path]"),
-                        )
-                        v3.VBtn(
-                            "Cancel",
-                            classes="text-none",
-                            variant="flat",
-                            click="show_save_dialog=false",
-                        )
+        # Use the standard UI creation method
+        layout = self._create_standard_ui(
+            panel_label="Analytics Explorer",
+            view_class=Pan3dAnalyticsView,
+            rendering_settings_class=RenderingSettings,
+            view_kwargs={
+                "render_window": self.render_window,
+                "local_rendering": self.local_rendering,
+                "widgets": [self.widget],
+            },
+            save_path_default="",
+            error_style="position:absolute;bottom:1rem;right:1rem;",
+        )
 
-            # Error messages
-            v3.VAlert(
-                v_if=("data_origin_error", False),
-                border="start",
-                max_width=700,
-                rounded="lg",
-                text=("data_origin_error", ""),
-                title="Failed to load data",
-                type="error",
-                variant="tonal",
-                style="position:absolute;bottom:1rem;right:1rem;",
-            )
+        # Add navigation drawer within the VAppLayout
+        with layout:
+            with v3.VNavigationDrawer(
+                disable_resize_watcher=True,
+                disable_route_watcher=True,
+                permanent=True,
+                location="right",
+                v_model=("plot_drawer", False),
+                width=800,
+            ):
+                self.plotting = Plotting(source=self.source, toggle="chart_expanded")
 
-            with v3.VLayout():
-                with v3.VMain(style="position: relative"):
-                    with html.Div(
-                        style="position: relative; width: 100%; height: 100%;",
-                    ):
-                        # 3D view
-                        Pan3dAnalyticsView(
-                            self.render_window,
-                            local_rendering=self.local_rendering,
-                            widgets=[self.widget],
-                        )
-
-                        # Scalar bar
-                        ScalarBar(
-                            ctx_name="scalar_bar",
-                            v_show="!control_expended",
-                            v_if="color_by",
-                        )
-
-                        #  # Summary toolbar
-                        SummaryToolbar(
-                            v_show="!control_expended",
-                            v_if="slice_t_max > 0",
-                        )
-
-                        # Control panel
-                        with ControlPanel(
-                            enable_data_selection=(self.xarray is None),
-                            toggle="control_expended",
-                            load_dataset=self.load_dataset,
-                            import_file_upload=self.import_file_upload,
-                            export_file_download=self.export_state,
-                            xr_update_info="xr_update_info",
-                            panel_label="Analytics Explorer",
-                        ).ui_content:
-                            RenderingSettings(
-                                ctx_name="rendering",
-                                source=self.source,
-                                update_rendering=self.update_rendering,
-                            )
-
-                with v3.VNavigationDrawer(
-                    disable_resize_watcher=True,
-                    disable_route_watcher=True,
-                    permanent=True,
-                    location="right",
-                    v_model=("plot_drawer", False),
-                    width=800,
-                ):
-                    self.plotting = Plotting(
-                        source=self.source, toggle="chart_expanded"
-                    )
+        return layout
 
     # -----------------------------------------------------
     # State change callbacks
     # -----------------------------------------------------
 
-    @change("color_by")
-    def _on_color_by_change(self, **kwargs):
+    @change("color_by", "color_preset", "color_min", "color_max", "nan_color")
+    def _on_color_properties_change(self, **kwargs):
         super()._on_color_properties_change(**kwargs)
         self.plotting.update_plot()
 

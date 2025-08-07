@@ -10,9 +10,16 @@ from pan3d.ui.css import base, preview
 from pan3d.utils.constants import SLICE_VARS, XYZ
 from pan3d.utils.convert import update_camera
 from pan3d.widgets.color_by import ColorBy
+from pan3d.widgets.data_information import DataInformation
+from pan3d.widgets.data_origin import DataOrigin
+from pan3d.widgets.error_alert import ErrorAlert
+from pan3d.widgets.pan3d_view import Pan3DView
+from pan3d.widgets.save_dataset_dialog import SaveDatasetDialog
+from pan3d.widgets.scalar_bar import ScalarBar
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 from trame.app import TrameApp, asynchronous
 from trame.decorators import change
+from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import html
 from trame.widgets import vuetify3 as v3
 
@@ -90,6 +97,10 @@ class Explorer(TrameApp):
         ]
         self.state.nan_color = 2
 
+        # Initialize load button state
+        self.state.can_load = True
+        self.state.load_button_text = "Load"
+
         self.ui = None
 
         # Initialize source
@@ -138,6 +149,13 @@ class Explorer(TrameApp):
             self.state.show_data_information = True
             self.ctrl.xr_update_info(self.source.input, self.source.available_arrays)
             self.ctx.rendering.update_from_source(self.source)
+        # Initialize xarray tutorial datasets if no dataset is provided
+        elif self.state.data_origin_source == "xarray":
+            results, *_ = pan3d_catalogs.search("xarray")
+            self.state.data_origin_ids = [v["name"] for v in results]
+            self.state.data_origin_id_to_desc = {
+                v["name"]: v["description"] for v in results
+            }
 
     def start(self, **kwargs):
         """Initialize the UI and start the server for XArray Viewer."""
@@ -186,13 +204,20 @@ class Explorer(TrameApp):
     # -----------------------------------------------------
     @change("color_by", "color_preset", "color_min", "color_max", "nan_color")
     def _on_color_properties_change(self, **_):
+        if getattr(self, "_updating_color", False):
+            return  # Prevent recursion
+
         if self.mapper:
-            self.ctx.rendering.color_by.configure_mapper(self.mapper)
-            self.ctx.scalar_bar.preset = self.state.color_preset
-            self.ctx.scalar_bar.set_color_range(
-                self.state.color_min, self.state.color_max
-            )
-            self.ctrl.view_update()
+            self._updating_color = True
+            try:
+                self.ctx.rendering.color_by.configure_mapper(self.mapper)
+                self.ctx.scalar_bar.preset = self.state.color_preset
+                self.ctx.scalar_bar.set_color_range(
+                    self.state.color_min, self.state.color_max
+                )
+                self.ctrl.view_update()
+            finally:
+                self._updating_color = False
 
     @change("slice_t", *[var.format(axis) for axis in XYZ for var in SLICE_VARS])
     def on_change(self, slice_t, **_):
@@ -419,6 +444,120 @@ class Explorer(TrameApp):
         self.state.show_save_dialog = False
         return asynchronous.create_task(self._save_dataset(file_path))
 
+    def _create_standard_ui(
+        self,
+        panel_label,
+        view_class=None,
+        rendering_settings_class=None,
+        rendering_settings_kwargs=None,
+        view_kwargs=None,
+        save_path_default="",
+        error_style="bottom:1rem;right:1rem;",
+        error_max_width=650,
+        additional_components=None,
+    ):
+        """
+        Create the standard UI layout used by all explorers.
+
+        This method provides the common UI structure while allowing customization
+        through parameters and hooks.
+
+        Parameters:
+            panel_label: Label for the control panel
+            view_class: The view class to use (default: Pan3DView)
+            rendering_settings_class: The rendering settings class to use
+            rendering_settings_kwargs: Additional kwargs for rendering settings
+            view_kwargs: Additional kwargs for the view
+            save_path_default: Default save path for dataset dialog
+            error_style: Style for error alert positioning
+            error_max_width: Maximum width for error alert
+            additional_components: Callable that adds explorer-specific components
+
+        Returns:
+            The layout object
+        """
+        # Use defaults if not provided
+        if view_class is None:
+            view_class = Pan3DView
+        if view_kwargs is None:
+            view_kwargs = {}
+        if rendering_settings_kwargs is None:
+            rendering_settings_kwargs = {}
+
+        # Create main layout
+        with VAppLayout(self.server, fill_height=True) as layout:
+            self.ui = layout
+
+            # 3D View
+            # Check if view needs standard parameters or custom ones
+            if view_kwargs and "render_window" in view_kwargs:
+                # Special case for views that take render_window directly
+                view_class(**view_kwargs)
+            else:
+                # Standard view initialization
+                view_class(
+                    self.view_update,
+                    self.ctrl,
+                    self.ctx,
+                    v_model=("view_mode", "local"),
+                    **view_kwargs,
+                )
+
+            # Scalar Bar
+            ScalarBar(
+                ctx_name="scalar_bar",
+                v_show="!control_expended",
+                v_if="color_by",
+            )
+
+            # Additional components before standard ones (e.g., SliceSummary)
+            if additional_components:
+                additional_components()
+
+            # Save Dataset Dialog
+            SaveDatasetDialog(
+                save_callback=self.save_dataset,
+                v_model=("show_save_dialog", False),
+                save_path_model=("save_dataset_path", save_path_default),
+                title="Save dataset to disk",
+            )
+
+            # Error Alert
+            ErrorAlert(
+                error_key="data_origin_error",
+                title="Failed to load data",
+                position="absolute" if error_style else None,
+                style=error_style,
+                max_width=error_max_width,
+            )
+
+            # Summary Toolbar
+            SummaryToolbar(
+                v_show="!control_expended",
+                v_if="slice_t_max > 0",
+            )
+
+            # Control Panel
+            with ControlPanel(
+                enable_data_selection=(self.xarray is None),
+                source=self.source,
+                toggle="control_expended",
+                load_dataset=self.load_dataset,
+                import_file_upload=self.import_file_upload,
+                export_file_download=self.export_state,
+                xr_update_info="xr_update_info",
+                panel_label=panel_label,
+            ).ui_content:
+                if rendering_settings_class:
+                    rendering_settings_class(
+                        ctx_name="rendering",
+                        source=self.source,
+                        update_rendering=self.update_rendering,
+                        **rendering_settings_kwargs,
+                    )
+
+        return layout
+
 
 class SummaryToolbar(v3.VCard):
     def __init__(
@@ -486,164 +625,7 @@ class SummaryToolbar(v3.VCard):
                 )
 
 
-class DataOrigin(CollapsableSection):
-    def __init__(self, load_dataset):
-        super().__init__("Data origin", "show_data_origin", True)
-
-        self.state.load_button_text = "Load"
-        self.state.can_load = True
-        self.state.data_origin_id_to_desc = {}
-
-        with self.content:
-            v3.VSelect(
-                label="Source",
-                v_model=("data_origin_source", "xarray"),
-                items=(
-                    "data_origin_sources",
-                    pan3d_catalogs.list_availables(),
-                ),
-                hide_details=True,
-                density="compact",
-                flat=True,
-                variant="solo",
-            )
-            v3.VDivider()
-            v3.VTextField(
-                placeholder="Location",
-                v_if="['file', 'url'].includes(data_origin_source)",
-                v_model=("data_origin_id", ""),
-                hide_details=True,
-                density="compact",
-                flat=True,
-                variant="solo",
-                append_inner_icon=(
-                    "data_origin_id_error ? 'mdi-file-document-alert-outline' : undefined",
-                ),
-                error=("data_origin_id_error", False),
-            )
-
-            with v3.VTooltip(
-                v_else=True,
-                text=("`${ data_origin_id_to_desc[data_origin_id] }`",),
-            ):
-                with html.Template(v_slot_activator="{ props }"):
-                    v3.VSelect(
-                        v_bind="props",
-                        label="Name",
-                        v_model="data_origin_id",
-                        items=("data_origin_ids", []),
-                        hide_details=True,
-                        density="compact",
-                        flat=True,
-                        variant="solo",
-                    )
-            v3.VDivider()
-            v3.VBtn(
-                "{{ load_button_text }}",
-                block=True,
-                classes="text-none",
-                flat=True,
-                density="compact",
-                rounded=0,
-                disabled=("!data_origin_id?.length || !can_load",),
-                color=("can_load ? 'primary': undefined",),
-                click=(
-                    load_dataset,
-                    "[data_origin_source, data_origin_id, data_origin_order]",
-                ),
-            )
-
-
-class DataInformation(CollapsableSection):
-    def __init__(self, xarray_info="xarray_info"):
-        super().__init__("Data information", "show_data_information")
-
-        self._var_name = xarray_info
-        self.state.setdefault(xarray_info, [])
-
-        with self.content:
-            with v3.VTable(density="compact", hover=True):
-                with html.Tbody():
-                    with html.Template(v_for=f"item, i in {xarray_info}", key="i"):
-                        with v3.VTooltip():
-                            with html.Template(v_slot_activator="{ props }"):
-                                with html.Tr(v_bind="props", classes="pointer"):
-                                    with html.Td(
-                                        classes="d-flex align-center text-no-wrap"
-                                    ):
-                                        v3.VIcon(
-                                            "{{ item.icon }}",
-                                            size="sm",
-                                            classes="mr-2",
-                                        )
-                                        html.Div("{{ item.name }}")
-                                    html.Td(
-                                        "{{ item.length }}",
-                                        classes="text-right",
-                                    )
-
-                            with v3.VTable(
-                                density="compact",
-                                theme="dark",
-                                classes="no-bg ma-0 pa-0",
-                            ):
-                                with html.Tbody():
-                                    with html.Tr(
-                                        v_for="attr, j in item.attrs",
-                                        key="j",
-                                    ):
-                                        html.Td(
-                                            "{{ attr.key }}",
-                                        )
-                                        html.Td(
-                                            "{{ attr.value }}",
-                                        )
-
-    def update_information(self, xr, available_arrays=None):
-        xarray_info = []
-        coords = set(xr.coords.keys())
-        data = set(available_arrays or [])
-        for name in xr.variables:
-            icon = "mdi-variable"
-            order = 3
-            length = f"({','.join(xr[name].dims)})"
-            attrs = []
-            if name in coords:
-                icon = "mdi-ruler"
-                order = 1
-                length = xr[name].size
-                shape = xr[name].shape
-                if length > 1 and len(shape) == 1:
-                    attrs.append(
-                        {
-                            "key": "range",
-                            "value": f"[{xr[name].values[0]}, {xr[name].values[-1]}]",
-                        }
-                    )
-            if name in data:
-                icon = "mdi-database"
-                order = 2
-            xarray_info.append(
-                {
-                    "order": order,
-                    "icon": icon,
-                    "name": name,
-                    "length": length,
-                    "type": str(xr[name].dtype),
-                    "attrs": attrs
-                    + [
-                        {"key": "type", "value": str(xr[name].dtype)},
-                    ]
-                    + [
-                        {"key": str(k), "value": str(v)}
-                        for k, v in xr[name].attrs.items()
-                    ],
-                }
-            )
-        xarray_info.sort(key=lambda item: item["order"])
-
-        # Update UI
-        self.state[self._var_name] = xarray_info
+# DataOrigin and DataInformation are now imported from widgets
 
 
 class ControlPanel(v3.VCard):
@@ -777,7 +759,9 @@ class ControlPanel(v3.VCard):
                 self.ui_content = ui_content
                 if enable_data_selection:
                     DataOrigin(load_dataset)
-                self.ctrl[xr_update_info] = DataInformation().update_information
+
+                self._data_info = DataInformation()
+                self.ctrl[xr_update_info] = self._data_info.update_information
 
 
 class RenderingSettingsBasic(CollapsableSection):

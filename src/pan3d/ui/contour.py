@@ -1,7 +1,6 @@
-import math
-
 from pan3d.utils.common import RenderingSettingsBasic
-from pan3d.utils.convert import max_str_length
+from pan3d.widgets.scale_control import ScaleControl
+from pan3d.widgets.time_navigation import TimeNavigation
 from trame.widgets import html
 from trame.widgets import vuetify3 as v3
 
@@ -14,62 +13,16 @@ class ContourRenderingSettings(RenderingSettingsBasic):
 
         with self.content:
             # Actor scaling
-            with v3.VTooltip(text="Representation scaling"):
-                with html.Template(v_slot_activator="{ props }"):
-                    with v3.VRow(
-                        v_bind="props",
-                        no_gutter=True,
-                        classes="align-center my-0 mx-0 border-b-thin",
-                    ):
-                        v3.VIcon(
-                            "mdi-ruler-square",
-                            classes="ml-2 text-medium-emphasis",
-                        )
-                        with v3.VCol(classes="pa-0", v_if="axis_names?.[0]"):
-                            v3.VTextField(
-                                v_model=("scale_x", 1),
-                                hide_details=True,
-                                density="compact",
-                                flat=True,
-                                variant="solo",
-                                reverse=True,
-                                raw_attrs=[
-                                    'pattern="^\d*(\.\d)?$"',
-                                    'min="0.001"',
-                                    'step="0.1"',
-                                ],
-                                type="number",
-                            )
-                        with v3.VCol(classes="pa-0", v_if="axis_names?.[1]"):
-                            v3.VTextField(
-                                v_model=("scale_y", 1),
-                                hide_details=True,
-                                density="compact",
-                                flat=True,
-                                variant="solo",
-                                reverse=True,
-                                raw_attrs=[
-                                    'pattern="^\d*(\.\d)?$"',
-                                    'min="0.001"',
-                                    'step="0.1"',
-                                ],
-                                type="number",
-                            )
-                        with v3.VCol(classes="pa-0", v_if="axis_names?.[2]"):
-                            v3.VTextField(
-                                v_model=("scale_z", 1),
-                                hide_details=True,
-                                density="compact",
-                                flat=True,
-                                variant="solo",
-                                reverse=True,
-                                raw_attrs=[
-                                    'pattern="^\d*(\.\d)?$"',
-                                    'min="0.001"',
-                                    'step="0.1"',
-                                ],
-                                type="number",
-                            )
+            ScaleControl(
+                scale_x_name="scale_x",
+                scale_y_name="scale_y",
+                scale_z_name="scale_z",
+                min_value=0.001,
+                max_value=100,
+                step=0.1,
+                density="compact",
+                classes="mx-2 my-2",
+            )
 
             # contours
             with v3.VTooltip(
@@ -93,28 +46,17 @@ class ContourRenderingSettings(RenderingSettingsBasic):
                         )
 
             v3.VDivider()
-            # Time slider
-            with v3.VTooltip(
+            # Time navigation
+            TimeNavigation(
                 v_if="slice_t_max > 0",
-                text=("`time: ${time_idx + 1} / ${slice_t_max+1}`",),
-            ):
-                with html.Template(v_slot_activator="{ props }"):
-                    with html.Div(
-                        classes="d-flex pr-2",
-                        v_bind="props",
-                    ):
-                        v3.VSlider(
-                            prepend_icon="mdi-clock-outline",
-                            v_model=("slice_t", 0),
-                            min=0,
-                            max=("slice_t_max", 0),
-                            step=1,
-                            hide_details=True,
-                            density="compact",
-                            flat=True,
-                            variant="solo",
-                        )
+                index_name="slice_t",
+                labels_name="t_labels",
+                labels=[],
+                ctx_name="time_nav",
+                classes="mx-2 my-2",
+            )
             v3.VDivider()
+            # Update button
             v3.VBtn(
                 "Update 3D view",
                 block=True,
@@ -138,13 +80,7 @@ class ContourRenderingSettings(RenderingSettingsBasic):
             state.axis_names = [source.x, source.y, source.z]
             state.slice_extents = source.slice_extents
 
-            # Update time
-            state.slice_t = source.t_index
-            state.slice_t_max = source.t_size - 1
-            state.t_labels = source.t_labels
-            state.max_time_width = math.ceil(0.58 * max_str_length(state.t_labels))
-
-            if state.slice_t_max > 0:
-                state.max_time_index_width = math.ceil(
-                    0.6 + (math.log10(state.slice_t_max + 1) + 1) * 2 * 0.58
-                )
+            # Update TimeNavigation widget through context
+            if hasattr(self.ctx, "time_nav"):
+                self.ctx.time_nav.labels = source.t_labels
+                self.ctx.time_nav.index = source.t_index

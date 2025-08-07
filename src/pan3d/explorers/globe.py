@@ -20,13 +20,10 @@ from vtkmodules.vtkRenderingCore import (
 from pan3d.filters.globe import ProjectToSphere
 from pan3d.ui.globe import GlobeRenderingSettings
 from pan3d.ui.vtk_view import Pan3DView
-from pan3d.utils.common import ControlPanel, Explorer, SummaryToolbar
+from pan3d.utils.common import Explorer
 from pan3d.utils.globe import get_continent_outlines, get_globe, get_globe_textures
-from pan3d.widgets.scalar_bar import ScalarBar
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 from trame.decorators import change
-from trame.ui.vuetify3 import VAppLayout
-from trame.widgets import vuetify3 as v3
 
 # Prevent view-up warning
 vtkObject.GlobalWarningDisplayOff()
@@ -120,87 +117,21 @@ class GlobeExplorer(Explorer):
                 "render_shadow": False,
             }
         )
-        with VAppLayout(self.server, fill_height=True) as layout:
-            self.ui = layout
-
-            # 3D view
-            Pan3DView(
-                self.render_window,
-                local_rendering=self.local_rendering,
-                widgets=[self.widget],
-                disable_style_toggle=True,
-                disable_roll=True,
-                disable_axis_align=True,
-            )
-
-            # Scalar bar
-            ScalarBar(
-                ctx_name="scalar_bar",
-                v_show="!control_expended",
-                v_if="color_by",
-            )
-
-            # Save dialog
-            with v3.VDialog(v_model=("show_save_dialog", False)):
-                with v3.VCard(classes="mx-auto w-50"):
-                    v3.VCardTitle("Save dataset to disk")
-                    v3.VDivider()
-                    with v3.VCardText():
-                        v3.VTextField(
-                            label="File path to save",
-                            v_model=("save_dataset_path", ""),
-                            hide_details=True,
-                        )
-                    with v3.VCardActions():
-                        v3.VSpacer()
-                        v3.VBtn(
-                            "Save",
-                            classes="text-none",
-                            variant="flat",
-                            color="primary",
-                            click=(self.save_dataset, "[save_dataset_path]"),
-                        )
-                        v3.VBtn(
-                            "Cancel",
-                            classes="text-none",
-                            variant="flat",
-                            click="show_save_dialog=false",
-                        )
-
-            # Error messages
-            v3.VAlert(
-                v_if=("data_origin_error", False),
-                border="start",
-                max_width=700,
-                rounded="lg",
-                text=("data_origin_error", ""),
-                title="Failed to load data",
-                type="error",
-                variant="tonal",
-                style="position:absolute;bottom:1rem;right:1rem;",
-            )
-
-            # Summary toolbar
-            SummaryToolbar(
-                v_show="!control_expended",
-                v_if="slice_t_max > 0",
-            )
-
-            with ControlPanel(
-                enable_data_selection=(self.xarray is None),
-                source=self.source,
-                toggle="control_expended",
-                load_dataset=self.load_dataset,
-                import_file_upload=self.import_file_upload,
-                export_file_download=self.export_state,
-                xr_update_info="xr_update_info",
-                panel_label="Globe Explorer",
-            ).ui_content:
-                GlobeRenderingSettings(
-                    ctx_name="rendering",
-                    source=self.source,
-                    update_rendering=self.update_rendering,
-                )
+        # Use the standard UI creation method
+        return self._create_standard_ui(
+            panel_label="Globe Explorer",
+            view_class=Pan3DView,
+            rendering_settings_class=GlobeRenderingSettings,
+            view_kwargs={
+                "render_window": self.render_window,
+                "local_rendering": self.local_rendering,
+                "widgets": [self.widget],
+                "disable_style_toggle": True,
+                "disable_roll": True,
+                "disable_axis_align": True,
+            },
+            error_max_width=700,
+        )
 
     # -----------------------------------------------------
     # State change callbacks
