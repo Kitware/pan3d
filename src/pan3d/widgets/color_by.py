@@ -315,8 +315,7 @@ class ColorBy(html.Div):
     @color_min.setter
     def color_min(self, value):
         """Set the minimum value of the color mapping range."""
-        with self.state:
-            self.state[self.__color_min] = value
+        self.state[self.__color_min] = value
 
     @property
     def color_min_name(self):
@@ -329,8 +328,7 @@ class ColorBy(html.Div):
     @color_max.setter
     def color_max(self, value):
         """Set the maximum value of the color mapping range."""
-        with self.state:
-            self.state[self.__color_max] = value
+        self.state[self.__color_max] = value
 
     @property
     def color_max_name(self):

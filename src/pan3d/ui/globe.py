@@ -1,4 +1,4 @@
-from pan3d.utils.common import RenderingSettingsBasic
+from pan3d.ui.rendering_settings import RenderingSettingsBasic
 from pan3d.utils.constants import XYZ
 from pan3d.widgets import ClipSliceControl
 from pan3d.widgets.time_navigation import TimeNavigation
@@ -186,7 +186,9 @@ class GlobeRenderingSettings(RenderingSettingsBasic):
             state.dataset_bounds = bounds
 
             # Update ClipSliceControl widget through context
-            self.ctx.clip_slice.update_slice_values(source, source.slices)
+            if self.ctx.has("clip_slice"):
+                self.ctx.clip_slice.update_slice_values(source, source.slices)
             # Update TimeNavigation widget through context
-            self.ctx.time_nav.labels = source.t_labels
-            self.ctx.time_nav.index = source.t_index
+            if self.ctx.has("time_nav"):
+                self.ctx.time_nav.labels = source.t_labels
+                self.ctx.time_nav.index = source.t_index

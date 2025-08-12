@@ -23,6 +23,7 @@ from pan3d.ui.analytics import (
     plot_options,
     zonal_axes,
 )
+from pan3d.ui.layouts import StandardExplorerLayout
 from pan3d.ui.preview import RenderingSettings
 from pan3d.ui.vtk_view import Pan3DView
 from pan3d.utils.common import Explorer
@@ -371,22 +372,23 @@ class AnalyticsExplorer(Explorer):
         self.state.setdefault("time_groups", 0)
         self.state.setdefault("figure_height", 50)
 
-        # Use the standard UI creation method
-        layout = self._create_standard_ui(
-            panel_label="Analytics Explorer",
-            view_class=Pan3dAnalyticsView,
-            rendering_settings_class=RenderingSettings,
-            view_kwargs={
-                "render_window": self.render_window,
-                "local_rendering": self.local_rendering,
-                "widgets": [self.widget],
-            },
-            save_path_default="",
-            error_style="position:absolute;bottom:1rem;right:1rem;",
-        )
+        ## New way to build UI
+        with StandardExplorerLayout(
+            explorer=self, title="Analytics Explorer"
+        ) as self.ui:
+            with self.ui.content:
+                Pan3dAnalyticsView(
+                    render_window=self.render_window,
+                    local_rendering=self.local_rendering,
+                    widget=[self.widget],
+                )
+            with self.ui.control_panel:
+                RenderingSettings(
+                    ctx_name="rendering",
+                    source=self.source,
+                    update_rendering=self.update_rendering,
+                )
 
-        # Add navigation drawer within the VAppLayout
-        with layout:
             with v3.VNavigationDrawer(
                 disable_resize_watcher=True,
                 disable_route_watcher=True,
@@ -397,7 +399,9 @@ class AnalyticsExplorer(Explorer):
             ):
                 self.plotting = Plotting(source=self.source, toggle="chart_expanded")
 
-        return layout
+        self.ctx.save_dialog.save_callback = self._save_dataset
+        if self.source and self.source.input is not None:
+            self.ctx.rendering.update_from_source(self.source)
 
     # -----------------------------------------------------
     # State change callbacks

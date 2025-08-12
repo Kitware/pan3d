@@ -24,6 +24,7 @@ from vtkmodules.vtkRenderingCore import (
 )
 
 from pan3d.ui.contour import ContourRenderingSettings
+from pan3d.ui.layouts import StandardExplorerLayout
 from pan3d.ui.vtk_view import Pan3DView
 from pan3d.utils.common import Explorer
 from pan3d.utils.convert import to_float
@@ -41,10 +42,6 @@ class ContourExplorer(Explorer):
             self.source = vtkXArrayRectilinearSource(
                 input=self.xarray
             )  # To initialize the pipeline
-
-        # setup
-        self.last_field = None
-        self.last_preset = None
 
         self._setup_vtk(pipeline)
         self._build_ui()
@@ -131,18 +128,21 @@ class ContourExplorer(Explorer):
                 "scale_z": 0.01,
             }
         )
+
         # Use the standard UI creation method
-        return self._create_standard_ui(
-            panel_label="Contour Explorer",
-            view_class=Pan3DView,
-            rendering_settings_class=ContourRenderingSettings,
-            view_kwargs={
-                "render_window": self.render_window,
-                "local_rendering": self.local_rendering,
-                "widgets": [self.widget],
-            },
-            save_path_default="output.nc",
-        )
+        with StandardExplorerLayout(explorer=self, title="Contour Explorer") as self.ui:
+            with self.ui.content:
+                Pan3DView(
+                    render_window=self.render_window,
+                    local_rendering=self.local_rendering,
+                    widget=[self.widget],
+                )
+            with self.ui.control_panel:
+                ContourRenderingSettings(
+                    ctx_name="rendering",
+                    source=self.source,
+                    update_rendering=self.update_rendering,
+                )
 
     def update_rendering(self, reset_camera=False):
         self.state.dirty_data = False

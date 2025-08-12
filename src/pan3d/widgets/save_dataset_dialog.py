@@ -12,7 +12,7 @@ class SaveDatasetDialog(v3.VDialog):
 
     def __init__(
         self,
-        save_callback,
+        save_callback=None,
         v_model=("show_save_dialog", False),
         save_path_model=("save_path", "output.nc"),
         title="Save Dataset",
@@ -54,7 +54,17 @@ class SaveDatasetDialog(v3.VDialog):
                     )
                     v3.VBtn(
                         "Save",
-                        click=(save_callback, f"[{save_path_model[0]}]"),
+                        click=(self.save_callback, f"[{save_path_model[0]}]"),
                         variant="elevated",
                         color="primary",
                     )
+
+    @property
+    def save_callback(self):
+        """Get the save callback function."""
+        return self._save_callback
+
+    @save_callback.setter
+    def save_callback(self, value):
+        """Set the save callback function."""
+        self._save_callback = value

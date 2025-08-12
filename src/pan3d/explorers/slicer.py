@@ -24,6 +24,7 @@ from vtkmodules.vtkRenderingCore import (
     vtkRenderWindowInteractor,
 )
 
+from pan3d.ui.layouts import StandardExplorerLayout
 from pan3d.ui.slicer import SliceRenderingSettings
 from pan3d.ui.vtk_view import Pan3DView
 from pan3d.utils.common import Explorer
@@ -265,25 +266,24 @@ class SliceExplorer(Explorer):
             }
         )
 
-        # Add SliceSummary as an additional component
-        def add_slice_summary():
-            SliceSummary(
-                v_show="!control_expended",
-                style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); z-index: 2;",
-            )
-
         # Use the standard UI creation method
-        return self._create_standard_ui(
-            panel_label="Slice Explorer",
-            view_class=Pan3DSlicerView,
-            rendering_settings_class=SliceRenderingSettings,
-            view_kwargs={
-                "render_window": self.render_window,
-                "local_rendering": self.local_rendering,
-                "widgets": [self.widget],
-            },
-            additional_components=add_slice_summary,
-        )
+        with StandardExplorerLayout(explorer=self, title="Slice Explorer") as self.ui:
+            with self.ui.content:
+                Pan3DSlicerView(
+                    render_window=self.render_window,
+                    local_rendering=self.local_rendering,
+                    widget=[self.widget],
+                )
+                SliceSummary(
+                    v_show="!control_expended",
+                    style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); z-index: 2;",
+                )
+            with self.ui.control_panel:
+                SliceRenderingSettings(
+                    ctx_name="rendering",
+                    source=self.source,
+                    update_rendering=self.update_rendering,
+                )
 
     def update_rendering(self, reset_camera=False):
         self.state.dirty_data = False
@@ -321,27 +321,6 @@ class SliceExplorer(Explorer):
             self.state.slice_axis = axis
 
     @property
-    def slice_value(self):
-        """
-        Returns the value(origin) for the dimension along which the slice
-        is performed
-        """
-        s = self.state
-        axis = "xyz"[s.slice_axes.index(s.slice_axis)]
-        return s[f"cut_{axis}"]
-
-    @slice_value.setter
-    def slice_value(self, value: float) -> None:
-        """
-        Sets the value(origin) for the dimension along which the slice
-        is performed
-        """
-        with self.state:
-            s = self.state
-            axis = "xyz"[s.slice_axes.index(s.slice_axis)]
-            s[f"cut_{axis}"] = value
-
-    @property
     def view_mode(self):
         """
         Returns the interaction mode (2D/3D) for the slice
@@ -356,22 +335,6 @@ class SliceExplorer(Explorer):
         """
         with self.state:
             self.state.view_mode = mode
-
-    @property
-    def scale_axis(self):
-        s = self.state
-        return [s.x_scale, s.y_scale, s.z_scale]
-
-    @scale_axis.setter
-    def scale_axis(self, sfac):
-        s = self.state
-        s.x_scale = float(sfac[0])
-        s.y_scale = float(sfac[1])
-        s.z_scale = float(sfac[2])
-        self.slice_actor.SetScale(*sfac)
-        self.data_actor.SetScale(*sfac)
-        self.outline_actor.SetScale(*sfac)
-        self.on_view_mode_change(s.view_mode)
 
     # -------------------------------------------------------------------------
     # UI triggers
