@@ -1,8 +1,8 @@
 from pan3d.utils.common import RenderingSettingsBasic
 from pan3d.utils.constants import XYZ
 from pan3d.widgets import ClipSliceControl
-from pan3d.widgets.level_of_detail import LevelOfDetail
 from pan3d.widgets.time_navigation import TimeNavigation
+from pan3d.widgets.vector_property_control import VectorPropertyControl
 from trame.widgets import html
 from trame.widgets import vuetify3 as v3
 
@@ -123,15 +123,20 @@ class GlobeRenderingSettings(RenderingSettingsBasic):
                 range_vars=["slice_x_range", "slice_y_range", "slice_z_range"],
                 cut_vars=["slice_x_cut", "slice_y_cut", "slice_z_cut"],
                 step_vars=["slice_x_step", "slice_y_step", "slice_z_step"],
+                ctx_name="clip_slice",
             )
             v3.VDivider()
 
             # Level of detail / Slice steps
-            LevelOfDetail(
-                step_x_name="slice_x_step",
-                step_y_name="slice_y_step",
-                step_z_name="slice_z_step",
+            VectorPropertyControl(
+                property_name="step",
+                icon="mdi-stairs",
+                tooltip="Level Of Details / Slice stepping",
+                x_name="slice_x_step",
+                y_name="slice_y_step",
+                z_name="slice_z_step",
                 axis_names_var="axis_names",
+                default_value=1,
                 min_value=1,
                 classes="mx-2 my-2",
             )
@@ -179,31 +184,9 @@ class GlobeRenderingSettings(RenderingSettingsBasic):
                 else:
                     bounds.extend([0, 1])
             state.dataset_bounds = bounds
-            slices = source.slices
-            for axis in XYZ:
-                # default
-                axis_extent = state.slice_extents.get(getattr(source, axis))
-                state[f"slice_{axis}_range"] = axis_extent
-                state[f"slice_{axis}_cut"] = 0
-                state[f"slice_{axis}_step"] = 1
-                state[f"slice_{axis}_type"] = "range"
 
-                # use slice info if available
-                axis_slice = slices.get(getattr(source, axis))
-                if axis_slice is not None:
-                    if isinstance(axis_slice, int):
-                        # cut
-                        state[f"slice_{axis}_cut"] = axis_slice
-                        state[f"slice_{axis}_type"] = "cut"
-                    else:
-                        # range
-                        state[f"slice_{axis}_range"] = [
-                            axis_slice[0],
-                            axis_slice[1] - 1,
-                        ]  # end is inclusive
-                        state[f"slice_{axis}_step"] = axis_slice[2]
-
+            # Update ClipSliceControl widget through context
+            self.ctx.clip_slice.update_slice_values(source, source.slices)
             # Update TimeNavigation widget through context
-            if hasattr(self.ctx, "time_nav"):
-                self.ctx.time_nav.labels = source.t_labels
-                self.ctx.time_nav.index = source.t_index
+            self.ctx.time_nav.labels = source.t_labels
+            self.ctx.time_nav.index = source.t_index

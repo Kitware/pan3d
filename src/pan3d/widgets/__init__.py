@@ -3,13 +3,12 @@ from .color_by import ColorBy
 from .data_information import DataInformation
 from .data_origin import DataOrigin
 from .error_alert import ErrorAlert
-from .level_of_detail import LevelOfDetail
 from .pan3d_view import Pan3DView
 from .save_dataset_dialog import SaveDatasetDialog
 from .scalar_bar import ScalarBar
-from .scale_control import ScaleControl
 from .slice_control import SliceControl
 from .time_navigation import TimeNavigation
+from .vector_property_control import VectorPropertyControl
 
 __all__ = [
     "ClipSliceControl",
@@ -17,11 +16,10 @@ __all__ = [
     "DataInformation",
     "DataOrigin",
     "ErrorAlert",
-    "LevelOfDetail",
     "Pan3DView",
     "SaveDatasetDialog",
     "ScalarBar",
-    "ScaleControl",
     "SliceControl",
     "TimeNavigation",
+    "VectorPropertyControl",
 ]

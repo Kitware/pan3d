@@ -1,6 +1,6 @@
 from pan3d.utils.common import RenderingSettingsBasic
-from pan3d.widgets.scale_control import ScaleControl
 from pan3d.widgets.time_navigation import TimeNavigation
+from pan3d.widgets.vector_property_control import VectorPropertyControl
 from trame.widgets import html
 from trame.widgets import vuetify3 as v3
 
@@ -13,14 +13,18 @@ class ContourRenderingSettings(RenderingSettingsBasic):
 
         with self.content:
             # Actor scaling
-            ScaleControl(
-                scale_x_name="scale_x",
-                scale_y_name="scale_y",
-                scale_z_name="scale_z",
+            VectorPropertyControl(
+                property_name="scale",
+                icon="mdi-ruler-square",
+                tooltip="Representation scaling",
+                x_name="scale_x",
+                y_name="scale_y",
+                z_name="scale_z",
+                axis_names_var="axis_names",
+                default_value=1,
                 min_value=0.001,
                 max_value=100,
                 step=0.1,
-                density="compact",
                 classes="mx-2 my-2",
             )
 
