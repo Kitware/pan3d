@@ -19,6 +19,7 @@ from vtkmodules.vtkRenderingCore import (
 
 from pan3d.filters.globe import ProjectToSphere
 from pan3d.ui.globe import GlobeRenderingSettings
+from pan3d.ui.layouts import StandardExplorerLayout
 from pan3d.ui.vtk_view import Pan3DView
 from pan3d.utils.common import Explorer
 from pan3d.utils.globe import get_continent_outlines, get_globe, get_globe_textures
@@ -118,20 +119,19 @@ class GlobeExplorer(Explorer):
             }
         )
         # Use the standard UI creation method
-        return self._create_standard_ui(
-            panel_label="Globe Explorer",
-            view_class=Pan3DView,
-            rendering_settings_class=GlobeRenderingSettings,
-            view_kwargs={
-                "render_window": self.render_window,
-                "local_rendering": self.local_rendering,
-                "widgets": [self.widget],
-                "disable_style_toggle": True,
-                "disable_roll": True,
-                "disable_axis_align": True,
-            },
-            error_max_width=700,
-        )
+        with StandardExplorerLayout(explorer=self, title="Globe Explorer") as self.ui:
+            with self.ui.content:
+                Pan3DView(
+                    render_window=self.render_window,
+                    local_rendering=self.local_rendering,
+                    widget=[self.widget],
+                )
+            with self.ui.control_panel:
+                GlobeRenderingSettings(
+                    ctx_name="rendering",
+                    source=self.source,
+                    update_rendering=self.update_rendering,
+                )
 
     # -----------------------------------------------------
     # State change callbacks

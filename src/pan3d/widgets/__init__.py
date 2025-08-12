@@ -7,6 +7,7 @@ from .pan3d_view import Pan3DView
 from .save_dataset_dialog import SaveDatasetDialog
 from .scalar_bar import ScalarBar
 from .slice_control import SliceControl
+from .summary_toolbar import SummaryToolbar
 from .time_navigation import TimeNavigation
 from .vector_property_control import VectorPropertyControl
 
@@ -20,6 +21,7 @@ __all__ = [
     "SaveDatasetDialog",
     "ScalarBar",
     "SliceControl",
+    "SummaryToolbar",
     "TimeNavigation",
     "VectorPropertyControl",
 ]

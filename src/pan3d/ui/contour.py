@@ -1,4 +1,4 @@
-from pan3d.utils.common import RenderingSettingsBasic
+from pan3d.ui.rendering_settings import RenderingSettingsBasic
 from pan3d.widgets.time_navigation import TimeNavigation
 from pan3d.widgets.vector_property_control import VectorPropertyControl
 from trame.widgets import html
@@ -85,6 +85,6 @@ class ContourRenderingSettings(RenderingSettingsBasic):
             state.slice_extents = source.slice_extents
 
             # Update TimeNavigation widget through context
-            if hasattr(self.ctx, "time_nav"):
+            if self.ctx.has("time_nav"):
                 self.ctx.time_nav.labels = source.t_labels
                 self.ctx.time_nav.index = source.t_index

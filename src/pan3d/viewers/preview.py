@@ -13,6 +13,7 @@ from vtkmodules.vtkRenderingCore import (
     vtkRenderWindowInteractor,
 )
 
+from pan3d.ui.layouts import StandardExplorerLayout
 from pan3d.ui.preview import RenderingSettings
 from pan3d.ui.vtk_view import Pan3DView
 from pan3d.utils.common import Explorer
@@ -76,17 +77,19 @@ class XArrayViewer(Explorer):
         self.state.trame__title = "XArray Viewer"
 
         # Use the standard UI creation method
-        return self._create_standard_ui(
-            panel_label="XArray Viewer",
-            view_class=Pan3DView,
-            rendering_settings_class=RenderingSettings,
-            view_kwargs={
-                "render_window": self.render_window,
-                "local_rendering": self.local_rendering,
-                "widgets": [self.widget],
-            },
-            error_max_width=700,
-        )
+        with StandardExplorerLayout(explorer=self, title="XArray Viewer") as self.ui:
+            with self.ui.content:
+                Pan3DView(
+                    render_window=self.render_window,
+                    local_rendering=self.local_rendering,
+                    widgets=[self.widget],
+                )
+            with self.ui.control_panel:
+                RenderingSettings(
+                    ctx_name="rendering",
+                    source=self.source,
+                    update_rendering=self.update_rendering,
+                )
 
     # -----------------------------------------------------
     # State change callbacks
