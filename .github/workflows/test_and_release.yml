@@ -55,7 +55,9 @@ jobs:
 
       - name: Install OSMesa for Linux
         if: matrix.config.os == 'ubuntu-latest'
-        run: sudo apt-get install -y libosmesa6-dev
+        run: |
+          sudo apt update
+          sudo apt-get install -y libosmesa6-dev
 
       - name: Install and Run Tests
         run: |
