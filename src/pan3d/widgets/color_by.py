@@ -412,3 +412,4 @@ class ColorBy(html.Div):
         mapper.SelectColorArray(self.color_by)
         mapper.SetScalarRange(self.color_min, self.color_max)
         mapper.SetScalarVisibility(1)
+        mapper.SetColorModeToMapScalars()  # Critical fix: Force use of lookup table
