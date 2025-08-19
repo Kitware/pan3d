@@ -1,13 +1,12 @@
 from pan3d.ui.css import base, vtk_view
 from pan3d.utils.constants import VIEW_UPS
-from trame.decorators import TrameApp, change
+from trame.decorators import change
 from trame.widgets import html
 from trame.widgets import vtk as vtkw
 from trame.widgets import vtklocal as wasm
 from trame.widgets import vuetify3 as v3
 
 
-@TrameApp()
 class Pan3DView(html.Div):
     def __init__(
         self,

@@ -25,9 +25,9 @@ from vtkmodules.vtkRenderingCore import (
 )
 
 from pan3d.ui.css import base, preview
-from pan3d.ui.vtk_view import Pan3DView
 from pan3d.utils.convert import to_float, to_image
 from pan3d.utils.presets import PRESETS, set_preset
+from pan3d.widgets.pan3d_view import Pan3DView
 from trame.app import get_server
 from trame.decorators import TrameApp, change
 from trame.ui.vuetify3 import VAppLayout

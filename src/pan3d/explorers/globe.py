@@ -20,9 +20,9 @@ from vtkmodules.vtkRenderingCore import (
 from pan3d.filters.globe import ProjectToSphere
 from pan3d.ui.globe import GlobeRenderingSettings
 from pan3d.ui.layouts import StandardExplorerLayout
-from pan3d.ui.vtk_view import Pan3DView
 from pan3d.utils.common import Explorer
 from pan3d.utils.globe import get_continent_outlines, get_globe, get_globe_textures
+from pan3d.widgets.pan3d_view import Pan3DView
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
 from trame.decorators import change
 
