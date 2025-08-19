@@ -28,17 +28,16 @@ from pan3d.ui.css import base, preview
 from pan3d.utils.convert import to_float, to_image
 from pan3d.utils.presets import PRESETS, set_preset
 from pan3d.widgets.pan3d_view import Pan3DView
-from trame.app import get_server
-from trame.decorators import TrameApp, change
+from trame.app import TrameApp
+from trame.decorators import change
 from trame.ui.vuetify3 import VAppLayout
 from trame.widgets import html
 from trame.widgets import vuetify3 as v3
 
 
-@TrameApp()
-class ContourExplorer:
+class ContourExplorer(TrameApp):
     def __init__(self, server=None, local_rendering=None):
-        self.server = get_server(server, client_type="vue3")
+        super().__init__(server, client_type="vue3")
         self.server.enable_module(base)
         self.server.enable_module(preview)
 
