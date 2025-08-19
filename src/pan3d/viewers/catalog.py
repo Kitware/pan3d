@@ -7,17 +7,16 @@ from trame_client.widgets.core import TrameDefault
 from pan3d import catalogs as pan3d_catalogs
 from pan3d.ui.catalog_search import CatalogSearch
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
-from trame.app import get_server
-from trame.decorators import TrameApp, change
+from trame.app import TrameApp
+from trame.decorators import change
 from trame.ui.vuetify3 import SinglePageWithDrawerLayout
 from trame.widgets import html
 from trame.widgets import vuetify3 as v3
 
 
-@TrameApp()
-class CatalogBrowser:
+class CatalogBrowser(TrameApp):
     def __init__(self, server=None):
-        self.server = get_server(server)
+        super().__init__(server, client_type="vue3")
         self.current_event_loop = asyncio.get_event_loop()
 
         # dev setup

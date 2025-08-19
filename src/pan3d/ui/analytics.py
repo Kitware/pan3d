@@ -1,6 +1,6 @@
 import sys
 
-from trame.decorators import TrameApp, change
+from trame.decorators import change
 from trame.widgets import html, plotly
 from trame.widgets import vuetify3 as v3
 
@@ -68,7 +68,6 @@ zonal_axes = {
 }
 
 
-@TrameApp()
 class Plotting(v3.VCard):
     def __init__(
         self,
