@@ -1,3 +1,4 @@
+import vtkmodules.vtkRenderingAnari as vtkRenderingAnari
 import vtkmodules.vtkRenderingOpenGL2  # noqa: F401
 from vtkmodules.vtkCommonCore import vtkObject
 from vtkmodules.vtkFiltersGeometry import vtkGeometryFilter
@@ -59,6 +60,22 @@ class GlobeExplorer(Explorer):
         self.renderer = vtkRenderer(background=(0.8, 0.8, 0.8))
         self.interactor = vtkRenderWindowInteractor()
         self.render_window = vtkRenderWindow(off_screen_rendering=1)
+
+        anariPass = vtkRenderingAnari.vtkAnariPass()
+        self.renderer.SetPass(anariPass)
+
+        anariDevice = anariPass.GetAnariDevice()
+        anariDevice.SetupAnariDeviceFromLibrary("environment", "default", False)
+
+        anariRenderer = anariPass.GetAnariRenderer()
+        anariRenderer.SetSubtype("raycast")
+        anariRenderer.SetParameterf("ambientRadiance", 0.8)
+
+        # VisRTX specific settings
+        # anariRenderer.SetParameterf("lightFalloff", 0.5)
+        anariRenderer.SetParameterb("denoise", True)
+        anariRenderer.SetParameteri("pixelSamples", 10)
+        # anariRenderer.SetParameteri("ambientSamples", 5)
 
         self.render_window.AddRenderer(self.renderer)
         self.interactor.SetRenderWindow(self.render_window)
