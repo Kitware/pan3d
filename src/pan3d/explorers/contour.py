@@ -112,6 +112,11 @@ class ContourExplorer(Explorer):
         self.widget.EnabledOn()
         self.widget.InteractiveOff()
 
+        if self.anari:
+            from pan3d.utils import anari
+
+            anari.setup(self.renderer)
+
     # -------------------------------------------------------------------------
     # UI
     # -------------------------------------------------------------------------
