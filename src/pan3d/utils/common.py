@@ -32,6 +32,7 @@ class Explorer(TrameApp):
             - `--xarray-url`: Provide URL to xarray dataset
             - `--wasm`: Use WASM for local rendering
             - `--vtkjs`: Use vtk.js for local rendering
+            - `--anari`: Use anari for remote rendering
         """
         super().__init__(server, client_type="vue3")
 
@@ -62,11 +63,17 @@ class Explorer(TrameApp):
             help="Use vtk.js for local rendering",
             action="store_true",
         )
+        rendering.add_argument(
+            "--anari",
+            help="Use anari for remote rendering",
+            action="store_true",
+        )
 
         # CLI
         args, _ = self.server.cli.parse_known_args()
         # Local rendering
         self.local_rendering = local_rendering
+        self.anari = args.anari
         if args.wasm:
             self.local_rendering = "wasm"
         if args.vtkjs:
