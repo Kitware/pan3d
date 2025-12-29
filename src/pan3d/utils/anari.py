@@ -6,16 +6,15 @@ def setup(renderer):
 
     anariPass = vtkRenderingAnari.vtkAnariPass()
     renderer.SetPass(anariPass)
-
-    anariDevice = anariPass.GetAnariDevice()
-    anariDevice.SetupAnariDeviceFromLibrary("environment", "default", False)
-
+    # Call render on the render window to initialize ANARI
+    renderer.GetRenderWindow().Render()
+    # Configure ANARI renderer parameters
     anariRenderer = anariPass.GetAnariRenderer()
-    anariRenderer.SetSubtype("raycast")
-    anariRenderer.SetParameterf("ambientRadiance", 0.8)
+    anariRenderer.SetParameterf("ambientRadiance", 1.0)
 
     # VisRTX specific settings
-    # anariRenderer.SetParameterf("lightFalloff", 0.5)
     anariRenderer.SetParameterb("denoise", True)
-    anariRenderer.SetParameteri("pixelSamples", 10)
-    # anariRenderer.SetParameteri("ambientSamples", 5)
+    anariRenderer.SetParameteri("pixelSamples", 5)
+    anariRenderer.SetParameteri("ambientSamples", 1)
+
+    return anariPass

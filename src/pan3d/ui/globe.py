@@ -92,6 +92,7 @@ class GlobeRenderingSettings(RenderingSettingsBasic):
                             variant="solo",
                         )
 
+            v3.VDivider()
             with v3.VTooltip(
                 text=("`Bump Radius: ${bump_radius}`",),
             ):
@@ -149,7 +150,27 @@ class GlobeRenderingSettings(RenderingSettingsBasic):
                 ctx_name="time_nav",
                 classes="mx-2 my-2",
             )
+
             v3.VDivider()
+            with v3.VTooltip(
+                text=("`ANARI Rendering: ${anari} (requires compatible VTK build)`",),
+            ):
+                with html.Template(v_slot_activator="{ props }"):
+                    with html.Div(
+                        classes="d-flex pr-2",
+                        v_bind="props",
+                    ):
+                        v3.VCheckbox(
+                            label="Enable ANARI Rendering",
+                            prepend_icon="mdi-aurora",
+                            v_model=("anari", True),
+                            density="compact",
+                            flat=True,
+                            variant="solo",
+                            hide_details=True,
+                            classes="pr-3 ml-3",
+                        )
+
             # Update button
             v3.VBtn(
                 "Update 3D view",

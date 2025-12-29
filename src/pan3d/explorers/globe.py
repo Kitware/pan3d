@@ -1,13 +1,13 @@
 import vtkmodules.vtkRenderingAnari as vtkRenderingAnari
-import vtkmodules.vtkRenderingOpenGL2  # noqa: F401
+
+# import vtkmodules.vtkRenderingOpenGL2  # noqa: F401
+from trame.decorators import change
 from vtkmodules.vtkCommonCore import vtkObject
 from vtkmodules.vtkFiltersGeometry import vtkGeometryFilter
 
 # VTK factory initialization
-from vtkmodules.vtkInteractionStyle import (
-    vtkInteractorStyleSwitch,  # noqa: F401
-    vtkInteractorStyleTerrain,
-)
+from vtkmodules.vtkInteractionStyle import vtkInteractorStyleSwitch  # noqa: F401
+from vtkmodules.vtkInteractionStyle import vtkInteractorStyleTerrain
 from vtkmodules.vtkInteractionWidgets import vtkOrientationMarkerWidget
 from vtkmodules.vtkRenderingAnnotation import vtkAxesActor
 from vtkmodules.vtkRenderingCore import (
@@ -21,11 +21,11 @@ from vtkmodules.vtkRenderingCore import (
 from pan3d.filters.globe import ProjectToSphere
 from pan3d.ui.globe import GlobeRenderingSettings
 from pan3d.ui.layouts import StandardExplorerLayout
+from pan3d.utils import anari
 from pan3d.utils.common import Explorer
 from pan3d.utils.globe import get_continent_outlines, get_globe, get_globe_textures
 from pan3d.widgets.pan3d_view import Pan3DView
 from pan3d.xarray.algorithm import vtkXArrayRectilinearSource
-from trame.decorators import change
 
 # Prevent view-up warning
 vtkObject.GlobalWarningDisplayOff()
@@ -60,22 +60,6 @@ class GlobeExplorer(Explorer):
         self.renderer = vtkRenderer(background=(0.8, 0.8, 0.8))
         self.interactor = vtkRenderWindowInteractor()
         self.render_window = vtkRenderWindow(off_screen_rendering=1)
-
-        anariPass = vtkRenderingAnari.vtkAnariPass()
-        self.renderer.SetPass(anariPass)
-
-        anariDevice = anariPass.GetAnariDevice()
-        anariDevice.SetupAnariDeviceFromLibrary("environment", "default", False)
-
-        anariRenderer = anariPass.GetAnariRenderer()
-        anariRenderer.SetSubtype("raycast")
-        anariRenderer.SetParameterf("ambientRadiance", 0.8)
-
-        # VisRTX specific settings
-        # anariRenderer.SetParameterf("lightFalloff", 0.5)
-        anariRenderer.SetParameterb("denoise", True)
-        anariRenderer.SetParameteri("pixelSamples", 10)
-        # anariRenderer.SetParameteri("ambientSamples", 5)
 
         self.render_window.AddRenderer(self.renderer)
         self.interactor.SetRenderWindow(self.render_window)
@@ -118,10 +102,7 @@ class GlobeExplorer(Explorer):
         self.widget.EnabledOn()
         self.widget.InteractiveOff()
 
-        if self.anari:
-            from pan3d.utils import anari
-
-            anari.setup(self.renderer)
+        self.anariPass = anari.setup(self.renderer)
 
     # -------------------------------------------------------------------------
     # UI
@@ -181,6 +162,14 @@ class GlobeExplorer(Explorer):
     @change("texture")
     def _on_texture_preset(self, texture, **_):
         self.gactor.SetTexture(self.textures[texture])
+        self.ctrl.view_update()
+
+    @change("anari")
+    def _on_anari_change(self, anari, **_):
+        if anari:
+            self.renderer.SetPass(self.anariPass)
+        else:
+            self.renderer.SetPass(None)
         self.ctrl.view_update()
 
     def update_rendering(self, reset_camera=False):
