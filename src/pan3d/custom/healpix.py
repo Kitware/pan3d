@@ -136,6 +136,11 @@ class HealPixViewer(TrameApp):
             help="Use WASM for local rendering",
             action="store_true",
         )
+        self.server.cli.add_argument(
+            "--anari",
+            help="Use anari for remote rendering",
+            action="store_true",
+        )
 
         self.server.cli.add_argument(
             "--data",
@@ -143,6 +148,7 @@ class HealPixViewer(TrameApp):
         )
 
         args, _ = self.server.cli.parse_known_args()
+        self.anari = args.anari
         zarr_file = Path(args.data).resolve()
 
         # Local rendering
@@ -196,6 +202,11 @@ class HealPixViewer(TrameApp):
         self.widget.SetViewport(0.85, 0, 1, 0.15)
         self.widget.EnabledOn()
         self.widget.InteractiveOff()
+
+        if self.anari:
+            from pan3d.utils import anari
+
+            anari.setup(self.renderer)
 
     # -------------------------------------------------------------------------
     # UI
