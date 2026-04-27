@@ -7,7 +7,7 @@ authors = [
 ]
 dependencies = [
     # viz
-    "vtk>=9.4.2",
+    "vtk>=9.6",
 
     # catalog handling
     "requests>=2.31",
@@ -33,15 +33,17 @@ classifiers = [
 
 [project.optional-dependencies]
 viewer = [
-    "trame>=3.9",
-    "trame-client>=3.9.1",
-    "trame-vtk>=2.8.15",
-    "trame-vtklocal>=0.12.2",
-    "trame-vuetify>=3.0.1",
-    "trame-plotly>=3.1.0",
+    "trame>=3.12",
+    "trame-vtk>=2.11.8",
+    "trame-vtklocal>=0.17.1",
+    "trame-vuetify>=3.2.1",
+    "trame-plotly>=3.1.2",
 ]
 esgf = [
     "intake-esgf>=2024.1",
+]
+healpix = [
+    "healpy",
 ]
 pangeo = [
     "intake==0.7.0",  # latest has plugin errors
@@ -59,6 +61,9 @@ all = [
     "trame-vtklocal>=0.12.2",
     "trame-vuetify>=3.0.1",
     "trame-plotly>=3.1.0",
+
+    # healpy
+    "healpy",
 
     # esgf
     "intake-esgf>=2024.1",
@@ -84,6 +89,7 @@ xr-slicer = "pan3d.explorers.slicer:main"
 xr-globe = "pan3d.explorers.globe:main"
 xr-contour = "pan3d.explorers.contour:main"
 xr-analytics = "pan3d.explorers.analytics:main"
+healpix = "pan3d.custom.healpix:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -91,8 +97,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build]
 include = [
-  "/src/trame/**/*.py",
-  "/src/pan3d/**/*.py",
+  "/src/**/*.py",
   "/src/pan3d/**/module/serve/*.js",
   "/src/pan3d/**/ui/custom.css",
   "/src/pan3d/**/ui/css/*",

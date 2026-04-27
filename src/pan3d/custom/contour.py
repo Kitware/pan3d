@@ -147,20 +147,6 @@ class ContourExplorer(TrameApp):
         self.widget.InteractiveOff()
 
     # -------------------------------------------------------------------------
-    # Trame API
-    # -------------------------------------------------------------------------
-
-    @property
-    def state(self):
-        """Returns the current the trame server state."""
-        return self.server.state
-
-    @property
-    def ctrl(self):
-        """Returns the Controller for the trame server."""
-        return self.server.controller
-
-    # -------------------------------------------------------------------------
     # UI
     # -------------------------------------------------------------------------
 
